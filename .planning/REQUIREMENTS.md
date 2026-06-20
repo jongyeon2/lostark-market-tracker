@@ -94,18 +94,19 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| COLL-01..05 | TBD | Pending |
-| DATA-01..04 | TBD | Pending |
-| API-01..05 | TBD | Pending |
-| ADMIN-01..03 | TBD | Pending |
-| IMPACT-01..02 | TBD | Pending |
-| OPS-01 | TBD | Pending |
-| DIST-01..04 | TBD | Pending |
+| DATA-01..04 | Phase 1 | Pending |
+| DIST-01 | Phase 1 | Pending |
+| COLL-01..05 | Phase 2 | Pending |
+| API-01..05 | Phase 3 | Pending |
+| OPS-01 | Phase 3 | Pending |
+| ADMIN-01..03 | Phase 4 | Pending |
+| IMPACT-01..02 | Phase 5 | Pending |
+| DIST-02..04 | Phase 6 | Pending |
 
 **Coverage:**
 - v1 requirements: 24 total
-- Mapped to phases: 0 (로드맵 생성 시 채워짐)
-- Unmapped: 24 ⚠️ (roadmapper가 해소)
+- Mapped to phases: 24
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-06-20*
