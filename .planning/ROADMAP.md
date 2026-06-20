@@ -43,7 +43,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 01-02-PLAN.md — 4테이블 Flyway DDL + JPA 엔티티(ddl-auto=validate) + 실HTTP 라운드트립 IT (DATA-01..04)
+- [x] 01-02-PLAN.md — 4테이블 Flyway DDL + JPA 엔티티(ddl-auto=validate) + 실HTTP 라운드트립 IT (DATA-01..04)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -159,7 +159,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation + Task 0 | 1/3 | In Progress|  |
+| 1. Foundation + Task 0 | 2/3 | In Progress|  |
 | 2. Collection Pipeline | 0/3 | Not started | - |
 | 3. Read API + Cache | 0/3 | Not started | - |
 | 4. Admin + Events | 0/2 | Not started | - |
