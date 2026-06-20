@@ -1,0 +1,37 @@
+# Base configuration. Connection values come from environment placeholders only
+# (no real secrets committed). Profile-specific overrides live in application-{dev,test}.yml.
+spring:
+  application:
+    name: lostark-price-tracker
+
+  datasource:
+    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/lostark}
+    username: ${POSTGRES_USER:lostark}
+    password: ${POSTGRES_PASSWORD:lostark}
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  jpa:
+    # Flyway owns the schema (D-02); JPA only validates entity<->schema agreement, never creates/alters.
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+
+  flyway:
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always

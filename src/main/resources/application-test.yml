@@ -1,0 +1,6 @@
+# Test profile: datasource and Redis connection are supplied at runtime by Testcontainers
+# via @DynamicPropertySource (see com.lostark.tracker.support.PostgresRedisContainers).
+# No static connection config here on purpose — the containers provide ephemeral coordinates.
+spring:
+  jpa:
+    show-sql: false

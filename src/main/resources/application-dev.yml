@@ -1,0 +1,11 @@
+# Dev profile: targets the docker-compose Postgres + Redis services.
+# Values resolve from .env (see .env.example) with localhost compose defaults as fallback.
+spring:
+  datasource:
+    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/lostark}
+    username: ${POSTGRES_USER:lostark}
+    password: ${POSTGRES_PASSWORD:lostark}
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
