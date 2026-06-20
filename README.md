@@ -14,10 +14,10 @@ Lostark Open API 기반 시장 가격 추적 백엔드 프로젝트입니다.
 
 - gstack design doc approved
 - engineering review cleared
-- outside review reflectedg
+- outside review reflected
 - implementation starts from Task 0: Lostark API validation spike
 
 ## Documents
 
-- `docs/design/gstack-approved-design.md`
-- `docs/reviews/gstack-eng-review-test-plan.md`
+- `docs/design/yeonjong-unknown-design-20260619-221517.md`
+- `docs/reviews/yeonjong-unknown-eng-review-test-plan-20260620-102515.md`
