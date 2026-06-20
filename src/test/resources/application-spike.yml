@@ -1,0 +1,8 @@
+# Spike profile for the Task 0 manual API verification (D-04).
+# Activated only when running MarketsApiSpikeTest locally with LOSTARK_API_KEY set.
+# The test is @Disabled, so this profile and the real API call never run in CI.
+lostark:
+  api:
+    base-url: ${LOSTARK_API_BASE_URL:https://developer-lostark.game.onstove.com}
+    # Real JWT key comes from the environment only — never committed.
+    key: ${LOSTARK_API_KEY:}
