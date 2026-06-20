@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Phase 1 context gathered
-last_updated: "2026-06-20T06:17:40.583Z"
-last_activity: 2026-06-20 -- Phase 01 planning complete
+last_updated: "2026-06-20T07:10:56.627Z"
+last_activity: 2026-06-20
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 3
-  completed_plans: 0
+  completed_plans: 1
   percent: 0
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-20)
 
 **Core value:** 레이트리밋이 걸린 외부 마켓 API에서 시세를 빠짐없이 수집해 시계열로 쌓고, 캐시로 안정적으로 서빙한다
-**Current focus:** Phase 1 — Foundation + Task 0
+**Current focus:** Phase 01 — foundation-task-0
 
 ## Current Position
 
-Phase: 1 of 6 (Foundation + Task 0)
-Plan: 0 of 3 in current phase
+Phase: 01 (foundation-task-0) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-06-20 -- Phase 01 planning complete
+Last activity: 2026-06-20
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -64,6 +64,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - DATA: price_snapshot UNIQUE(tracked_item_id, collected_at) 멱등 + TIMESTAMPTZ UTC (Phase 1)
 - DB: PostgreSQL 확정 (개발 docker-compose, 테스트 Testcontainers)
 - 게이트: 2주차 말 하드 게이트 통과 시에만 Phase 5(event-impact) 진행, 슬립 시 v2 강등
+- [Phase ?]: 01-01: Docker api.version=1.44 핀 (엔진 29.x가 docker-java 기본 v1.32 거부); Testcontainers 공유 베이스 PostgresRedisContainers 확립
 
 ### Pending Todos
 

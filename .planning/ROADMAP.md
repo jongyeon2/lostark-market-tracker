@@ -39,7 +39,7 @@
 Plans:
 **Wave 1**
 
-- [ ] 01-01-PLAN.md — 스캐폴딩 + docker-compose(Postgres+Redis) + 프로파일 + 스모크 IT (DIST-01)
+- [x] 01-01-PLAN.md — 스캐폴딩 + docker-compose(Postgres+Redis) + 프로파일 + 스모크 IT (DIST-01)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -159,7 +159,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation + Task 0 | 0/3 | Not started | - |
+| 1. Foundation + Task 0 | 1/3 | In Progress|  |
 | 2. Collection Pipeline | 0/3 | Not started | - |
 | 3. Read API + Cache | 0/3 | Not started | - |
 | 4. Admin + Events | 0/2 | Not started | - |
