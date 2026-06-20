@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
+status: verifying
 stopped_at: Phase 1 context gathered
-last_updated: "2026-06-20T07:18:48.294Z"
+last_updated: "2026-06-20T13:17:54.103Z"
 last_activity: 2026-06-20
 progress:
   total_phases: 6
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
-  percent: 0
+  completed_plans: 3
+  percent: 17
 ---
 
 # Project State
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-06-20)
 
 Phase: 01 (foundation-task-0) — EXECUTING
 Plan: 3 of 3
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-20
 
 Progress: [░░░░░░░░░░] 0%
@@ -66,6 +66,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - 게이트: 2주차 말 하드 게이트 통과 시에만 Phase 5(event-impact) 진행, 슬립 시 v2 강등
 - [Phase ?]: 01-01: Docker api.version=1.44 핀 (엔진 29.x가 docker-java 기본 v1.32 거부); Testcontainers 공유 베이스 PostgresRedisContainers 확립
 - [Phase ?]: 01-02: 4테이블 Flyway V1 잠금 + JPA ddl-auto=validate 일치; OffsetDateTime<->TIMESTAMPTZ UTC; UNIQUE(item,collected_at) 멱등 DATA-01~04 IT 증명
+- [Phase ?]: 01-03 Task0(확정): avg_price/trade_count는 일단위 제공(상세 Stats) → min_price 유지·avg_price V2 추가·trade_count per-tick 제외; 매칭 external_item_id=API Id+display_name; 레이트 100/min 확정
 
 ### Pending Todos
 
@@ -73,7 +74,7 @@ None yet.
 
 ### Blockers/Concerns
 
-- Phase 1 Task 0가 데이터 모델을 잠그기 전까지 avg_price/trade_count 필드는 미확정 — 핵심 모델 확정 보류
+None
 
 ## Deferred Items
 

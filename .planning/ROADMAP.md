@@ -11,7 +11,7 @@
 - Integer phases (1, 2, 3): Planned milestone work
 - Decimal phases (2.1): Urgent insertions (marked INSERTED)
 
-- [ ] **Phase 1: Foundation + Task 0** - 실행 가능한 골격 + 실측으로 잠근 데이터 모델
+- [x] **Phase 1: Foundation + Task 0** - 실행 가능한 골격 + 실측으로 잠근 데이터 모델 (completed 2026-06-20)
 - [ ] **Phase 2: Collection Pipeline** - 레이트리밋·재시도·부분 실패를 처리하는 신뢰 가능한 10분 수집기
 - [ ] **Phase 3: Read API + Cache** - Redis 캐시 latest/타임라인/다운샘플 + 헬스
 - [ ] **Phase 4: Admin + Events** - 시크릿 인증 뒤 품목/이벤트 CRUD
@@ -47,7 +47,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 01-03-PLAN.md — Task 0 API 검증 스파이크 → 응답 필드/매칭 규칙 확정 + 모델 잠금 (DATA-03)
+- [x] 01-03-PLAN.md — Task 0 API 검증 스파이크 → 응답 필드/매칭 규칙 확정 + 모델 잠금 (DATA-03)
 
 ### Phase 2: Collection Pipeline
 
@@ -159,7 +159,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation + Task 0 | 2/3 | In Progress|  |
+| 1. Foundation + Task 0 | 3/3 | Complete   | 2026-06-20 |
 | 2. Collection Pipeline | 0/3 | Not started | - |
 | 3. Read API + Cache | 0/3 | Not started | - |
 | 4. Admin + Events | 0/2 | Not started | - |
