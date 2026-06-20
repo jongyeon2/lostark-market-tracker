@@ -39,13 +39,23 @@ class MarketsApiSpikeTest extends PostgresRedisContainers {
         Assumptions.assumeTrue(apiKey != null && !apiKey.isBlank(),
                 "LOSTARK_API_KEY not set — skipping live Task 0 spike");
 
-        ResponseEntity<String> response = client.searchMarketItems("아비도스 융화 재료");
+        // 1) Search a leaf category — confirms request shape, item fields, and rate-limit headers.
+        ResponseEntity<String> search = client.searchMarketItems("");
+        System.out.println("=== SPIKE search STATUS    = " + search.getStatusCode());
+        System.out.println("=== SPIKE rate-limit limit = " + search.getHeaders().getFirst("x-ratelimit-limit")
+                + " remaining=" + search.getHeaders().getFirst("x-ratelimit-remaining"));
+        System.out.println("=== SPIKE search BODY      = " + search.getBody());
+        assertThat(search.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(search.getBody()).isNotBlank();
 
-        System.out.println("=== Task 0 spike :: STATUS  = " + response.getStatusCode());
-        System.out.println("=== Task 0 spike :: HEADERS = " + response.getHeaders());
-        System.out.println("=== Task 0 spike :: BODY    = " + response.getBody());
-
-        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        assertThat(response.getBody()).isNotBlank();
+        // 2) Detail of the first item — its Stats[] carries daily {Date, AvgPrice, TradeCount} (D-06).
+        var matcher = java.util.regex.Pattern.compile("\"Id\":(\\d+)").matcher(search.getBody());
+        if (matcher.find()) {
+            long itemId = Long.parseLong(matcher.group(1));
+            ResponseEntity<String> detail = client.getItemDetail(itemId);
+            System.out.println("=== SPIKE detail id=" + itemId + " STATUS = " + detail.getStatusCode());
+            System.out.println("=== SPIKE detail BODY = " + detail.getBody());
+            assertThat(detail.getStatusCode().is2xxSuccessful()).isTrue();
+        }
     }
 }

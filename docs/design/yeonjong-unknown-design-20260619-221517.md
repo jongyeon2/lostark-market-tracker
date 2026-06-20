@@ -181,6 +181,16 @@ API 검증 스파이크. **아래를 실측·확정하기 전에는 데이터 �
 
 **종료 게이트:** 검색이 요청당 다품목을 안 주거나 / 무겁게 페이징되거나 / 거래량·평균가 필드가 없으면 → 전제 2(레이트 예산)·수집 단위·데이터 모델을 1주차 전에 재검토.
 
+### ✅ Task 0 확정 결과 (LOCKED 2026-06-20 — 실측 완료)
+
+실 API 1회 호출로 검증. 상세 근거: `.planning/phases/01-foundation-task-0/TASK0-FINDINGS.md`. **종료 게이트 판정: PASS.**
+
+1. **요청 포맷:** `POST /markets/items` body `{CategoryCode(필수, 리프), Sort, PageNo, SortCondition, ItemName(선택)}`. 부모 카테고리 코드는 0건 → **리프 코드 필수**(예 50010 재련 재료). **요청당 PageSize=10**, `PageNo` 페이징.
+2. **avg_price / trade_count 실측 (D-06): 둘 다 제공되나 "일 단위".** 목록(`markets/items`)은 `YDayAvgPrice`(전일 평균)·`CurrentMinPrice`·`RecentPrice`만 주고 **거래량 없음**. 상세(`GET /markets/items/{id}`)의 `Stats[]`에 **일별 `{Date, AvgPrice, TradeCount}`**.
+   - **결정:** `price_snapshot.min_price` = `CurrentMinPrice`(틱 실시간) 유지. **`avg_price` 추가** = `YDayAvgPrice`(목록 호출에 무료 포함) → `V2__add_price_metrics.sql`. **`trade_count`는 per-tick 모델에서 제외**(일 단위 + 품목당 추가 호출 비용) → 필요 시 v2 별도 일별 통계 테이블.
+3. **레이트리밋:** **100/min/key** 확정(`x-ratelimit-limit: 100`). `x-ratelimit-{limit,remaining,reset}` 헤더 **제공됨** → Phase 2 토큰버킷 헤더 보정 가능.
+4. **매칭 규칙 (D-05/DATA-03):** API가 **안정적 정수 `Id`** 제공(예 66102101) → **`external_item_id` = `Id`, `display_name` = `Name`** 저장. 퍼지 조합 불필요, 리스크 낮음(BundleCount 단가 정규화는 수집 계층 사안).
+
 ## 2주차 말 Hard Gate (T-A)
 
 아래 **전부 충족 못 하면 event-impact를 v2/stretch로 강등**하고, 수집 신뢰성 + 조회 API 완성도를 우선한다.
@@ -197,8 +207,8 @@ API 검증 스파이크. **아래를 실측·확정하기 전에는 데이터 �
 ## Data Model Decisions
 
 - **모든 타임스탬프 UTC 저장, PostgreSQL `TIMESTAMPTZ`**(`collected_at`, `fetched_at`, `created_at`, `updated_at`), KST는 표시 단계만. **MySQL 전용 타입/SQL 미사용.**
-- **tracked_item**: id, `external_item_id`(있으면), `display_name`, category, (등급/묶음수량 등 매칭 필요 필드는 Task 0 확정), active, created_at.
-- **price_snapshot**: id, tracked_item_id(FK), `collected_at`(UTC, **틱 공통 논리 시각으로 정규화**), min_price, [Task 0 확정 조건부: avg_price, trade_count].
+- **tracked_item**: id, `external_item_id`(= API `Id`, 안정적 — **Task 0 확정**), `display_name`(= `Name`), category, active, created_at. (별도 매칭 필드 불필요 — TASK0-FINDINGS.md.)
+- **price_snapshot**: id, tracked_item_id(FK), `collected_at`(UTC, **틱 공통 논리 시각으로 정규화**), min_price. **Task 0 확정(2026-06-20):** `avg_price`는 V2에서 추가(목록 `YDayAvgPrice`, 일 단위) / `trade_count`는 per-tick 제외(일 단위 → 필요 시 v2 별도 일별 통계 테이블). 근거: TASK0-FINDINGS.md.
   - **UNIQUE `(tracked_item_id, collected_at)`** — 멱등성, 재시도/중복 틱의 중복 행 방지. 이 유니크 제약이 복합 인덱스를 겸함. [가, Codex 10]
   - 각 품목 실제 fetch 완료 시각이 필요하면 **`fetched_at`(또는 `source_observed_at`) 별도 컬럼**으로 분리. [Codex 11]
   - `source` 컬럼은 v2(경매장).
@@ -213,7 +223,7 @@ API 검증 스파이크. **아래를 실측·확정하기 전에는 데이터 �
 - **테스트 환경:** **Testcontainers PostgreSQL**로 통일(로컬·CI 동일 메커니즘, Redis도 동일). 단위/통합 모두 같은 엔진에서 검증.
 - **시간 필드:** UTC 저장. `collected_at` / `fetched_at` / `created_at` / `updated_at` 전부 **`TIMESTAMPTZ`**.
 - **price_snapshot 제약·인덱스:** **`UNIQUE(tracked_item_id, collected_at)`** (멱등성) + 시계열 범위 조회 최적화용 **`INDEX(tracked_item_id, collected_at)`**(유니크 제약이 이 인덱스를 겸함).
-- **스키마 잠금:** **Task 0**에서 실제 API 응답 필드를 확인한 뒤 최종 스키마를 잠근다(특히 `avg_price`/`trade_count` 제공 여부).
+- **스키마 잠금:** ✅ **Task 0 완료(2026-06-20)** — V1 4테이블 잠금. `avg_price`/`trade_count`는 **일 단위로 제공됨** 확인: `avg_price`는 V2 추가 예정(목록 `YDayAvgPrice`), `trade_count`는 per-tick 제외(상세 `Stats[]` 일 단위). 근거: TASK0-FINDINGS.md.
 
 ## Failure Modes
 
