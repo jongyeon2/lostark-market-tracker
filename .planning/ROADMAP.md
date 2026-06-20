@@ -33,9 +33,9 @@
 **Plans**: 3 plans
 
 Plans:
-- [ ] 01-01: 프로젝트 스캐폴딩 + docker-compose(Postgres+Redis) + 설정 프로파일
-- [ ] 01-02: JPA 엔티티/마이그레이션 4종(UNIQUE·인덱스·TIMESTAMPTZ 포함)
-- [ ] 01-03: Task 0 API 검증 스파이크 → 응답 필드/매칭 규칙 확정 + 모델 잠금
+- [ ] 01-01-PLAN.md — 스캐폴딩 + docker-compose(Postgres+Redis) + 프로파일 + 스모크 IT (DIST-01)
+- [ ] 01-02-PLAN.md — 4테이블 Flyway DDL + JPA 엔티티(ddl-auto=validate) + 실HTTP 라운드트립 IT (DATA-01..04)
+- [ ] 01-03-PLAN.md — Task 0 API 검증 스파이크 → 응답 필드/매칭 규칙 확정 + 모델 잠금 (DATA-03)
 
 ### Phase 2: Collection Pipeline
 **Goal**: 10분 주기로 거래소 시세를 신뢰 가능하게 수집한다 — 레이트리밋, 429 재시도, 부분 실패, 실행 이력 기록.
