@@ -39,6 +39,13 @@ public class CollectionRun {
     @Column(name = "status", nullable = false, length = 40)
     private String status;
 
+    /**
+     * Nullable categorical marker for run-level signals (e.g. AUTH_ERROR, RATE_LIMITED) surfaced
+     * later by /health (Phase 3). NEVER carries the API key or any secret (D-08, D-14).
+     */
+    @Column(name = "summary_message", length = 500)
+    private String summaryMessage;
+
     protected CollectionRun() {
     }
 
@@ -89,5 +96,14 @@ public class CollectionRun {
 
     public String getStatus() {
         return status;
+    }
+
+    public String getSummaryMessage() {
+        return summaryMessage;
+    }
+
+    /** Set the categorical run marker (AUTH_ERROR / RATE_LIMITED / ...). Markers only — never secrets. */
+    public void setSummaryMessage(String summaryMessage) {
+        this.summaryMessage = summaryMessage;
     }
 }
