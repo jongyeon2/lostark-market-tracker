@@ -52,6 +52,17 @@ public class CollectionRun {
         this.status = status;
     }
 
+    /**
+     * Terminal update of the run lifecycle (D-12): set finish time, per-item counts, and the
+     * count-based status. {@code itemsAttempted} is fixed at creation; this records the outcome.
+     */
+    public void finish(OffsetDateTime finishedAt, int itemsSucceeded, int itemsFailed, String status) {
+        this.finishedAt = finishedAt;
+        this.itemsSucceeded = itemsSucceeded;
+        this.itemsFailed = itemsFailed;
+        this.status = status;
+    }
+
     public Long getId() {
         return id;
     }

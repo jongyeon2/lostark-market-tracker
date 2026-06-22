@@ -4,3 +4,8 @@
 spring:
   jpa:
     show-sql: false
+
+# Keep the @Scheduled collector from auto-firing during integration tests — ITs drive
+# collectTick() directly with a pinned clock + short timeouts.
+collection:
+  initial-delay-ms: 3600000

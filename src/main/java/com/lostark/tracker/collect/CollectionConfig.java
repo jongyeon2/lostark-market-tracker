@@ -6,6 +6,8 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import java.time.Clock;
+
 /**
  * Enables the collection tick scheduler ({@link EnableScheduling}) and the async fan-out
  * ({@link EnableAsync}), and provides the dedicated bounded executor the per-item fetches run on
@@ -29,5 +31,11 @@ public class CollectionConfig {
         executor.setThreadNamePrefix("collect-");
         executor.initialize();
         return executor;
+    }
+
+    /** UTC clock for tick timestamps; injectable so tests can pin collected_at deterministically. */
+    @Bean
+    public Clock collectionClock() {
+        return Clock.systemUTC();
     }
 }
