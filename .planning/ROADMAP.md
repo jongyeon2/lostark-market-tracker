@@ -73,7 +73,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 02-02: PriceCollector @Scheduled + 틱 내 병렬 팬아웃 + allOf().join() + 타임아웃
+- [x] 02-02: PriceCollector @Scheduled + 틱 내 병렬 팬아웃 + allOf().join() + 타임아웃
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -168,7 +168,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation + Task 0 | 3/3 | Complete   | 2026-06-20 |
-| 2. Collection Pipeline | 1/3 | In Progress|  |
+| 2. Collection Pipeline | 2/3 | In Progress|  |
 | 3. Read API + Cache | 0/3 | Not started | - |
 | 4. Admin + Events | 0/2 | Not started | - |
 | 5. Event Impact (게이트 조건부) | 0/2 | Not started | - |
