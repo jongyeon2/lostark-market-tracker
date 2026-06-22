@@ -69,7 +69,7 @@ Plans:
 
 **Wave 1**
 
-- [ ] 02-01: LostarkApiClient(JWT, 429/401/5xx 구분) + Redis 토큰버킷(lazy refill / Bucket4j)
+- [x] 02-01: LostarkApiClient(JWT, 429/401/5xx 구분) + Redis 토큰버킷(lazy refill / Bucket4j)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -168,7 +168,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation + Task 0 | 3/3 | Complete   | 2026-06-20 |
-| 2. Collection Pipeline | 0/3 | Not started | - |
+| 2. Collection Pipeline | 1/3 | In Progress|  |
 | 3. Read API + Cache | 0/3 | Not started | - |
 | 4. Admin + Events | 0/2 | Not started | - |
 | 5. Event Impact (게이트 조건부) | 0/2 | Not started | - |

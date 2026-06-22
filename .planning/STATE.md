@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Phase 2 context gathered
-last_updated: "2026-06-22T00:38:35.329Z"
-last_activity: 2026-06-22 -- Phase 02 planning complete
+last_updated: "2026-06-22T00:44:58.546Z"
+last_activity: 2026-06-22 -- Phase 02 execution started
 progress:
   total_phases: 6
   completed_phases: 1
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-20)
 
 **Core value:** 레이트리밋이 걸린 외부 마켓 API에서 시세를 빠짐없이 수집해 시계열로 쌓고, 캐시로 안정적으로 서빙한다
-**Current focus:** Phase 01 — foundation-task-0
+**Current focus:** Phase 02 — collection-pipeline
 
 ## Current Position
 
-Phase: 01 — COMPLETE
-Plan: 3 of 3
-Status: Ready to execute
-Last activity: 2026-06-22 -- Phase 02 planning complete
+Phase: 02 (collection-pipeline) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 02
+Last activity: 2026-06-22 -- Phase 02 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
