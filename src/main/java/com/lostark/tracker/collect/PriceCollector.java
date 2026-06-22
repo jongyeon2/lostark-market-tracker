@@ -21,6 +21,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The scheduled collection tick (COLL-01/02). Every {@code fixedDelay} (10 min — fixedDelay so a
@@ -80,11 +81,14 @@ public class PriceCollector {
         CollectionRun run = collectionRunRepository.save(
                 new CollectionRun(startedAt, null, items.size(), 0, 0, "RUNNING"));
 
+        // Shared per-tick flag: the first 401/403 trips it so remaining items stop calling out (D-08).
+        AtomicBoolean fatalAuth = new AtomicBoolean(false);
+
         // Fan out: one async fetch per item, each bounded by the per-call timeout (D-07).
         List<ItemFuture> futures = new ArrayList<>();
         for (TrackedItem item : items) {
             CompletableFuture<ItemFetchResult> future = fetchService
-                    .fetch(item.getId(), item.getExternalItemId(), item.getCategory(), item.getDisplayName())
+                    .fetch(item.getId(), item.getExternalItemId(), item.getCategory(), item.getDisplayName(), fatalAuth)
                     .orTimeout(perCallTimeoutSeconds, TimeUnit.SECONDS);
             futures.add(new ItemFuture(item, future));
         }
@@ -94,6 +98,7 @@ public class PriceCollector {
 
         int succeeded = 0;
         int failed = 0;
+        boolean anyRateLimited = false;
         for (ItemFuture itf : futures) {
             ItemFetchResult result = settledResult(itf.future());
             if (result != null && result.isSuccess()) {
@@ -101,12 +106,18 @@ public class PriceCollector {
                 succeeded++;
             } else {
                 failed++;
+                if (result != null && "RATE_LIMITED".equals(result.failureReason())) {
+                    anyRateLimited = true;
+                }
             }
         }
 
         String status = succeeded == items.size() ? "SUCCESS"
                 : (succeeded == 0 ? "FAILED" : "PARTIAL_SUCCESS");
+        // Categorical run marker (D-08/D-14): AUTH_ERROR wins over RATE_LIMITED; never a secret.
+        String summaryMessage = fatalAuth.get() ? "AUTH_ERROR" : (anyRateLimited ? "RATE_LIMITED" : null);
         run.finish(OffsetDateTime.now(clock), succeeded, failed, status);
+        run.setSummaryMessage(summaryMessage);
         collectionRunRepository.save(run);
     }
 

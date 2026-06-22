@@ -38,4 +38,20 @@ public class CollectionConfig {
     public Clock collectionClock() {
         return Clock.systemUTC();
     }
+
+    /**
+     * Bounded retry for transient API failures (D-09/D-10): max 3 attempts, 200ms exponential
+     * backoff base, Retry-After honored. Real sleeper here; tests inject a recording sleeper.
+     */
+    @Bean
+    public RetryPolicy retryPolicy() {
+        return new RetryPolicy(3, 200, millis -> {
+            try {
+                Thread.sleep(millis);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IllegalStateException("retry backoff interrupted", e);
+            }
+        });
+    }
 }
