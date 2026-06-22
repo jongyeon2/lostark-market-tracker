@@ -27,6 +27,13 @@ spring:
   flyway:
     enabled: true
 
+# Lostark developer-portal markets API. Key from env only (never committed); base-url defaults
+# to the portal host confirmed in Task 0. Auth/normalization handled in LostarkApiClient.
+lostark:
+  api:
+    base-url: ${LOSTARK_API_BASE_URL:https://developer-lostark.game.onstove.com}
+    key: ${LOSTARK_API_KEY:}
+
 management:
   endpoints:
     web:
