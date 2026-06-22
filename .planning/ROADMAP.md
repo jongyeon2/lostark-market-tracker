@@ -67,8 +67,16 @@ Plans:
 
 Plans:
 
+**Wave 1**
+
 - [ ] 02-01: LostarkApiClient(JWT, 429/401/5xx 구분) + Redis 토큰버킷(lazy refill / Bucket4j)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 02-02: PriceCollector @Scheduled + 틱 내 병렬 팬아웃 + allOf().join() + 타임아웃
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 02-03: 상한 재시도 + 부분 실패 스킵-라이트 + collection_run 기록
 
 ### Phase 3: Read API + Cache
