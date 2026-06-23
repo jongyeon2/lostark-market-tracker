@@ -26,7 +26,7 @@
 
 - [x] **API-01**: GET /api/items로 워치리스트 품목을 조회한다
 - [x] **API-02**: GET /api/items/{id}/latest로 Redis 캐시된 최신가를 조회하며, 스냅샷 쓰기 시 캐시가 무효화된다
-- [ ] **API-03**: GET /api/items/{id}/prices?from=&to=로 기간 스냅샷과 겹치는 이벤트를 함께 반환한다
+- [x] **API-03**: GET /api/items/{id}/prices?from=&to=로 기간 스냅샷과 겹치는 이벤트를 함께 반환한다
 - [ ] **API-04**: 큰 범위 조회는 서버 측 다운샘플(버킷 집계)로 점 수를 제한해 반환한다
 - [ ] **API-05**: 잘못된 입력(from>to, window<=0, 없는 itemId, 빈 범위)에 적절한 4xx 또는 빈 결과를 반환한다
 

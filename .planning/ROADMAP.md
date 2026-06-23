@@ -103,7 +103,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 03-02: 공유 윈도우 쿼리 + 타임라인(스냅샷+이벤트)
+- [x] 03-02: 공유 윈도우 쿼리 + 타임라인(스냅샷+이벤트)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -177,7 +177,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Foundation + Task 0 | 3/3 | Complete   | 2026-06-20 |
 | 2. Collection Pipeline | 3/3 | Complete   | 2026-06-22 |
-| 3. Read API + Cache | 1/3 | In Progress|  |
+| 3. Read API + Cache | 2/3 | In Progress|  |
 | 4. Admin + Events | 0/2 | Not started | - |
 | 5. Event Impact (게이트 조건부) | 0/2 | Not started | - |
 | 6. Distribution + Docs | 0/2 | Not started | - |
