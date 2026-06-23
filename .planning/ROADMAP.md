@@ -13,7 +13,7 @@
 
 - [x] **Phase 1: Foundation + Task 0** - 실행 가능한 골격 + 실측으로 잠근 데이터 모델 (completed 2026-06-20)
 - [x] **Phase 2: Collection Pipeline** - 레이트리밋·재시도·부분 실패를 처리하는 신뢰 가능한 10분 수집기 (completed 2026-06-22)
-- [ ] **Phase 3: Read API + Cache** - Redis 캐시 latest/타임라인/다운샘플 + 헬스
+- [x] **Phase 3: Read API + Cache** - Redis 캐시 latest/타임라인/다운샘플 + 헬스 (completed 2026-06-23)
 - [ ] **Phase 4: Admin + Events** - 시크릿 인증 뒤 품목/이벤트 CRUD
 - [ ] **Phase 5: Event Impact (게이트 조건부)** - 이벤트 전후 변화율 + 데이터 충분성 가드
 - [ ] **Phase 6: Distribution + Docs** - CI · 격리 시드 · README 데모 표면
@@ -107,7 +107,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 03-03: 큰 범위 다운샘플 + 입력 검증 + /health/collection
+- [x] 03-03: 큰 범위 다운샘플 + 입력 검증 + /health/collection
 
 ### Phase 4: Admin + Events
 
@@ -177,7 +177,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Foundation + Task 0 | 3/3 | Complete   | 2026-06-20 |
 | 2. Collection Pipeline | 3/3 | Complete   | 2026-06-22 |
-| 3. Read API + Cache | 2/3 | In Progress|  |
+| 3. Read API + Cache | 3/3 | Complete   | 2026-06-23 |
 | 4. Admin + Events | 0/2 | Not started | - |
 | 5. Event Impact (게이트 조건부) | 0/2 | Not started | - |
 | 6. Distribution + Docs | 0/2 | Not started | - |
