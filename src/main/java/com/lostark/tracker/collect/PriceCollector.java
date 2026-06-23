@@ -1,5 +1,6 @@
 package com.lostark.tracker.collect;
 
+import com.lostark.tracker.cache.LatestPriceCache;
 import com.lostark.tracker.domain.CollectionRun;
 import com.lostark.tracker.domain.PriceSnapshot;
 import com.lostark.tracker.domain.TrackedItem;
@@ -43,6 +44,7 @@ public class PriceCollector {
     private final TrackedItemRepository trackedItemRepository;
     private final PriceSnapshotRepository priceSnapshotRepository;
     private final CollectionRunRepository collectionRunRepository;
+    private final LatestPriceCache latestPriceCache;
     private final Clock clock;
     private final long perCallTimeoutSeconds;
     private final long overallTimeoutSeconds;
@@ -51,6 +53,7 @@ public class PriceCollector {
                           TrackedItemRepository trackedItemRepository,
                           PriceSnapshotRepository priceSnapshotRepository,
                           CollectionRunRepository collectionRunRepository,
+                          LatestPriceCache latestPriceCache,
                           Clock clock,
                           @Value("${collection.per-call-timeout-seconds:5}") long perCallTimeoutSeconds,
                           @Value("${collection.overall-timeout-seconds:90}") long overallTimeoutSeconds) {
@@ -58,6 +61,7 @@ public class PriceCollector {
         this.trackedItemRepository = trackedItemRepository;
         this.priceSnapshotRepository = priceSnapshotRepository;
         this.collectionRunRepository = collectionRunRepository;
+        this.latestPriceCache = latestPriceCache;
         this.clock = clock;
         this.perCallTimeoutSeconds = perCallTimeoutSeconds;
         this.overallTimeoutSeconds = overallTimeoutSeconds;
@@ -154,6 +158,11 @@ public class PriceCollector {
         try {
             priceSnapshotRepository.save(
                     new PriceSnapshot(item, collectedAt, result.minPrice(), result.fetchedAt()));
+            // Evict-on-write (D-01): a new price landed, so drop the item's stale latest cache key so
+            // the next GET /latest re-fills from the DB. Only on a real write — the idempotent
+            // existsBy/duplicate skip paths leave the cache alone. evict is fail-open (Redis errors
+            // swallowed) so a cache hiccup never breaks collection; the safety TTL backstops a miss.
+            latestPriceCache.evict(item.getId());
         } catch (DataIntegrityViolationException duplicate) {
             // Lost a race on the UNIQUE constraint — treat as an idempotent skip, not a failure.
         }
