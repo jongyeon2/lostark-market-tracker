@@ -125,7 +125,12 @@ Plans:
 
 Plans:
 
+**Wave 1**
+
 - [ ] 04-01: 이벤트/품목 CRUD 컨트롤러 + 서비스
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 04-02: Spring Security 공유 시크릿 게이트(/api/admin/**)
 
 ### Phase 5: Event Impact (게이트 조건부)
