@@ -97,8 +97,16 @@ Plans:
 
 Plans:
 
+**Wave 1**
+
 - [ ] 03-01: latest 캐시-어사이드 + 쓰기 시 무효화
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 03-02: 공유 윈도우 쿼리 + 타임라인(스냅샷+이벤트)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 03-03: 큰 범위 다운샘플 + 입력 검증 + /health/collection
 
 ### Phase 4: Admin + Events
