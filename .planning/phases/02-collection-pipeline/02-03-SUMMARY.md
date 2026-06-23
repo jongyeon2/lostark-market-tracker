@@ -7,14 +7,14 @@ tags: [retry, exponential-backoff, retry-after, fatal-auth, partial-failure, fly
 # Dependency graph
 requires:
   - phase: 02-02
-    provides: PriceCollector fan-out + collection_run lifecycle, ItemFetchService (@Async), ItemFetchResult
+    provides: PriceCollector 팬아웃 + collection_run 라이프사이클, ItemFetchService(@Async), ItemFetchResult
   - phase: 02-01
-    provides: typed LostarkApiException hierarchy (Auth/RateLimited[+retryAfter]/Transient/NonRetryable)
+    provides: 타입드 LostarkApiException 계층(Auth/RateLimited[+retryAfter]/Transient/NonRetryable)
 provides:
-  - Hand-rolled bounded RetryPolicy (max 3, exponential backoff, Retry-After honored; no @Retryable AOP)
-  - Fatal-auth (401/403) convergence — shared flag stops new calls + marks run AUTH_ERROR (D-08)
-  - Partial-failure isolation with categorical collection_run.summary_message markers (AUTH_ERROR/RATE_LIMITED)
-  - Flyway V2 (collection_run.summary_message) + CollectionRun.summaryMessage field (ddl-validate)
+  - 수동 바운드 RetryPolicy (max 3, 지수 백오프, Retry-After 준수; @Retryable AOP 없음)
+  - Fatal-auth(401/403) 수렴 — 공유 플래그가 신규 호출 중단 + run을 AUTH_ERROR로 마킹(D-08)
+  - 카테고리적 collection_run.summary_message 마커(AUTH_ERROR/RATE_LIMITED)와 함께 부분 실패 격리
+  - Flyway V2(collection_run.summary_message) + CollectionRun.summaryMessage 필드(ddl-validate)
 affects: [03-read-api-cache]
 
 # Tech tracking
@@ -32,75 +32,75 @@ key-files:
     - src/main/java/com/lostark/tracker/domain/CollectionRun.java
 
 key-decisions:
-  - "Hand-rolled RetryPolicy (no @Retryable AOP) so the policy is visible + unit-testable, consistent with the self-built token bucket"
-  - "Retry-After honored before exponential backoff for 429; 5xx/timeout exponential backoff; 401/403 + other-4xx never retried"
-  - "Fatal auth uses a per-tick shared AtomicBoolean: first 401 stops new outbound calls and sets the AUTH_ERROR marker (D-08); in-flight items converge to failure"
-  - "summary_message carries ONLY categorical markers (AUTH_ERROR > RATE_LIMITED priority); the API key never appears anywhere"
-  - "Flyway V2 filename V2__add_collection_run_summary.sql per the user's migration-numbering rule; avg_price stays a DEFERRED future V3 (not created, not referenced)"
+  - "수동 RetryPolicy(@Retryable AOP 없음)로 정책을 가시화 + 단위 테스트 가능하게, 자체 구현 토큰버킷과 일관"
+  - "429는 지수 백오프 전에 Retry-After 준수; 5xx/타임아웃은 지수 백오프; 401/403 + other-4xx는 재시도 안 함"
+  - "Fatal auth는 틱당 공유 AtomicBoolean 사용: 첫 401이 신규 outbound 호출 중단 + AUTH_ERROR 마커 설정(D-08); in-flight 품목은 실패로 수렴"
+  - "summary_message는 카테고리적 마커만 보유(AUTH_ERROR > RATE_LIMITED 우선); API 키는 어디에도 안 나타남"
+  - "Flyway V2 파일명 V2__add_collection_run_summary.sql(사용자 마이그레이션 번호 규칙); avg_price는 DEFERRED 미래 V3(미생성, 미참조)"
 
 patterns-established:
-  - "Bounded retry as an injectable Supplier wrapper with an injectable Sleeper for deterministic timing tests"
-  - "Run-level signals are categorical markers only — secret-free, ready for Phase 3 /health"
+  - "바운드 재시도를 주입 가능 Supplier 래퍼 + 주입 가능 Sleeper로 — 결정적 타이밍 테스트"
+  - "Run 레벨 신호는 카테고리적 마커만 — 시크릿 프리, Phase 3 /health 준비됨"
 
 requirements-completed: [COLL-04, COLL-05]
 
 # Metrics
-duration: ~30min
+duration: ~30분
 completed: 2026-06-22
 ---
 
-# Phase 02 / Plan 03: Retry + Partial-Failure + Run Markers Summary
+# Phase 02 / Plan 03: 재시도 + 부분 실패 + Run 마커 요약
 
-**Hand-rolled bounded retry (max-3, Retry-After-first backoff) wired into the fan-out, fatal-auth convergence that stops new calls and marks the run AUTH_ERROR, per-item failure isolation to PARTIAL_SUCCESS, and a Flyway V2 summary_message column — all markers secret-free.**
+**팬아웃에 연결된 수동 바운드 재시도(max-3, Retry-After 우선 백오프), 신규 호출을 중단하고 run을 AUTH_ERROR로 마킹하는 fatal-auth 수렴, PARTIAL_SUCCESS로의 품목별 실패 격리, 그리고 Flyway V2 summary_message 컬럼 — 모든 마커는 시크릿 프리.**
 
-## Performance
+## 성능
 
-- **Duration:** ~30 min
-- **Completed:** 2026-06-22
-- **Tasks:** 2
-- **Files created:** 4 (4 modified)
-- **Tests:** clean full suite 29 passed / 0 failed / 1 skipped (the @Disabled spike)
+- **소요 시간:** ~30분
+- **완료:** 2026-06-22
+- **태스크:** 2개
+- **생성 파일:** 4개 (4개 수정)
+- **테스트:** 깔끔한 전체 스위트 29 통과 / 0 실패 / 1 스킵(@Disabled 스파이크)
 
-## Accomplishments
-- `RetryPolicy` — explicit max-3 bounded retry; 429 honors Retry-After before exponential backoff, 5xx/timeout exponential backoff, 401/403 + other-4xx never retried (D-09/D-10/D-11)
-- Fatal auth (401/403): a per-tick shared `AtomicBoolean` stops NEW outbound calls and marks the run `AUTH_ERROR`; the key never leaks (D-08)
-- Per-item failure isolation → `PARTIAL_SUCCESS`/`FAILED`; failed items write no snapshot, only counts (COLL-05, Success Criterion 4)
-- 429 retried up to 3 then the item is skipped with `failed++` and a `RATE_LIMITED` marker — no crash (Success Criterion 3)
-- Flyway **V2** (`V2__add_collection_run_summary.sql`) adds nullable `summary_message`; `CollectionRun.summaryMessage` mirrors it under `ddl-auto=validate`
-- `RetryPolicyTest` (unit, fake sleeper) + `CollectionResilienceIT` (Testcontainers) prove the whole policy
+## 주요 성과
+- `RetryPolicy` — 명시적 max-3 바운드 재시도; 429는 지수 백오프 전 Retry-After 준수, 5xx/타임아웃 지수 백오프, 401/403 + other-4xx 재시도 안 함(D-09/D-10/D-11)
+- Fatal auth(401/403): 틱당 공유 `AtomicBoolean`이 신규 outbound 호출 중단 + run을 `AUTH_ERROR` 마킹; 키 누출 없음(D-08)
+- 품목별 실패 격리 → `PARTIAL_SUCCESS`/`FAILED`; 실패 품목은 스냅샷 없이 카운트만(COLL-05, Success Criterion 4)
+- 429는 최대 3회 재시도 후 품목 스킵 `failed++` + `RATE_LIMITED` 마커 — 크래시 없음(Success Criterion 3)
+- Flyway **V2**(`V2__add_collection_run_summary.sql`)가 nullable `summary_message` 추가; `CollectionRun.summaryMessage`가 `ddl-auto=validate`에서 미러링
+- `RetryPolicyTest`(단위, 페이크 sleeper) + `CollectionResilienceIT`(Testcontainers)가 전체 정책 증명
 
-## Task Commits
+## 태스크 커밋
 
-1. **Task 1: Flyway V2 summary_message + entity field (validate)** — `dbcb5e4` (feat)
-2. **Task 2: bounded retry + fatal-auth + partial-failure markers** — `a62a0f5` (feat, TDD)
+1. **Task 1: Flyway V2 summary_message + 엔티티 필드(validate)** — `dbcb5e4` (feat)
+2. **Task 2: 바운드 재시도 + fatal-auth + 부분 실패 마커** — `a62a0f5` (feat, TDD)
 
-## Files Created/Modified
-- `collect/RetryPolicy.java` — hand-rolled bounded retry + injectable Sleeper
-- `collect/ItemFetchService.java` — wraps the call in RetryPolicy; classifies into categorical reasons; trips fatalAuth on 401/403
-- `collect/PriceCollector.java` — shared fatalAuth flag; aggregates AUTH_ERROR/RATE_LIMITED into summary_message
-- `collect/CollectionConfig.java` — RetryPolicy bean (real sleeper, max 3, 200ms base)
-- `domain/CollectionRun.java` — summaryMessage field + getter/setter
-- `db/migration/V2__add_collection_run_summary.sql` — nullable summary_message; documents deferred V3 avg_price
+## 생성/수정 파일
+- `collect/RetryPolicy.java` — 수동 바운드 재시도 + 주입 가능 Sleeper
+- `collect/ItemFetchService.java` — 호출을 RetryPolicy로 감싸고 카테고리적 사유로 분류; 401/403에 fatalAuth 트립
+- `collect/PriceCollector.java` — 공유 fatalAuth 플래그; AUTH_ERROR/RATE_LIMITED를 summary_message로 집계
+- `collect/CollectionConfig.java` — RetryPolicy 빈(실제 sleeper, max 3, 200ms 베이스)
+- `domain/CollectionRun.java` — summaryMessage 필드 + getter/setter
+- `db/migration/V2__add_collection_run_summary.sql` — nullable summary_message; 이연된 V3 avg_price 문서화
 - `test/.../RetryPolicyTest.java`, `test/.../CollectionResilienceIT.java`
 
-## Decisions Made
-- **Flyway numbering (user rule):** V2 = summary_message (`V2__add_collection_run_summary.sql`); avg_price/price-metrics is a DEFERRED future `V3__add_price_metrics.sql` — NOT created this phase, and no `avg_price` column is referenced anywhere in code (verified by grep). `ddl-auto=validate` passes on V1+V2.
-- **Hand-rolled retry, no AOP:** keeps the policy explicit and unit-testable; Retry-After takes precedence over backoff.
-- **Marker safety:** `summary_message` is set only to `AUTH_ERROR`/`RATE_LIMITED`; the key/Authorization header never reaches it (D-08) — proven by the fatal-auth IT asserting the exact marker.
+## 결정 사항
+- **Flyway 번호(사용자 규칙):** V2 = summary_message(`V2__add_collection_run_summary.sql`); avg_price/price-metrics는 DEFERRED 미래 `V3__add_price_metrics.sql` — 이번 페이즈 미생성, 코드 어디서도 `avg_price` 컬럼 미참조(grep로 검증). `ddl-auto=validate`가 V1+V2에서 통과.
+- **수동 재시도, AOP 없음:** 정책을 명시적·단위 테스트 가능하게; Retry-After가 백오프보다 우선.
+- **마커 안전:** `summary_message`는 `AUTH_ERROR`/`RATE_LIMITED`로만 설정; 키/Authorization 헤더가 절대 도달 안 함(D-08) — fatal-auth IT가 정확한 마커를 단언해 증명.
 
-## Deviations from Plan
-None of substance — plan executed as written. `CollectionConfig` (RetryPolicy bean) and `PriceCollector` (marker aggregation) were touched in addition to the plan's named files, which is inherent to wiring the retry/markers; all follow established patterns.
+## 계획 대비 이탈
+실질적 이탈 없음 — 계획대로 실행됨. `CollectionConfig`(RetryPolicy 빈)와 `PriceCollector`(마커 집계)가 계획 명시 파일 외에 함께 수정됐는데, 이는 재시도/마커 배선에 내재적이며 모두 확립된 패턴을 따름.
 
-## Issues Encountered
-None. The real RetryPolicy bean's small backoff (200ms base) keeps the resilience IT fast while exercising real retries; the unit test uses a recording sleeper for exact, wait-free timing assertions.
+## 마주친 이슈
+없음. 실제 RetryPolicy 빈의 작은 백오프(200ms 베이스)가 실제 재시도를 돌리면서 회복탄력성 IT를 빠르게 유지; 단위 테스트는 기록형 sleeper로 정확·무대기 타이밍 단언.
 
-## User Setup Required
-None for tests. A real run needs `LOSTARK_API_KEY`; the dev/seed profile seeds the watchlist.
+## 사용자 셋업 필요
+테스트에는 없음. 실제 실행은 `LOSTARK_API_KEY` 필요; dev/seed 프로파일이 워치리스트 시드.
 
-## Next Phase Readiness
-- Collection pipeline is complete: rate-limited client + token bucket (02-01), scheduled fan-out + idempotent persistence + collection_run (02-02), retry + partial-failure + markers (02-03).
-- Phase 3 (Read API + Cache) consumes `price_snapshot` (time series) and `collection_run` (incl. the `summary_message` marker for `/api/health/collection`, OPS-01). Phase 2 deliberately stops at producing that data — the health endpoint is Phase 3.
+## 다음 페이즈 준비도
+- 수집 파이프라인 완성: 레이트리밋 클라이언트 + 토큰버킷(02-01), 스케줄 팬아웃 + 멱등 영속 + collection_run(02-02), 재시도 + 부분 실패 + 마커(02-03).
+- Phase 3(Read API + Cache)가 `price_snapshot`(시계열)과 `collection_run`(`/api/health/collection`용 `summary_message` 마커 포함, OPS-01)을 소비. Phase 2는 의도적으로 그 데이터 생산에서 멈춤 — 헬스 엔드포인트는 Phase 3.
 
 ---
 *Phase: 02-collection-pipeline*
-*Completed: 2026-06-22*
+*완료: 2026-06-22*

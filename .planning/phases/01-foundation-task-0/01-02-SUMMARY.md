@@ -7,13 +7,13 @@ tags: [flyway, jpa, postgres, hibernate-validate, timestamptz, testcontainers, r
 # Dependency graph
 requires:
   - phase: 01-01
-    provides: Spring Boot skeleton, ddl-auto=validate config, PostgresRedisContainers test base, docker-compose
+    provides: Spring Boot 스켈레톤, ddl-auto=validate 구성, PostgresRedisContainers 테스트 베이스, docker-compose
 provides:
-  - Flyway V1 schema for the 4 locked tables (tracked_item, price_snapshot, game_event, collection_run)
-  - JPA entities + EventType enum mirroring the schema (validated on boot)
-  - TrackedItem/PriceSnapshot/CollectionRun repositories
-  - POST/GET /api/items HTTP round-trip through live Postgres
-  - SchemaRoundTripIT proving UNIQUE idempotency, TIMESTAMPTZ UTC, item identity, collection_run
+  - 잠긴 4테이블의 Flyway V1 스키마 (tracked_item, price_snapshot, game_event, collection_run)
+  - 스키마를 미러링하는 JPA 엔티티 + EventType enum (부팅 시 검증)
+  - TrackedItem/PriceSnapshot/CollectionRun 리포지토리
+  - 라이브 Postgres 경유 POST/GET /api/items HTTP 라운드트립
+  - UNIQUE 멱등성, TIMESTAMPTZ UTC, 품목 식별, collection_run을 증명하는 SchemaRoundTripIT
 affects: [02-collection-pipeline, 03-read-api-cache, 04-admin-events, 05-event-impact]
 
 # Tech tracking
@@ -32,81 +32,81 @@ key-files:
   modified: []
 
 key-decisions:
-  - "TIMESTAMPTZ columns mapped to java.time.OffsetDateTime; hibernate.jdbc.time_zone=UTC for deterministic round-trip"
-  - "price_snapshot.tracked_item_id mapped as @ManyToOne(LAZY); UNIQUE declared on @Table for validate agreement"
-  - "Added CollectionRunRepository (beyond the plan's file list) — needed to prove DATA-04"
-  - "JSON contract is camelCase (Spring/Jackson default) for this skeleton round-trip"
+  - "TIMESTAMPTZ 컬럼을 java.time.OffsetDateTime으로 매핑; 결정적 라운드트립 위해 hibernate.jdbc.time_zone=UTC"
+  - "price_snapshot.tracked_item_id를 @ManyToOne(LAZY)로 매핑; validate 일치를 위해 @Table에 UNIQUE 선언"
+  - "CollectionRunRepository 추가(계획 파일 목록 밖) — DATA-04 증명에 필요"
+  - "JSON 계약은 이 스켈레톤 라운드트립에서 camelCase (Spring/Jackson 기본)"
 
 patterns-established:
-  - "Every schema change is a new Flyway V{n} file; entities mirror it and JPA only validates (D-02)"
-  - "Controllers bind to validated DTOs, never to entities (no mass-assignment)"
-  - "Integration tests extend PostgresRedisContainers; instants compared via toInstant() to assert UTC equality"
+  - "모든 스키마 변경은 새 Flyway V{n} 파일; 엔티티는 미러링하고 JPA는 validate만 (D-02)"
+  - "컨트롤러는 검증된 DTO에 바인딩, 엔티티에 절대 직접 안 함 (mass-assignment 방지)"
+  - "통합 테스트는 PostgresRedisContainers 상속; 인스턴트는 toInstant()로 비교해 UTC 동일성 단언"
 
 requirements-completed: [DATA-01, DATA-02, DATA-03, DATA-04]
 
 # Metrics
-duration: ~12min
+duration: ~12분
 completed: 2026-06-20
 ---
 
-# Phase 01 / Plan 02: Locked Data Model Summary
+# Phase 01 / Plan 02: 잠긴 데이터 모델 요약
 
-**Flyway-owned 4-table schema with JPA entities validated on boot, plus a real HTTP /api/items round-trip and a Testcontainers IT proving UNIQUE idempotency and TIMESTAMPTZ UTC behavior.**
+**부팅 시 검증되는 JPA 엔티티가 딸린 Flyway 소유 4테이블 스키마, 그리고 실제 HTTP /api/items 라운드트립과 UNIQUE 멱등성·TIMESTAMPTZ UTC 동작을 증명하는 Testcontainers IT.**
 
-## Performance
+## 성능
 
-- **Duration:** ~12 min
-- **Completed:** 2026-06-20
-- **Tasks:** 2
-- **Files created:** 12
+- **소요 시간:** ~12분
+- **완료:** 2026-06-20
+- **태스크:** 2개
+- **생성 파일:** 12개
 
-## Accomplishments
-- `V1__init_schema.sql` locks the 4 tables with PostgreSQL types only, 8 TIMESTAMPTZ columns, and `UNIQUE(tracked_item_id, collected_at)` (which doubles as the range-query index)
-- JPA entities + `EventType` enum mirror the schema; app boots clean under `ddl-auto=validate`
-- `POST/GET /api/items` round-trips a tracked_item through live Postgres
-- `SchemaRoundTripIT` proves DATA-01 (UNIQUE violation), DATA-02 (UTC round-trip at a KST boundary), DATA-03 (HTTP item identity), DATA-04 (collection_run counts)
-- `avg_price` / `trade_count` intentionally absent (D-06) — gated by the 01-03 Task 0 spike
+## 주요 성과
+- `V1__init_schema.sql`이 PostgreSQL 타입만으로 4테이블, 8개 TIMESTAMPTZ 컬럼, `UNIQUE(tracked_item_id, collected_at)`(범위 쿼리 인덱스 겸용) 잠금
+- JPA 엔티티 + `EventType` enum이 스키마 미러링; `ddl-auto=validate`에서 앱이 깔끔히 부팅
+- `POST/GET /api/items`가 라이브 Postgres로 tracked_item 라운드트립
+- `SchemaRoundTripIT`가 DATA-01(UNIQUE 위반), DATA-02(KST 경계 UTC 라운드트립), DATA-03(HTTP 품목 식별), DATA-04(collection_run 카운트) 증명
+- `avg_price` / `trade_count`는 의도적으로 부재(D-06) — 01-03 Task 0 스파이크로 게이트
 
-## Task Commits
+## 태스크 커밋
 
-1. **Task 1: Flyway V1 + JPA entities + repositories (validate)** — `9303a30` (feat)
-2. **Task 2: /api/items round-trip + SchemaRoundTripIT** — `efbf069` (feat)
+1. **Task 1: Flyway V1 + JPA 엔티티 + 리포지토리 (validate)** — `9303a30` (feat)
+2. **Task 2: /api/items 라운드트립 + SchemaRoundTripIT** — `efbf069` (feat)
 
-## Files Created/Modified
-- `src/main/resources/db/migration/V1__init_schema.sql` — 4-table DDL, UNIQUE, TIMESTAMPTZ
-- `domain/{TrackedItem,PriceSnapshot,GameEvent,CollectionRun,EventType}.java` — entities + enum
+## 생성/수정 파일
+- `src/main/resources/db/migration/V1__init_schema.sql` — 4테이블 DDL, UNIQUE, TIMESTAMPTZ
+- `domain/{TrackedItem,PriceSnapshot,GameEvent,CollectionRun,EventType}.java` — 엔티티 + enum
 - `repository/{TrackedItem,PriceSnapshot,CollectionRun}Repository.java` — Spring Data JPA
-- `web/ItemController.java` + `web/dto/{TrackedItemRequest,TrackedItemResponse}.java` — HTTP slice
-- `test/.../SchemaRoundTripIT.java` — DATA-01..04 integration proof
+- `web/ItemController.java` + `web/dto/{TrackedItemRequest,TrackedItemResponse}.java` — HTTP 슬라이스
+- `test/.../SchemaRoundTripIT.java` — DATA-01..04 통합 증명
 
-## Decisions Made
-- **OffsetDateTime + `hibernate.jdbc.time_zone=UTC`** (set in 01-01) for deterministic TIMESTAMPTZ round-trips; tests compare `toInstant()`.
-- **@ManyToOne(LAZY)** for `price_snapshot.tracked_item_id`; `@Table(uniqueConstraints=...)` mirrors the DB UNIQUE so `validate` agrees.
-- **camelCase JSON** for the skeleton round-trip (a snake_case external contract, if wanted, is a Phase 3 read-API concern).
+## 결정 사항
+- **OffsetDateTime + `hibernate.jdbc.time_zone=UTC`**(01-01에서 설정)로 결정적 TIMESTAMPTZ 라운드트립; 테스트는 `toInstant()` 비교.
+- **@ManyToOne(LAZY)** for `price_snapshot.tracked_item_id`; `@Table(uniqueConstraints=...)`가 DB UNIQUE를 미러링해 `validate` 일치.
+- **camelCase JSON** 스켈레톤 라운드트립용 (snake_case 외부 계약이 필요하면 Phase 3 읽기 API 사안).
 
-## Deviations from Plan
+## 계획 대비 이탈
 
-### Auto-fixed Issues
+### 자동 수정 이슈
 
-**1. [Missing critical] Added CollectionRunRepository**
-- **Found during:** Task 2 — DATA-04 requires persisting/reading a `collection_run`, but the plan's file list named only TrackedItem/PriceSnapshot repositories.
-- **Fix:** Added `CollectionRunRepository extends JpaRepository<CollectionRun, Long>` following the established repository pattern.
-- **Verification:** `collectionRunRecordsStartFinishAndCounts` test passes.
-- **Committed in:** `9303a30`
+**1. [필수 누락] CollectionRunRepository 추가**
+- **발견 시점:** Task 2 — DATA-04는 `collection_run` 영속/조회가 필요하나, 계획 파일 목록엔 TrackedItem/PriceSnapshot 리포지토리만 명시됨.
+- **수정:** 확립된 리포지토리 패턴을 따라 `CollectionRunRepository extends JpaRepository<CollectionRun, Long>` 추가.
+- **검증:** `collectionRunRecordsStartFinishAndCounts` 테스트 통과.
+- **커밋:** `9303a30`
 
 ---
-**Total deviations:** 1 (necessary to satisfy DATA-04). No scope creep.
+**총 이탈:** 1건(DATA-04 충족에 필요). 스코프 확장 없음.
 
-## Issues Encountered
-None — the 01-01 `api.version=1.44` fix carried over, so all Testcontainers runs connected cleanly.
+## 마주친 이슈
+없음 — 01-01의 `api.version=1.44` 수정이 이어져 모든 Testcontainers 실행이 깔끔히 연결됨.
 
-## User Setup Required
-None.
+## 사용자 셋업 필요
+없음.
 
-## Next Phase Readiness
-- The shared persistence module is locked and validated; ready for **01-03** (Task 0 API spike) to confirm `avg_price`/`trade_count` availability and the item-matching rule against the real API, then ratify the model lock.
-- `ddl-auto=validate` means any future entity/schema drift fails fast on boot — the discipline signal the project wants to show.
+## 다음 페이즈 준비도
+- 공유 영속성 모듈이 잠기고 검증됨; **01-03**(Task 0 API 스파이크)이 실제 API로 `avg_price`/`trade_count` 가용성과 품목 매칭 규칙을 확인하고 모델 잠금을 비준할 준비 완료.
+- `ddl-auto=validate`는 향후 엔티티/스키마 드리프트가 부팅 시 즉시 실패하게 함 — 프로젝트가 보여주려는 규율 신호.
 
 ---
 *Phase: 01-foundation-task-0*
-*Completed: 2026-06-20*
+*완료: 2026-06-20*
