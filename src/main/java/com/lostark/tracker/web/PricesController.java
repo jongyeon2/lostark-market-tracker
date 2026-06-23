@@ -7,6 +7,7 @@ import com.lostark.tracker.read.WindowQueryService.WindowResult;
 import com.lostark.tracker.repository.TrackedItemRepository;
 import com.lostark.tracker.web.dto.EventPoint;
 import com.lostark.tracker.web.dto.TimelineResponse;
+import com.lostark.tracker.web.error.InvalidRequestException;
 import com.lostark.tracker.web.error.ItemNotFoundException;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -50,6 +51,11 @@ public class PricesController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime to) {
 
+        // Range validation (400) BEFORE the existence check (404), per D-13: to <= from covers both
+        // from>to and a zero/negative window. A valid window with no rows stays a 200 empty below.
+        if (!to.isAfter(from)) {
+            throw new InvalidRequestException("from must be before to (window must be positive)");
+        }
         // Missing item -> 404 via the shared 03-01 contract; "valid window, no data" stays a 200 below.
         if (!trackedItemRepository.existsById(id)) {
             throw new ItemNotFoundException(id);
