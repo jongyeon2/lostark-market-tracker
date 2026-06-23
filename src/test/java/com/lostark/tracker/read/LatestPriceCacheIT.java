@@ -13,6 +13,7 @@ import com.lostark.tracker.repository.PriceSnapshotRepository;
 import com.lostark.tracker.repository.TrackedItemRepository;
 import com.lostark.tracker.support.PostgresRedisContainers;
 import com.lostark.tracker.web.dto.LatestPriceResponse;
+import com.lostark.tracker.web.dto.TrackedItemResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -149,6 +150,25 @@ class LatestPriceCacheIT extends PostgresRedisContainers {
 
         assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(resp.getBody()).contains("\"status\":404");
+    }
+
+    @Test
+    void listReturnsActiveItemsOnlyWithPublicFields() {
+        TrackedItem active = seedItem("1001", "itemA");
+        TrackedItem inactive = seedItem("1002", "itemB");
+        inactive.setActive(false);
+        trackedItemRepository.save(inactive);
+
+        ResponseEntity<TrackedItemResponse[]> resp =
+                rest.getForEntity("/api/items", TrackedItemResponse[].class);
+
+        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getBody()).isNotNull();
+        // Only the active item is listed (API-01, Success Criterion 1) — the inactive item is excluded.
+        assertThat(resp.getBody()).extracting(TrackedItemResponse::externalItemId).containsExactly("1001");
+        TrackedItemResponse only = resp.getBody()[0];
+        assertThat(only.id()).isEqualTo(active.getId());
+        assertThat(only.displayName()).isEqualTo("itemA");
     }
 
     private TrackedItem seedItem(String externalId, String name) {
