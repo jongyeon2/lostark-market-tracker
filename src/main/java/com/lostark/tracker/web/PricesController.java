@@ -1,10 +1,11 @@
 package com.lostark.tracker.web;
 
+import com.lostark.tracker.read.DownsampleService;
+import com.lostark.tracker.read.DownsampleService.DownsampleResult;
 import com.lostark.tracker.read.WindowQueryService;
 import com.lostark.tracker.read.WindowQueryService.WindowResult;
 import com.lostark.tracker.repository.TrackedItemRepository;
 import com.lostark.tracker.web.dto.EventPoint;
-import com.lostark.tracker.web.dto.SnapshotPoint;
 import com.lostark.tracker.web.dto.TimelineResponse;
 import com.lostark.tracker.web.error.ItemNotFoundException;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -18,14 +19,14 @@ import java.time.OffsetDateTime;
 import java.util.List;
 
 /**
- * The timeline read (API-03): {@code GET /api/items/{id}/prices?from=&to=} returns the window's
- * snapshots and the overlapping events as two distinct arrays (D-04). A separate controller from
- * {@link ItemController} to keep file ownership disjoint across 03-01/03-02.
+ * The timeline read (API-03/API-04): {@code GET /api/items/{id}/prices?from=&to=} returns the
+ * window's snapshots and overlapping events as two distinct arrays (D-04), auto-downsampling the
+ * snapshots server-side for large ranges (D-08). A separate controller from {@link ItemController}.
  *
- * <p>{@code from}/{@code to} are parsed as UTC instants (no server-side KST conversion, D-11) and the
- * window read is delegated to the shared {@link WindowQueryService} (4A). Range validation
- * ({@code from>to}, {@code window<=0} -> 400) and server-side downsampling are added in 03-03 — this
- * endpoint returns RAW snapshots. Range results are not cached (only latest is cached).
+ * <p>{@code from}/{@code to} are parsed as UTC instants (no KST shift, D-11). The window read is
+ * delegated to the shared {@link WindowQueryService} (4A) and the snapshots pass through
+ * {@link DownsampleService} before response assembly; events are never downsampled. Range results
+ * are not cached (only latest is cached).
  */
 @RestController
 @RequestMapping("/api/items")
@@ -33,11 +34,14 @@ public class PricesController {
 
     private final TrackedItemRepository trackedItemRepository;
     private final WindowQueryService windowQueryService;
+    private final DownsampleService downsampleService;
 
     public PricesController(TrackedItemRepository trackedItemRepository,
-                            WindowQueryService windowQueryService) {
+                            WindowQueryService windowQueryService,
+                            DownsampleService downsampleService) {
         this.trackedItemRepository = trackedItemRepository;
         this.windowQueryService = windowQueryService;
+        this.downsampleService = downsampleService;
     }
 
     @GetMapping("/{id}/prices")
@@ -52,8 +56,13 @@ public class PricesController {
         }
 
         WindowResult window = windowQueryService.fetchWindow(id, from, to);
-        List<SnapshotPoint> snapshots = window.snapshots().stream().map(SnapshotPoint::from).toList();
+        DownsampleResult downsampled = downsampleService.downsample(id, from, to, window.snapshots());
         List<EventPoint> events = window.events().stream().map(EventPoint::from).toList();
-        return new TimelineResponse(snapshots, events);
+
+        return new TimelineResponse(
+                downsampled.downsampled(),
+                downsampled.bucketWidth(),
+                downsampled.snapshots(),
+                events);
     }
 }

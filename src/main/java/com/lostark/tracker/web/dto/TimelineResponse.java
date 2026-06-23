@@ -3,13 +3,18 @@ package com.lostark.tracker.web.dto;
 import java.util.List;
 
 /**
- * The timeline read payload: TWO independent arrays (D-04). {@code snapshots} is the window's price
- * line (ascending by {@code collectedAt}); {@code events} is the game events overlapping the window.
- * Kept distinct so a client overlays event markers on the price chart, and so 03-03 downsampling can
- * shrink {@code snapshots} without touching {@code events}.
+ * The timeline read payload. TWO independent arrays (D-04): {@code snapshots} is the window's price
+ * line (raw points, or {@code avg(min_price)} buckets when the range is downsampled), and
+ * {@code events} is the overlapping game events — never downsampled.
+ *
+ * <p>{@code downsampled} reports whether the server aggregated the snapshots (raw point count &gt; N),
+ * and {@code bucketWidth} ({@code "hour"}/{@code "day"}, null when raw) is the chosen {@code date_trunc}
+ * unit (D-08). Snapshots are {@link PricePoint}s so raw and bucketed points share one shape.
  */
 public record TimelineResponse(
-        List<SnapshotPoint> snapshots,
+        boolean downsampled,
+        String bucketWidth,
+        List<PricePoint> snapshots,
         List<EventPoint> events
 ) {
 }
