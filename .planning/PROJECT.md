@@ -14,7 +14,8 @@
 
 <!-- Shipped and confirmed valuable. -->
 
-(None yet — ship to validate)
+- [x] 조회 API (latest 캐시, prices 타임라인=스냅샷+이벤트, 큰 범위 다운샘플) — Validated in Phase 3: Read API + Cache (API-01..05)
+- [x] 운영 가시성 (/health/collection) — Validated in Phase 3: Read API + Cache (OPS-01)
 
 ### Active
 
@@ -22,10 +23,8 @@
 
 - [ ] 10분 주기 시세 수집 파이프라인 (스케줄러 + 레이트리밋 + 부분 실패 처리)
 - [ ] 시계열 영속화 (price_snapshot, UNIQUE 멱등, UTC TIMESTAMPTZ, collection_run 실행 이력)
-- [ ] 조회 API (latest 캐시, prices 타임라인=스냅샷+이벤트, 큰 범위 다운샘플)
 - [ ] 관리자 이벤트/품목 CRUD (시크릿 인증)
 - [ ] event-impact (이벤트 전후 변화율, 충분성/staleness 가드) — **2주차 말 하드 게이트 통과 조건부**
-- [ ] 운영 가시성 (/health/collection)
 - [ ] 배포 산출물 (docker-compose, CI=Testcontainers, 격리 시드, README 데모 표면)
 
 ### Out of Scope
@@ -90,4 +89,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-20 after initialization*
+*Last updated: 2026-06-23 after Phase 3 (Read API + Cache) completion*
