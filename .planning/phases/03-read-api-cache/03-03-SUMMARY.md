@@ -9,23 +9,23 @@ requires:
   - phase: 03-read-api-cache
     provides: "03-02 PricesController + TimelineResponse + WindowQueryService; 03-01 ApiExceptionHandler + ItemNotFoundException"
   - phase: 02-collection-pipeline
-    provides: "collection_run rows (started/finished/counts/status/summary_message marker)"
+    provides: "collection_run 행 (started/finished/counts/status/summary_message 마커)"
 provides:
-  - "Server-side downsampling on /prices: date_trunc avg(min_price) buckets when raw count > N (~500) (API-04)"
-  - "Input-validation contract: from>to/window<=0 -> 400, missing item -> 404, empty range -> 200 empty (API-05)"
-  - "GET /api/health/collection — latest collection_run snapshot, no secret leak (OPS-01)"
-  - "DownsampleService + PriceBucketView native date_trunc projection"
-  - "ApiExceptionHandler extended with 400 handlers (InvalidRequestException + bad-param)"
+  - "/prices 서버 측 다운샘플: raw 점 수 > N(~500)일 때 date_trunc avg(min_price) 버킷 (API-04)"
+  - "입력 검증 계약: from>to/window<=0 → 400, 없는 품목 → 404, 빈 범위 → 200 빈 배열 (API-05)"
+  - "GET /api/health/collection — 최신 collection_run 스냅샷, 시크릿 노출 없음 (OPS-01)"
+  - "DownsampleService + PriceBucketView 네이티브 date_trunc 프로젝션"
+  - "ApiExceptionHandler를 400 핸들러(InvalidRequestException + 잘못된 파라미터)로 확장"
 affects: [05-event-impact]
 
 # Tech tracking
 tech-stack:
   added: []
   patterns:
-    - "Native PostgreSQL date_trunc aggregate via Spring Data interface projection (Instant getter, server re-offsets to UTC)"
-    - "Server-chosen bucket-unit whitelist (hour/day) bound as a parameter — no SQL injection surface"
-    - "Validation-before-existence ordering (400 then 404) and a single ApiErrorResponse helper"
-    - "Ops health endpoint exposing counts/markers only — no secret field exists on the path"
+    - "Spring Data 인터페이스 프로젝션을 통한 네이티브 PostgreSQL date_trunc 집계 (Instant 게터, 서버가 UTC로 재오프셋)"
+    - "서버가 고른 버킷 단위 화이트리스트(hour/day)를 파라미터로 바인딩 — SQL 인젝션 표면 없음"
+    - "검증-우선-존재검사 순서(400 다음 404)와 단일 ApiErrorResponse 헬퍼"
+    - "카운트/마커만 노출하는 운영 헬스 엔드포인트 — 경로에 시크릿 필드 자체가 없음"
 
 key-files:
   created:
@@ -47,87 +47,87 @@ key-files:
     - src/main/java/com/lostark/tracker/repository/CollectionRunRepository.java
 
 key-decisions:
-  - "D-07: avg(min_price) buckets aggregated in PostgreSQL via date_trunc (not Java)"
-  - "D-08: auto-downsample when raw count > N; response carries downsampled + bucketWidth meta; client passes no param"
-  - "D-09: N≈500 (TARGET_MAX_POINTS); bucket unit hour while span<=N hours, else day"
-  - "D-13: from>to / window<=0 -> 400, missing item -> 404, valid-but-empty -> 200 empty"
-  - "D-10: 400 handlers extend the 03-01 advice; same {timestamp,status,error,message} body"
-  - "D-12: health surfaces lastRunAt/started/counts/status/marker only; no key/auth field; no-runs -> status NO_RUNS"
+  - "D-07: avg(min_price) 버킷을 Java가 아닌 PostgreSQL date_trunc로 집계"
+  - "D-08: raw 점 수 > N이면 자동 다운샘플; 응답에 downsampled + bucketWidth 메타; 클라이언트 파라미터 불필요"
+  - "D-09: N≈500 (TARGET_MAX_POINTS); 버킷 단위는 span<=N시간이면 hour, 아니면 day"
+  - "D-13: from>to / window<=0 → 400, 없는 품목 → 404, 유효하나 빈 범위 → 200 빈 배열"
+  - "D-10: 400 핸들러가 03-01 advice를 확장; 동일 {timestamp,status,error,message} 바디"
+  - "D-12: 헬스는 lastRunAt/started/counts/status/marker만 노출; key/auth 필드 없음; 런 없으면 status NO_RUNS"
 
 patterns-established:
-  - "date_trunc native projection returns Instant (Hibernate), re-offset to UTC in the service"
-  - "Events never downsampled — only the snapshots array shrinks (D-04 orthogonality)"
+  - "date_trunc 네이티브 프로젝션은 Instant를 반환(Hibernate), 서비스에서 UTC로 재오프셋"
+  - "이벤트는 절대 다운샘플하지 않음 — snapshots 배열만 축소 (D-04 직교성)"
 
 requirements-completed: [API-04, API-05, OPS-01]
 
 # Metrics
-duration: ~30 min
+duration: ~30분
 completed: 2026-06-23
 ---
 
-# Phase 3 Plan 03: Downsampling + validation + health Summary
+# Phase 3 Plan 03: 다운샘플 + 검증 + 헬스 요약
 
-**`/prices` auto-downsamples large ranges to PostgreSQL `date_trunc` avg buckets, the full input-validation contract (400/404/200-empty) extends the custom advice, and `GET /api/health/collection` surfaces the latest collection run without leaking a secret.**
+**`/prices`가 큰 범위를 PostgreSQL `date_trunc` avg 버킷으로 자동 다운샘플하고, 전체 입력 검증 계약(400/404/200-빈)이 커스텀 advice를 확장하며, `GET /api/health/collection`이 시크릿 노출 없이 최신 수집 런을 드러낸다.**
 
-## Performance
+## 성능
 
-- **Duration:** ~30 min
-- **Completed:** 2026-06-23
-- **Tasks:** 3 (all test-backed)
-- **Files modified:** 15 (10 created, 5 modified)
+- **소요 시간:** ~30분
+- **완료:** 2026-06-23
+- **태스크:** 3개 (전부 테스트 기반)
+- **변경 파일:** 15개 (생성 10, 수정 5)
 
-## Accomplishments
-- Server-side downsampling: a native `date_trunc` aggregate (`avg(min_price)` + `count(*)` per bucket) behind `DownsampleService`; auto-triggers when raw count > N≈500, picks hour/day by span, returns `downsampled`/`bucketWidth` meta; events untouched (D-07/08/09).
-- Input-validation contract: `from>to`/`window<=0` → 400 (`InvalidRequestException`), malformed/missing param → 400, missing item → 404, valid-but-empty → 200 empty — all via the extended `@RestControllerAdvice` `{timestamp,status,error,message}` body (D-10/D-13).
-- `GET /api/health/collection`: latest `collection_run` snapshot (lastRunAt/startedAt/counts/status/marker), `NO_RUNS` when empty, and proven to leak no key/Authorization/bearer/token (D-12).
+## 주요 성과
+- 서버 측 다운샘플: 네이티브 `date_trunc` 집계(버킷당 `avg(min_price)` + `count(*)`)를 `DownsampleService` 뒤에 배치; raw 점 수 > N≈500이면 자동 발동, span으로 hour/day 선택, `downsampled`/`bucketWidth` 메타 반환; events 무수정 (D-07/08/09).
+- 입력 검증 계약: `from>to`/`window<=0` → 400(`InvalidRequestException`), 잘못된/누락 파라미터 → 400, 없는 품목 → 404, 유효하나 빈 범위 → 200 빈 배열 — 전부 확장된 `@RestControllerAdvice` `{timestamp,status,error,message}` 바디 경유 (D-10/D-13).
+- `GET /api/health/collection`: 최신 `collection_run` 스냅샷(lastRunAt/startedAt/counts/status/marker), 비어있으면 `NO_RUNS`, key/Authorization/bearer/token 노출 없음 증명 (D-12).
 
-## Task Commits
+## 태스크 커밋
 
-1. **Task 1: Server-side downsample (date_trunc + DownsampleService)** - `28d2532` (feat)
-2. **Task 2: Input-validation contract (400 advice extension)** - `c340487` (feat)
-3. **Task 3: Collection health endpoint** - `8c548d4` (feat)
+1. **Task 1: 서버 측 다운샘플 (date_trunc + DownsampleService)** - `28d2532` (feat)
+2. **Task 2: 입력 검증 계약 (400 advice 확장)** - `c340487` (feat)
+3. **Task 3: 수집 헬스 엔드포인트** - `8c548d4` (feat)
 
-## Files Created/Modified
-- `repository/PriceBucketView.java` + `PriceSnapshotRepository` native `date_trunc` aggregate
-- `read/DownsampleService.java` - raw-vs-bucket decision + unit choice
-- `web/dto/PricePoint.java` + extended `TimelineResponse` (downsampled + bucketWidth)
-- `web/PricesController.java` - downsample wiring + range validation
-- `web/error/InvalidRequestException.java` + `ApiExceptionHandler` 400 handlers
-- `health/CollectionHealthService.java` + `web/HealthController.java` + `web/dto/CollectionHealthResponse.java` + `CollectionRunRepository` run finder
+## 생성/수정 파일
+- `repository/PriceBucketView.java` + `PriceSnapshotRepository` 네이티브 `date_trunc` 집계
+- `read/DownsampleService.java` - raw-vs-버킷 판단 + 단위 선택
+- `web/dto/PricePoint.java` + 확장된 `TimelineResponse` (downsampled + bucketWidth)
+- `web/PricesController.java` - 다운샘플 연결 + 범위 검증
+- `web/error/InvalidRequestException.java` + `ApiExceptionHandler` 400 핸들러
+- `health/CollectionHealthService.java` + `web/HealthController.java` + `web/dto/CollectionHealthResponse.java` + `CollectionRunRepository` 런 파인더
 - `test/.../DownsamplePricesIT.java`, `InputValidationIT.java`, `health/CollectionHealthIT.java`
 
-## Decisions Made
-None beyond the locked CONTEXT decisions (D-07/08/09/10/12/13). Discretion: `TARGET_MAX_POINTS=500`; unit rule `span<=500h -> hour else day`; no-runs returns `status "NO_RUNS"`.
+## 결정 사항
+잠긴 CONTEXT 결정(D-07/08/09/10/12/13) 외 추가 결정 없음. 재량: `TARGET_MAX_POINTS=500`; 단위 규칙 `span<=500h → hour, 아니면 day`; 런 없으면 `status "NO_RUNS"` 반환.
 
-## Deviations from Plan
+## 계획 대비 이탈
 
-### Auto-fixed Issues
+### 자동 수정 이슈
 
-**1. [Rule 1 - Bug] Native `date_trunc` projection type mismatch**
-- **Found during:** Task 1 (DownsamplePricesIT — large range returned 500)
-- **Issue:** Hibernate returns the native `timestamptz` column as `java.time.Instant`; the projection getter declared `OffsetDateTime`, and Spring's interface projection had no `Instant`→`OffsetDateTime` converter (`UnsupportedOperationException`).
-- **Fix:** `PriceBucketView.getBucketStart()` typed as `Instant`; `DownsampleService` re-offsets it to UTC (`atOffset(ZoneOffset.UTC)`) — exact, since both bounds are UTC.
-- **Files modified:** PriceBucketView.java, DownsampleService.java
-- **Verification:** DownsamplePricesIT passes (bucket start = `2026-06-21T15:00:00Z`, avg=mean, sampleCount=60)
-- **Committed in:** `28d2532` (Task 1 commit)
+**1. [Rule 1 - 버그] 네이티브 `date_trunc` 프로젝션 타입 불일치**
+- **발견 시점:** Task 1 (DownsamplePricesIT — 큰 범위가 500 반환)
+- **이슈:** Hibernate가 네이티브 `timestamptz` 컬럼을 `java.time.Instant`로 반환하는데 프로젝션 게터는 `OffsetDateTime`으로 선언 → Spring 인터페이스 프로젝션에 `Instant`→`OffsetDateTime` 컨버터가 없어 `UnsupportedOperationException`.
+- **수정:** `PriceBucketView.getBucketStart()`를 `Instant`로 선언; `DownsampleService`에서 UTC로 재오프셋(`atOffset(ZoneOffset.UTC)`) — 양쪽 경계가 UTC라 정확.
+- **변경 파일:** PriceBucketView.java, DownsampleService.java
+- **검증:** DownsamplePricesIT 통과 (버킷 시작 = `2026-06-21T15:00:00Z`, avg=평균, sampleCount=60)
+- **커밋:** `28d2532` (Task 1 커밋)
 
 ---
 
-**Total deviations:** 1 auto-fixed (1 bug). **Impact:** Necessary for the downsample path to function; no scope creep.
+**총 이탈:** 1건 자동 수정 (버그 1). **영향:** 다운샘플 경로 동작에 필수; 스코프 확장 없음.
 
-## Issues Encountered
-None unresolved. Full `./gradlew test -PdockerApiVersion=1.44` is green: 46 tests, 0 failures, 0 errors.
+## 마주친 이슈
+미해결 없음. 전체 `./gradlew test -PdockerApiVersion=1.44` 그린: 46개 테스트, 실패 0, 에러 0.
 
-Note: 03-02's `SnapshotPoint` DTO is now superseded by `PricePoint` in `TimelineResponse` and is no longer referenced — left in place (out of this plan's file scope); a trivial follow-up cleanup candidate.
+참고: 03-02의 `SnapshotPoint` DTO는 `TimelineResponse`에서 `PricePoint`로 대체되어 더 이상 참조되지 않음 — 이 계획 파일 스코프 밖이라 그대로 둠; 사소한 후속 정리 후보.
 
-## User Setup Required
-None - no external service configuration required.
+## 사용자 셋업 필요
+없음 - 외부 서비스 구성 불필요.
 
-## Next Phase Readiness
-- Phase 3 read API is complete: latest (cached), timeline (two arrays), downsampling, validation, and health.
-- `WindowQueryService` (03-02) remains the locked reuse point for Phase 5 event-impact.
-- No blockers.
+## 다음 페이즈 준비도
+- Phase 3 읽기 API 완성: latest(캐시), 타임라인(두 배열), 다운샘플, 검증, 헬스.
+- `WindowQueryService`(03-02)는 Phase 5 event-impact의 잠긴 재사용 지점.
+- 블로커 없음.
 
 ---
 *Phase: 03-read-api-cache*
-*Completed: 2026-06-23*
+*완료: 2026-06-23*

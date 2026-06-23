@@ -7,24 +7,24 @@ tags: [spring-boot, jpa, timeline, window-query, game-event, testcontainers]
 # Dependency graph
 requires:
   - phase: 03-read-api-cache
-    provides: "03-01 ItemNotFoundException + ApiExceptionHandler 404 contract; read-only-finder pattern beside the Phase 2 insert path"
+    provides: "03-01 ItemNotFoundException + ApiExceptionHandler 404 계약; Phase 2 insert 경로 옆 읽기 전용 파인더 패턴"
   - phase: 02-collection-pipeline
-    provides: "PriceSnapshot entity + GameEvent entity (game_event table)"
+    provides: "PriceSnapshot 엔티티 + GameEvent 엔티티 (game_event 테이블)"
 provides:
-  - "GET /api/items/{id}/prices?from=&to= — two-array timeline {snapshots, events} (D-04)"
-  - "WindowQueryService.fetchWindow (4A shared window query) reused by Phase 5 event-impact (D-06)"
-  - "GameEventRepository.findByOccurredAtBetween (inclusive occurred_at containment, D-05)"
-  - "PriceSnapshotRepository.findByTrackedItem_IdAndCollectedAtBetweenOrderByCollectedAtAsc (read-only window finder)"
-  - "TimelineResponse / SnapshotPoint / EventPoint DTOs"
+  - "GET /api/items/{id}/prices?from=&to= — 두 배열 타임라인 {snapshots, events} (D-04)"
+  - "WindowQueryService.fetchWindow (4A 공유 윈도우 쿼리) — Phase 5 event-impact 재사용 (D-06)"
+  - "GameEventRepository.findByOccurredAtBetween (occurred_at 양끝 포함 containment, D-05)"
+  - "PriceSnapshotRepository.findByTrackedItem_IdAndCollectedAtBetweenOrderByCollectedAtAsc (읽기 전용 윈도우 파인더)"
+  - "TimelineResponse / SnapshotPoint / EventPoint DTO"
 affects: [03-03-downsample-validation-health, 05-event-impact]
 
 # Tech tracking
 tech-stack:
   added: []
   patterns:
-    - "4A shared window query extracted as a pure data-access service (two queries, no N+1) for cross-phase reuse"
-    - "Timeline as two orthogonal arrays so downsampling can shrink snapshots without touching events"
-    - "Range/window reads hit the DB directly (not cached) — only latest is cached"
+    - "4A 공유 윈도우 쿼리를 순수 데이터 액세스 서비스(두 쿼리, N+1 없음)로 추출해 페이즈 간 재사용"
+    - "타임라인을 직교하는 두 배열로 — 다운샘플이 events를 건드리지 않고 snapshots만 축소 가능"
+    - "범위/윈도우 읽기는 DB 직조회(캐시 안 함) — latest만 캐시"
 
 key-files:
   created:
@@ -40,72 +40,72 @@ key-files:
     - src/main/java/com/lostark/tracker/repository/PriceSnapshotRepository.java
 
 key-decisions:
-  - "D-04: timeline returns two independent arrays {snapshots, events}"
-  - "D-05: event overlap is inclusive containment from <= occurred_at <= to (Spring Data Between)"
-  - "D-06: 4A window query extracted as WindowQueryService for Phase 5 reuse (two queries, no N+1)"
-  - "D-11: from/to parsed as UTC OffsetDateTime, responses UTC ISO-8601, no KST conversion"
-  - "D-13 (empty half): valid window with no data -> 200 with empty arrays; missing item -> 404"
+  - "D-04: 타임라인은 독립된 두 배열 {snapshots, events} 반환"
+  - "D-05: 이벤트 겹침은 양끝 포함 containment from <= occurred_at <= to (Spring Data Between)"
+  - "D-06: 4A 윈도우 쿼리를 WindowQueryService로 추출해 Phase 5 재사용 (두 쿼리, N+1 없음)"
+  - "D-11: from/to를 UTC OffsetDateTime으로 파싱, 응답은 UTC ISO-8601, KST 변환 없음"
+  - "D-13 (빈 절반): 유효하나 데이터 없는 범위 → 200 빈 배열; 없는 품목 → 404"
 
 patterns-established:
-  - "Shared window query service consumed by timeline now and event-impact later"
-  - "Separate PricesController so /prices file ownership is disjoint from 03-01's ItemController"
+  - "타임라인은 지금, event-impact는 나중에 소비하는 공유 윈도우 쿼리 서비스"
+  - "/prices 파일 소유권을 03-01의 ItemController와 분리하기 위한 별도 PricesController"
 
 requirements-completed: [API-03]
 
 # Metrics
-duration: ~15 min
+duration: ~15분
 completed: 2026-06-23
 ---
 
-# Phase 3 Plan 02: Timeline read + shared window query Summary
+# Phase 3 Plan 02: 타임라인 읽기 + 공유 윈도우 쿼리 요약
 
-**`GET /api/items/{id}/prices?from=&to=` returns the window's snapshots and overlapping events as two UTC arrays, backed by a reusable 4A `WindowQueryService` with inclusive boundary semantics tested for Phase 5 reuse.**
+**`GET /api/items/{id}/prices?from=&to=`가 윈도우 내 스냅샷과 겹치는 이벤트를 UTC 두 배열로 반환하며, Phase 5가 재사용할 재사용 가능한 4A `WindowQueryService`가 양끝 포함 경계 시맨틱과 함께 테스트됨.**
 
-## Performance
+## 성능
 
-- **Duration:** ~15 min
-- **Completed:** 2026-06-23
-- **Tasks:** 2 (both test-backed)
-- **Files modified:** 9 (8 created, 1 modified)
+- **소요 시간:** ~15분
+- **완료:** 2026-06-23
+- **태스크:** 2개 (전부 테스트 기반)
+- **변경 파일:** 9개 (생성 8, 수정 1)
 
-## Accomplishments
-- `WindowQueryService.fetchWindow` (4A) — composes the snapshot window finder + `GameEventRepository.findByOccurredAtBetween` into a `WindowResult{snapshots, events}` with exactly two queries; pure data access (no existence check, no mapping) so Phase 5 reuses identical inclusive UTC boundary semantics (D-06).
-- `GameEventRepository` (new) over the existing `game_event` table; read-only window finder added to `PriceSnapshotRepository` beside the Phase 2 insert-path methods (untouched).
-- `PricesController` `GET /{id}/prices` — parses `from`/`to` as UTC `OffsetDateTime` (no KST shift, D-11), 404s a missing item via the shared 03-01 advice, maps to `TimelineResponse{snapshots, events}` (D-04).
-- ITs prove inclusive overlap (on-`from`/on-`to` included, just-outside excluded — D-05), ascending snapshots (out-of-order inserts), KST-midnight UTC instant round-trip (off-by-9h guard), 404 missing item, and 200 + empty arrays for an empty window (D-13 empty half).
+## 주요 성과
+- `WindowQueryService.fetchWindow` (4A) — 스냅샷 윈도우 파인더 + `GameEventRepository.findByOccurredAtBetween`을 정확히 두 쿼리로 묶어 `WindowResult{snapshots, events}` 반환; 순수 데이터 액세스(존재 검사·매핑 없음)라 Phase 5가 동일한 양끝 포함 UTC 경계 시맨틱을 재사용 (D-06).
+- `GameEventRepository`(신규)로 기존 `game_event` 테이블 조회; 읽기 전용 윈도우 파인더를 `PriceSnapshotRepository`의 Phase 2 insert 경로 메서드 옆에 추가(기존 메서드 무수정).
+- `PricesController` `GET /{id}/prices` — `from`/`to`를 UTC `OffsetDateTime`으로 파싱(KST 변환 없음, D-11), 없는 품목은 공유 03-01 advice로 404, `TimelineResponse{snapshots, events}`로 매핑 (D-04).
+- IT가 양끝 포함 겹침(on-`from`/on-`to` 포함, 바로 바깥 제외 — D-05), 스냅샷 오름차순(순서 섞어 insert), KST 자정 UTC 인스턴트 라운드트립(off-by-9h 가드), 없는 품목 404, 빈 윈도우 200 + 빈 배열(D-13 빈 절반) 증명.
 
-## Task Commits
+## 태스크 커밋
 
-1. **Task 1: 4A shared window query (repos + WindowQueryService)** - `1e8ceae` (feat)
-2. **Task 2: /prices endpoint + two-array DTOs** - `a71e433` (feat)
+1. **Task 1: 4A 공유 윈도우 쿼리 (리포지토리 + WindowQueryService)** - `1e8ceae` (feat)
+2. **Task 2: /prices 엔드포인트 + 두 배열 DTO** - `a71e433` (feat)
 
-## Files Created/Modified
-- `repository/GameEventRepository.java` - new; `findByOccurredAtBetween` (inclusive)
-- `read/WindowQueryService.java` - 4A shared window query, `WindowResult` record
-- `web/dto/TimelineResponse.java` / `SnapshotPoint.java` / `EventPoint.java` - two-array DTOs
+## 생성/수정 파일
+- `repository/GameEventRepository.java` - 신규; `findByOccurredAtBetween` (양끝 포함)
+- `read/WindowQueryService.java` - 4A 공유 윈도우 쿼리, `WindowResult` 레코드
+- `web/dto/TimelineResponse.java` / `SnapshotPoint.java` / `EventPoint.java` - 두 배열 DTO
 - `web/PricesController.java` - `GET /{id}/prices`
-- `test/.../WindowQueryServiceIT.java` - boundary/ordering proof
-- `test/.../TimelinePricesIT.java` - endpoint proof (two arrays, 404, empty window)
-- `repository/PriceSnapshotRepository.java` - read-only window finder added
+- `test/.../WindowQueryServiceIT.java` - 경계/정렬 증명
+- `test/.../TimelinePricesIT.java` - 엔드포인트 증명 (두 배열, 404, 빈 윈도우)
+- `repository/PriceSnapshotRepository.java` - 읽기 전용 윈도우 파인더 추가
 
-## Decisions Made
-None beyond the locked CONTEXT decisions (D-04/05/06/11/13). Discretion: `WindowResult` as a nested record on the service; `PricesController` kept separate from `ItemController` per the plan.
+## 결정 사항
+잠긴 CONTEXT 결정(D-04/05/06/11/13) 외 추가 결정 없음. 재량: `WindowResult`를 서비스 내 중첩 레코드로; `PricesController`를 계획대로 `ItemController`와 분리.
 
-## Deviations from Plan
+## 계획 대비 이탈
 
-None - plan executed exactly as written.
+없음 - 계획대로 실행됨.
 
-## Issues Encountered
-None. Full `./gradlew test -PdockerApiVersion=1.44` is green: 37 tests, 0 failures, 0 errors.
+## 마주친 이슈
+없음. 전체 `./gradlew test -PdockerApiVersion=1.44` 그린: 37개 테스트, 실패 0, 에러 0.
 
-## User Setup Required
-None - no external service configuration required.
+## 사용자 셋업 필요
+없음 - 외부 서비스 구성 불필요.
 
-## Next Phase Readiness
-- 03-03 extends THIS endpoint: it adds the 400 range-validation handlers to `ApiExceptionHandler` and the server-side downsample branch on `/prices` (shrinking `snapshots` only, events untouched — the two-array orthogonality is in place).
-- `WindowQueryService` is the locked reuse point for Phase 5 event-impact.
-- No blockers.
+## 다음 페이즈 준비도
+- 03-03이 바로 이 엔드포인트를 확장: `ApiExceptionHandler`에 400 범위 검증 핸들러 추가 + `/prices`에 서버 측 다운샘플 분기(스냅샷만 축소, events 무수정 — 두 배열 직교성 이미 확보).
+- `WindowQueryService`는 Phase 5 event-impact의 잠긴 재사용 지점.
+- 블로커 없음.
 
 ---
 *Phase: 03-read-api-cache*
-*Completed: 2026-06-23*
+*완료: 2026-06-23*

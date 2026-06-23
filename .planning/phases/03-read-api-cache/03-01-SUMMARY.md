@@ -7,24 +7,24 @@ tags: [redis, cache-aside, spring-boot, jpa, testcontainers, jackson, error-hand
 # Dependency graph
 requires:
   - phase: 02-collection-pipeline
-    provides: PriceCollector.persistSnapshot insert path, PriceSnapshot/TrackedItem entities, PostgresRedisContainers test base, StringRedisTemplate token bucket
+    provides: PriceCollector.persistSnapshot insert 경로, PriceSnapshot/TrackedItem 엔티티, PostgresRedisContainers 테스트 베이스, StringRedisTemplate 토큰버킷
 provides:
-  - "GET /api/items/{id}/latest — latest price served via hand-rolled Redis cache-aside (0 DB reads on a hit)"
-  - "LatestPriceCache (get/put/evict + safety TTL, fail-open) over a value-serializing RedisTemplate<String, LatestPriceResponse>"
-  - "Evict-on-write invalidation wired into PriceCollector.persistSnapshot (D-01)"
-  - "404 half of the error contract: ApiExceptionHandler @RestControllerAdvice + ItemNotFoundException + ApiErrorResponse {timestamp,status,error,message}"
-  - "GET /api/items now active-only (findByActiveTrue), API-01"
-  - "Read-only finder PriceSnapshotRepository.findTopByTrackedItem_IdOrderByCollectedAtDesc"
+  - "GET /api/items/{id}/latest — Redis 캐시-어사이드로 최신가 서빙 (캐시 히트 시 DB 0회 조회)"
+  - "LatestPriceCache (get/put/evict + 안전망 TTL, fail-open) — 값 직렬화 RedisTemplate<String, LatestPriceResponse> 기반"
+  - "Evict-on-write 무효화를 PriceCollector.persistSnapshot에 연결 (D-01)"
+  - "에러 계약의 404 절반: ApiExceptionHandler @RestControllerAdvice + ItemNotFoundException + ApiErrorResponse {timestamp,status,error,message}"
+  - "GET /api/items를 active 전용으로 전환 (findByActiveTrue), API-01"
+  - "읽기 전용 파인더 PriceSnapshotRepository.findTopByTrackedItem_IdOrderByCollectedAtDesc"
 affects: [03-02-timeline, 03-03-downsample-validation-health, 05-event-impact]
 
 # Tech tracking
 tech-stack:
   added: []
   patterns:
-    - "Hand-rolled cache-aside (explicit get/put/evict, no @Cacheable) mirroring the self-built token bucket"
-    - "Custom @RestControllerAdvice error contract for consistent 4xx JSON bodies"
-    - "Fail-open cache: Redis errors swallowed -> miss/no-op so the read path degrades latency, not availability"
-    - "@MockitoSpyBean repository to assert cache-hit = 0 DB reads"
+    - "수동 cache-aside (명시적 get/put/evict, @Cacheable 미사용) — Phase 2 자체 구현 토큰버킷과 동일 철학"
+    - "일관된 4xx JSON을 위한 커스텀 @RestControllerAdvice 에러 계약"
+    - "Fail-open 캐시: Redis 오류를 삼켜 miss/no-op으로 처리 → 읽기 경로는 가용성이 아니라 지연만 저하"
+    - "@MockitoSpyBean 리포지토리로 캐시 히트=DB 0회 단언"
 
 key-files:
   created:
@@ -44,79 +44,79 @@ key-files:
     - src/test/java/com/lostark/tracker/collect/CollectionResilienceIT.java
 
 key-decisions:
-  - "D-03: hand-rolled cache-aside via a distinct value-serializing RedisTemplate bean (same connection factory as the token bucket's StringRedisTemplate); no Spring cache abstraction"
-  - "D-02: cached value is the minimal {itemId, minPrice, collectedAt} DTO, JSON-serialized"
-  - "D-01: evict-on-write is the primary invalidation signal; 20-min (2-tick) safety TTL is the backstop"
-  - "D-11: collectedAt serialized as UTC ISO-8601, round-trips as the same instant (off-by-9h guard)"
-  - "D-10: 404 half of the error contract (missing item AND existing-item-no-snapshot both 404); 400 validation deferred to 03-03"
-  - "Discretion: /api/items returns active items only, sorted by displayName"
+  - "D-03: 토큰버킷의 StringRedisTemplate과 동일 커넥션 팩토리 위의 별개 값-직렬화 RedisTemplate 빈으로 수동 cache-aside 구현; Spring 캐시 추상화 미사용"
+  - "D-02: 캐시 값은 최소 DTO {itemId, minPrice, collectedAt}를 JSON 직렬화"
+  - "D-01: evict-on-write가 1차 무효화 신호; 20분(2틱) 안전망 TTL은 백스톱"
+  - "D-11: collectedAt을 UTC ISO-8601로 직렬화, 동일 인스턴트로 라운드트립 (off-by-9h 가드)"
+  - "D-10: 에러 계약의 404 절반 (없는 품목 AND 품목은 있으나 스냅샷 없음 둘 다 404); 400 검증은 03-03으로 이연"
+  - "재량: /api/items는 active만 반환, displayName 정렬"
 
 patterns-established:
-  - "Cache-aside: cache.get -> on miss validate+read DB+fill; writer evicts on successful persist"
-  - "Error contract: domain exception -> @RestControllerAdvice -> ApiErrorResponse JSON"
+  - "Cache-aside: cache.get → miss 시 검증+DB 조회+채움; 쓰기 측은 성공 persist 직후 evict"
+  - "에러 계약: 도메인 예외 → @RestControllerAdvice → ApiErrorResponse JSON"
 
 requirements-completed: [API-01, API-02]
 
 # Metrics
-duration: ~25 min
+duration: ~25분
 completed: 2026-06-23
 ---
 
-# Phase 3 Plan 01: Latest-price Redis cache-aside Summary
+# Phase 3 Plan 01: 최신가 Redis 캐시-어사이드 요약
 
-**Hand-rolled Redis cache-aside for `GET /api/items/{id}/latest` (cache hit = 0 DB reads) with evict-on-write invalidation in the Phase 2 collector, plus the 404 half of a custom `@RestControllerAdvice` error contract and active-only `/api/items`.**
+**`GET /api/items/{id}/latest`를 위한 수동 Redis 캐시-어사이드(캐시 히트 시 DB 0회 조회)와 Phase 2 수집기에 연결한 evict-on-write 무효화, 그리고 커스텀 `@RestControllerAdvice` 에러 계약의 404 절반 + active 전용 `/api/items`.**
 
-## Performance
+## 성능
 
-- **Duration:** ~25 min
-- **Completed:** 2026-06-23
-- **Tasks:** 3 (all TDD/test-backed)
-- **Files modified:** 13 (8 created, 5 modified)
+- **소요 시간:** ~25분
+- **완료:** 2026-06-23
+- **태스크:** 3개 (전부 TDD/테스트 기반)
+- **변경 파일:** 13개 (생성 8, 수정 5)
 
-## Accomplishments
-- `LatestPriceCache` — explicit `get`/`put`/`evict` over a value-serializing `RedisTemplate<String, LatestPriceResponse>` (a distinct bean from the token bucket's `StringRedisTemplate`, same connection factory), with a 20-min safety TTL and fail-open Redis error handling (D-02/D-03).
-- `LatestPriceService` cache-aside read model: hit → return with 0 DB reads; miss → 404 if item absent, read newest snapshot (404 if none), fill cache, return.
-- Evict-on-write: `PriceCollector.persistSnapshot` evicts the item's latest key right after a successful save (only on a real write — idempotent skips leave the cache alone) (D-01).
-- 404 error contract: `ApiExceptionHandler` (`@RestControllerAdvice`) maps `ItemNotFoundException` → 404 with the `{timestamp,status,error,message}` body (D-10); `/api/items` switched to `findByActiveTrue` (API-01).
-- `LatestPriceCacheIT` proves cache-hit = 0 second DB read (`@MockitoSpyBean`, finder called `times(1)` across two reads), evict-on-write freshness, and both 404 cases; KST-midnight UTC boundary guards off-by-9h.
+## 주요 성과
+- `LatestPriceCache` — 값-직렬화 `RedisTemplate<String, LatestPriceResponse>`(토큰버킷의 `StringRedisTemplate`과 동일 커넥션 팩토리 위의 별개 빈) 위에 명시적 `get`/`put`/`evict`, 20분 안전망 TTL, Redis 오류 fail-open (D-02/D-03).
+- `LatestPriceService` 캐시-어사이드 읽기 모델: 히트 → DB 0회로 반환; miss → 품목 없으면 404, 최신 스냅샷 조회(없으면 404), 캐시 채우고 반환.
+- Evict-on-write: `PriceCollector.persistSnapshot`이 성공 save 직후 해당 품목 latest 키를 evict (실제 쓰기에서만 — 멱등 스킵은 캐시 유지) (D-01).
+- 404 에러 계약: `ApiExceptionHandler`(`@RestControllerAdvice`)가 `ItemNotFoundException`을 404 + `{timestamp,status,error,message}` 바디로 매핑 (D-10); `/api/items`를 `findByActiveTrue`로 전환 (API-01).
+- `LatestPriceCacheIT`가 캐시 히트=2번째 읽기 DB 0회(`@MockitoSpyBean`, 두 번 읽어도 파인더 `times(1)`), evict-on-write 신선도, 404 두 경우를 증명; KST 자정 UTC 경계로 off-by-9h 가드.
 
-## Task Commits
+## 태스크 커밋
 
-1. **Task 1: Value-serializing Redis cache-aside primitive** - `a7dce9f` (feat)
-2. **Task 2: Latest read endpoint + 404 error contract + active /api/items** - `9e24b35` (feat)
-3. **Task 3: Evict-on-write hook + cache-hit/evict ITs** - `78c0696` (test)
+1. **Task 1: 값-직렬화 Redis 캐시-어사이드 프리미티브** - `a7dce9f` (feat)
+2. **Task 2: 최신가 엔드포인트 + 404 에러 계약 + active /api/items** - `9e24b35` (feat)
+3. **Task 3: evict-on-write 훅 + 캐시 히트/evict IT** - `78c0696` (test)
 
-## Files Created/Modified
-- `cache/CacheConfig.java` - value-serializing RedisTemplate bean (JSON + JavaTimeModule + ParameterNamesModule)
-- `cache/LatestPriceCache.java` - hand-rolled get/put/evict cache-aside primitive, fail-open, safety TTL
-- `web/dto/LatestPriceResponse.java` - minimal {itemId, minPrice, collectedAt} DTO
-- `web/dto/ApiErrorResponse.java` - {timestamp, status, error, message} error body
-- `web/error/ItemNotFoundException.java` / `web/error/ApiExceptionHandler.java` - 404 contract
-- `read/LatestPriceService.java` - cache-aside orchestration
-- `web/ItemController.java` - GET /{id}/latest + active-only list()
-- `repository/PriceSnapshotRepository.java` - read-only newest-snapshot finder
-- `collect/PriceCollector.java` - evict-on-write hook (constructor gains LatestPriceCache)
-- `test/.../LatestPriceCacheIT.java` - cache-hit/evict/404 IT
-- `test/.../PriceCollectionIT.java` + `CollectionResilienceIT.java` - thread the new cache arg
+## 생성/수정 파일
+- `cache/CacheConfig.java` - 값-직렬화 RedisTemplate 빈 (JSON + JavaTimeModule + ParameterNamesModule)
+- `cache/LatestPriceCache.java` - 수동 get/put/evict 캐시-어사이드 프리미티브, fail-open, 안전망 TTL
+- `web/dto/LatestPriceResponse.java` - 최소 {itemId, minPrice, collectedAt} DTO
+- `web/dto/ApiErrorResponse.java` - {timestamp, status, error, message} 에러 바디
+- `web/error/ItemNotFoundException.java` / `web/error/ApiExceptionHandler.java` - 404 계약
+- `read/LatestPriceService.java` - 캐시-어사이드 오케스트레이션
+- `web/ItemController.java` - GET /{id}/latest + active 전용 list()
+- `repository/PriceSnapshotRepository.java` - 읽기 전용 최신 스냅샷 파인더
+- `collect/PriceCollector.java` - evict-on-write 훅 (생성자에 LatestPriceCache 추가)
+- `test/.../LatestPriceCacheIT.java` - 캐시 히트/evict/404 IT
+- `test/.../PriceCollectionIT.java` + `CollectionResilienceIT.java` - 새 캐시 인자 연결
 
-## Decisions Made
-None beyond the locked CONTEXT decisions (D-01/02/03/10/11) and the documented discretion calls (active-only sorted by displayName; 20-min TTL; `Jackson2JsonRedisSerializer` typed value serializer; key `item:{id}:latest`).
+## 결정 사항
+잠긴 CONTEXT 결정(D-01/02/03/10/11)과 문서화된 재량 판단(active 전용 displayName 정렬; 20분 TTL; `Jackson2JsonRedisSerializer` 타입드 값 직렬화; 키 `item:{id}:latest`) 외에 추가 결정 없음.
 
-## Deviations from Plan
+## 계획 대비 이탈
 
-None - plan executed exactly as written.
+없음 - 계획대로 실행됨.
 
-## Issues Encountered
-None. Full `./gradlew test -PdockerApiVersion=1.44` is green: 33 tests, 0 failures, 0 errors.
+## 마주친 이슈
+없음. 전체 `./gradlew test -PdockerApiVersion=1.44` 그린: 33개 테스트, 실패 0, 에러 0.
 
-## User Setup Required
-None - no external service configuration required (Redis + Postgres already wired from Phases 1-2).
+## 사용자 셋업 필요
+없음 - 외부 서비스 구성 불필요 (Phase 1-2에서 Redis + Postgres 이미 연결됨).
 
-## Next Phase Readiness
-- The `@RestControllerAdvice` error contract and `ItemNotFoundException` are in place for 03-02/03-03 to reuse (03-03 adds the 400 validation handlers).
-- The read-only repository pattern (read methods added next to the Phase 2 insert path) is established for 03-02's `WindowQueryService` and `GameEventRepository`.
-- No blockers.
+## 다음 페이즈 준비도
+- `@RestControllerAdvice` 에러 계약과 `ItemNotFoundException`이 03-02/03-03 재사용 준비 완료(03-03이 400 검증 핸들러 추가).
+- 읽기 전용 리포지토리 패턴(Phase 2 insert 경로 옆에 읽기 메서드만 추가)이 03-02의 `WindowQueryService`·`GameEventRepository`용으로 확립됨.
+- 블로커 없음.
 
 ---
 *Phase: 03-read-api-cache*
-*Completed: 2026-06-23*
+*완료: 2026-06-23*
