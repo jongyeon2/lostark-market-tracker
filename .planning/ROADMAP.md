@@ -127,7 +127,7 @@ Plans:
 
 **Wave 1**
 
-- [ ] 04-01: 이벤트/품목 CRUD 컨트롤러 + 서비스
+- [x] 04-01: 이벤트/품목 CRUD 컨트롤러 + 서비스
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -183,6 +183,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Foundation + Task 0 | 3/3 | Complete   | 2026-06-20 |
 | 2. Collection Pipeline | 3/3 | Complete   | 2026-06-22 |
 | 3. Read API + Cache | 3/3 | Complete   | 2026-06-23 |
-| 4. Admin + Events | 0/2 | Not started | - |
+| 4. Admin + Events | 1/2 | In Progress|  |
 | 5. Event Impact (게이트 조건부) | 0/2 | Not started | - |
 | 6. Distribution + Docs | 0/2 | Not started | - |
