@@ -69,6 +69,20 @@ public class GameEvent {
         updatedAt = OffsetDateTime.now(ZoneOffset.UTC);
     }
 
+    /**
+     * Full-replace mutation for {@code PUT /api/admin/events/{id}} (D-06): overwrites the four
+     * mutable fields, {@code occurredAt} INCLUDED — an admin correcting a mis-entered instant, which
+     * re-anchors the Phase 3 timeline overlap and the Phase 5 event-impact window. The timestamp
+     * columns are intentionally untouched here: {@code @PreUpdate} stamps {@code updatedAt} on flush
+     * (D-07). No raw setters exist for the timestamp fields.
+     */
+    public void replace(EventType eventType, String title, OffsetDateTime occurredAt, String description) {
+        this.eventType = eventType;
+        this.title = title;
+        this.occurredAt = occurredAt;
+        this.description = description;
+    }
+
     public Long getId() {
         return id;
     }
