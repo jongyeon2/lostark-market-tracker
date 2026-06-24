@@ -149,7 +149,12 @@ Plans:
 
 Plans:
 
+**Wave 1**
+
 - [ ] 05-01: event-impact v1 지표 계산 + 범위 조회 배치(N+1 제거, 공유 윈도우 쿼리 재사용)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 05-02: 충분성(앞뒤≥1) + staleness 허용치 + insufficient_data + 앵커 시각 응답
 
 ### Phase 6: Distribution + Docs
