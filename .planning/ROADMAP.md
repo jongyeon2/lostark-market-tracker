@@ -151,7 +151,7 @@ Plans:
 
 **Wave 1**
 
-- [ ] 05-01: event-impact v1 지표 계산 + 범위 조회 배치(N+1 제거, 공유 윈도우 쿼리 재사용)
+- [x] 05-01: event-impact v1 지표 계산 + 범위 조회 배치(N+1 제거, 공유 윈도우 쿼리 재사용)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -189,5 +189,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. Collection Pipeline | 3/3 | Complete   | 2026-06-22 |
 | 3. Read API + Cache | 3/3 | Complete   | 2026-06-23 |
 | 4. Admin + Events | 2/2 | Complete   | 2026-06-24 |
-| 5. Event Impact (게이트 조건부) | 0/2 | Not started | - |
+| 5. Event Impact (게이트 조건부) | 1/2 | In Progress|  |
 | 6. Distribution + Docs | 0/2 | Not started | - |
