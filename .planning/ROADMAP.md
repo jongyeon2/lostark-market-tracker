@@ -15,7 +15,7 @@
 - [x] **Phase 2: Collection Pipeline** - 레이트리밋·재시도·부분 실패를 처리하는 신뢰 가능한 10분 수집기 (completed 2026-06-22)
 - [x] **Phase 3: Read API + Cache** - Redis 캐시 latest/타임라인/다운샘플 + 헬스 (completed 2026-06-23)
 - [x] **Phase 4: Admin + Events** - 시크릿 인증 뒤 품목/이벤트 CRUD (completed 2026-06-24)
-- [ ] **Phase 5: Event Impact (게이트 조건부)** - 이벤트 전후 변화율 + 데이터 충분성 가드
+- [x] **Phase 5: Event Impact (게이트 조건부)** - 이벤트 전후 변화율 + 데이터 충분성 가드 (completed 2026-06-24)
 - [ ] **Phase 6: Distribution + Docs** - CI · 격리 시드 · README 데모 표면
 
 ## Phase Details
@@ -155,7 +155,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 05-02: 충분성(앞뒤≥1) + staleness 허용치 + insufficient_data + 앵커 시각 응답
+- [x] 05-02: 충분성(앞뒤≥1) + staleness 허용치 + insufficient_data + 앵커 시각 응답
 
 ### Phase 6: Distribution + Docs
 
@@ -189,5 +189,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. Collection Pipeline | 3/3 | Complete   | 2026-06-22 |
 | 3. Read API + Cache | 3/3 | Complete   | 2026-06-23 |
 | 4. Admin + Events | 2/2 | Complete   | 2026-06-24 |
-| 5. Event Impact (게이트 조건부) | 1/2 | In Progress|  |
+| 5. Event Impact (게이트 조건부) | 2/2 | Complete   | 2026-06-24 |
 | 6. Distribution + Docs | 0/2 | Not started | - |
