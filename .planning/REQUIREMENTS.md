@@ -99,7 +99,7 @@
 | COLL-01..05 | Phase 2 | Pending |
 | API-01..05 | Phase 3 | Pending |
 | OPS-01 | Phase 3 | Complete |
-| ADMIN-01..03 | Phase 4 | Pending |
+| ADMIN-01..03 | Phase 4 | Complete |
 | IMPACT-01..02 | Phase 5 | Pending |
 | DIST-02..04 | Phase 6 | Pending |
 
