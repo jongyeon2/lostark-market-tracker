@@ -174,7 +174,12 @@ Plans:
 
 Plans:
 
+**Wave 1**
+
 - [ ] 06-01: GitHub Actions CI(Testcontainers) + 격리 시드 프로파일/픽스처
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 06-02: README 데모 표면(아키텍처·curl·샘플 JSON·시드 모드·보존 정책)
 
 ## Progress
