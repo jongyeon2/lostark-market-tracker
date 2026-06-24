@@ -38,8 +38,8 @@
 
 ### Event Impact (IMPACT) — 2주차 말 하드 게이트 통과 조건부
 
-- [ ] **IMPACT-01**: GET /api/items/{id}/event-impact?window=Nh가 이벤트별 ±N시간 전후 가격 변화율(v1 지표)을 계산해 반환한다
-- [ ] **IMPACT-02**: 윈도우 데이터가 희소하거나 앵커가 staleness 허용치 밖이면 `insufficient_data`를 반환하고, 사용한 앵커 시각을 응답에 포함한다
+- [x] **IMPACT-01**: GET /api/items/{id}/event-impact?window=Nh가 이벤트별 ±N시간 전후 가격 변화율(v1 지표)을 계산해 반환한다
+- [x] **IMPACT-02**: 윈도우 데이터가 희소하거나 앵커가 staleness 허용치 밖이면 `insufficient_data`를 반환하고, 사용한 앵커 시각을 응답에 포함한다
 
 ### Ops (OPS)
 
@@ -100,7 +100,7 @@
 | API-01..05 | Phase 3 | Pending |
 | OPS-01 | Phase 3 | Complete |
 | ADMIN-01..03 | Phase 4 | Complete |
-| IMPACT-01..02 | Phase 5 | Pending |
+| IMPACT-01..02 | Phase 5 | Complete |
 | DIST-02..04 | Phase 6 | Pending |
 
 **Coverage:**
