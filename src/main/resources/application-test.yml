@@ -9,3 +9,9 @@ spring:
 # collectTick() directly with a pinned clock + short timeouts.
 collection:
   initial-delay-ms: 3600000
+
+# Fixed, non-sensitive test secret. The 04-01 admin ITs inject @Value("${admin.api.secret:test-admin-secret}")
+# and send it as X-Admin-Secret, so the gate accepts their requests with zero retrofit.
+admin:
+  api:
+    secret: test-admin-secret
