@@ -19,4 +19,11 @@ public interface GameEventRepository extends JpaRepository<GameEvent, Long> {
      * Boundaries are UTC instants — no timezone conversion.
      */
     List<GameEvent> findByOccurredAtBetween(OffsetDateTime from, OffsetDateTime to);
+
+    /**
+     * All events newest-first — the single batch source for Phase 5 event-impact (D-06, D-09).
+     * {@code game_event} is global (not per-item), so event-impact reads every event ONCE here and
+     * derives each one's anchors in memory, rather than issuing a per-event window query.
+     */
+    List<GameEvent> findAllByOrderByOccurredAtDesc();
 }
