@@ -51,7 +51,7 @@ public class EventImpactService {
      * Staleness allowance (IMPACT-02, D-03): a FIXED ABSOLUTE 30 minutes (~ the 10-min collection
      * cadence × 3 ticks — "tolerates ≤2 consecutive missed ticks"). An anchor is fresh when
      * {@code |occurred_at − collected_at| ≤ 30min} (boundary INCLUSIVE). Held as an MVP constant on
-     * purpose — {@code @ConfigurationProperties} externalization is explicitly v2 (CFG-V2-01).
+     * purpose — externalizing this threshold to config is explicitly deferred to v2 (CFG-V2-01).
      */
     private static final Duration STALENESS_ALLOWANCE = Duration.ofMinutes(30);
 
