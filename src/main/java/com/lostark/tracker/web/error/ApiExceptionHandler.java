@@ -43,6 +43,12 @@ public class ApiExceptionHandler {
         return error(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
+    /** Admin create of an already-active unique resource (duplicate external_item_id) -> 409 (D-05). */
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<ApiErrorResponse> handleDuplicate(DuplicateResourceException ex) {
+        return error(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
     /**
      * {@code @Valid} body violations on the admin write surface — blank title, null event_type /
      * occurred_at, blank externalItemId / displayName — collapse to a 400 on the shared contract

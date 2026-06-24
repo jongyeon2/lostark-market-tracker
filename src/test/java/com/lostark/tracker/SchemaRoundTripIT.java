@@ -6,15 +6,18 @@ import com.lostark.tracker.domain.TrackedItem;
 import com.lostark.tracker.repository.CollectionRunRepository;
 import com.lostark.tracker.repository.PriceSnapshotRepository;
 import com.lostark.tracker.repository.TrackedItemRepository;
+import com.lostark.tracker.support.AdminAuth;
 import com.lostark.tracker.support.PostgresRedisContainers;
 import com.lostark.tracker.web.dto.TrackedItemRequest;
 import com.lostark.tracker.web.dto.TrackedItemResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
@@ -46,6 +49,9 @@ class SchemaRoundTripIT extends PostgresRedisContainers {
     @Autowired
     private CollectionRunRepository collectionRunRepository;
 
+    @Value("${admin.api.secret:test-admin-secret}")
+    private String adminSecret;
+
     @BeforeEach
     void clean() {
         // Child first (FK), then parents. Tests are not @Transactional (RANDOM_PORT server thread).
@@ -58,8 +64,11 @@ class SchemaRoundTripIT extends PostgresRedisContainers {
     void itemInsertedAndReadBackViaHttp() {
         TrackedItemRequest request = new TrackedItemRequest("66130141", "아비도스 융화 재료", "ENHANCEMENT");
 
-        ResponseEntity<TrackedItemResponse> created =
-                restTemplate.postForEntity("/api/items", request, TrackedItemResponse.class);
+        // Item create moved behind /api/admin/items (D-04); send the X-Admin-Secret header so this
+        // round-trip survives the 04-02 gate unchanged. The GET read-back stays on the public surface.
+        ResponseEntity<TrackedItemResponse> created = restTemplate.exchange(
+                "/api/admin/items", HttpMethod.POST,
+                AdminAuth.entity(request, adminSecret), TrackedItemResponse.class);
 
         assertThat(created.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(created.getBody()).isNotNull();
