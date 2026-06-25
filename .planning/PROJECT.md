@@ -8,6 +8,18 @@
 
 **레이트리밋이 걸린 외부 마켓 API에서 시세를 빠짐없이 수집해 시계열로 쌓고, 캐시로 안정적으로 서빙한다.** 다른 모든 게 실패해도 이 수집·저장·서빙 파이프라인은 동작해야 한다. event-impact(이벤트 상관)는 그 위에 얹는 헤드라인 기능이며, 수집 신뢰성이 흔들리면 상관 분석은 나쁜 데이터 위 장식 수학이 된다.
 
+## Current Milestone: v1.1 Frontend Demo Dashboard
+
+**Goal:** v1.0이 만든 read API를 브라우저 대시보드(React + TS + Tailwind + Recharts)로 시각화해, README의 curl 데모를 클릭 가능한 데모 표면으로 전환한다. 백엔드는 불변경(Vite 프록시로 dev 동일 출처).
+
+**Target features:**
+- Dashboard — collection health + 활성 품목 목록 + 품목별 최신가 요약
+- Item Timeline — item selector + 최신가 카드 + 가격 라인 차트 + 이벤트 세로 마커
+- Event Impact — 이벤트별 전후 변화율 + ok/insufficient_data 구분 + "상관 ≠ 인과" 고지
+- Demo Surface — seed 기준 재현 + frontend/README + 루트 README + (선택) 정적 서빙
+
+**Key context:** Recharts · Vite 프록시(백엔드 무변경) · v1.1 · seed 프로파일 우선 · UTC 데이터→KST 표시(off-by-9h 가드 UI 연장) · read-only 시각화(관리자 쓰기 UI·실시간·CD는 v2). Phase 7~11 (v1.0의 6에 이어 연속 번호).
+
 ## Requirements
 
 ### Validated
@@ -24,15 +36,18 @@
 
 ### Active
 
-<!-- 다음 마일스톤 범위. 아직 미스코프 — /gsd-new-milestone으로 확정. -->
+<!-- 현재 마일스톤 범위. 상세는 .planning/REQUIREMENTS.md. -->
 
-v1.0 전 범위(24/24) 배포·검증 완료. 다음 마일스톤은 아직 정해지지 않았다. v2 후보(아카이브된 REQUIREMENTS v2 섹션 / 아래 Out of Scope에서 승격 가능):
+**v1.1 Frontend Demo Dashboard (정의됨 2026-06-25)** — 21개 요구사항(FND 5 + DASH 4 + TIME 5 + IMPCT 4 + DEMO 3), Phase 7~11. 상세·트레이서빌리티는 `.planning/REQUIREMENTS.md`, 페이즈는 `.planning/ROADMAP.md`.
+
+v1.0 전 범위(24/24)는 배포·검증 완료(Validated 참조). v2 후보(아카이브된 REQUIREMENTS v2 섹션 / 아래 Out of Scope에서 승격 가능):
 
 - [ ] event-impact 고도화 — 카테고리 베이스라인 대비 초과상승률, median/스무딩 (IMPACT-V2)
 - [ ] 관측성 — Micrometer 카운터(429 / skipped tick / failed item / cache hit·miss) (OPS-V2)
 - [ ] 매직넘버 `@ConfigurationProperties` 외부화 (CFG-V2)
 - [ ] 소스 확장 — 경매장(AUCTIONS)/보석 (SRC-V2)
 - [ ] 데모 배포 — Railway/Fly/Render (DEPLOY-V2)
+- [ ] 프론트 고도화 — 관리자 쓰기 UI, 실시간 갱신, 정적 서빙/실배포 (FE-V2)
 
 ### Out of Scope
 
@@ -101,4 +116,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-25 after v1.0 MVP milestone*
+*Last updated: 2026-06-25 — v1.1 Frontend Demo Dashboard milestone started*

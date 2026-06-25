@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: Awaiting next milestone
-stopped_at: Completed 06-02-PLAN.md (README demo surface)
-last_updated: "2026-06-25T03:06:47.056Z"
-last_activity: 2026-06-25 — Milestone v1.0 completed and archived
+milestone: v1.1
+milestone_name: Frontend Demo Dashboard
+status: planning
+last_updated: "2026-06-25T03:31:28.619Z"
+last_activity: 2026-06-25
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 15
-  completed_plans: 15
-  percent: 100
+  total_phases: 5
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -21,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-25 after v1.0 milestone)
 
 **Core value:** 레이트리밋이 걸린 외부 마켓 API에서 시세를 빠짐없이 수집해 시계열로 쌓고, 캐시로 안정적으로 서빙한다
-**Current focus:** v1.0 MVP shipped — planning next milestone (/gsd-new-milestone)
+**Current focus:** v1.1 Frontend Demo Dashboard — requirements·roadmap 정의됨 (Phase 7~11), Phase 7 착수 대기
 
 ## Current Position
 
-Phase: Milestone v1.0 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-06-25 — Milestone v1.0 completed and archived
+Status: Defining requirements
+Last activity: 2026-06-25 — Milestone v1.1 started
 
 ## Performance Metrics
 
@@ -90,4 +89,5 @@ Resume file: None
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Phase 7부터 착수: `/gsd-discuss-phase 7` (컨텍스트 정리) 또는 `/gsd-plan-phase 7` (바로 계획)
+- 이 마일스톤은 frontend 작업 → `ui_phase`/`ui_safety_gate`가 켜져 있어 plan-phase 시 UI-SPEC 단계가 동작
