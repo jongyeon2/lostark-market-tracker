@@ -1,35 +1,36 @@
 import { useItems } from '@/lib/queries'
 import { AsyncBoundary } from '@/components/state/AsyncBoundary'
-import { Card, CardContent } from '@/components/ui/card'
+
+import { HealthCard } from './HealthCard'
+import { ItemCard } from './ItemCard'
 
 /*
-  FND-02 end-to-end proof + FND-04 state demo on a REAL screen: useItems() flows through
-  <AsyncBoundary> — with the seed backend up, /api/items is fetched via the Vite proxy and
-  rendered (no CORS); with the backend down, the shared ErrorState shows '다시 불러오기'
-  instead of a crash. The Phase-8 health/latest widgets are intentionally NOT built here.
+  DashboardPage — the Phase-8 dashboard as one top-to-bottom scroll realizing the D-01 hierarchy
+  'health(파이프라인 살아있음) → 무엇을 추적 → 지금 얼마': the full-width HealthCard (08-02) on top, then the
+  active-item card grid from useItems() below it (separated by lg/24px). Replaces the Phase-7
+  temporary placeholder list. The grid wraps its OWN AsyncBoundary (pending/error/0-items) INDEPENDENTLY
+  of the HealthCard's boundary (D-07/D-08), so a grid error or empty never hides the health card and
+  vice-versa. Items render in the backend's response order — the backend already sorts by displayName,
+  so there is NO front-end re-sort (D-02). Each card fans out its own latest request (D-03/D-04).
+  Read-only: no item selector, chart, polling, or write UI.
 */
 export function DashboardPage() {
   const { status, data, refetch } = useItems()
-  const isEmpty = (data?.length ?? 0) === 0
 
   return (
     <div className="space-y-6">
       <h1 className="text-[28px] leading-tight font-semibold">대시보드</h1>
 
-      <AsyncBoundary status={status} isEmpty={isEmpty} onRetry={() => refetch()}>
-        <Card>
-          <CardContent className="space-y-3">
-            <p className="text-muted-foreground text-sm">추적 중 {data?.length ?? 0}개 품목</p>
-            <ul className="space-y-1">
-              {data?.map((item) => (
-                <li key={item.id} className="text-base">
-                  {item.displayName}{' '}
-                  <span className="text-muted-foreground text-sm">({item.category})</span>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
+      {/* ① health (파이프라인 살아있음) — full-width, its own boundary. */}
+      <HealthCard />
+
+      {/* ② 무엇을 추적 + ③ 지금 얼마 — responsive item-card grid, its own boundary (independent of health). */}
+      <AsyncBoundary status={status} isEmpty={(data?.length ?? 0) === 0} onRetry={() => refetch()}>
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {data?.map((item) => (
+            <ItemCard key={item.id} item={item} />
+          ))}
+        </div>
       </AsyncBoundary>
     </div>
   )
