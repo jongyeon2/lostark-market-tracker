@@ -1,10 +1,13 @@
 ---
-status: diagnosed
+status: complete
 phase: 06-distribution-docs
 source: [06-01-SUMMARY.md, 06-02-SUMMARY.md]
 started: 2026-06-25T01:53:22Z
-updated: 2026-06-25T02:05:00Z
+updated: 2026-06-25T03:05:00Z
 ---
+
+<!-- Test 7 이슈(CI Node 20 deprecation)는 verify-work 세션 내 인라인 수정 완료(커밋 03584e0). 원격 annotation 클린 확인은 다음 push에서. -->
+
 
 ## Current Test
 
