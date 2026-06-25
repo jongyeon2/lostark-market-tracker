@@ -65,3 +65,5 @@ blocked: 0
   missing:
     - "actions/checkout@v4 → @v5, actions/setup-java@v4 → @v5 로 메이저 버전 상향 (둘 다 Node 24 런타임)"
   debug_session: ""
+  resolution: "Fixed inline — ci.yml의 checkout@v4→@v5, setup-java@v4→@v5 상향. 커밋 03584e0. 다음 push에서 deprecation annotation 사라짐 확인 필요(원격 검증 항목)."
+  resolved: true
