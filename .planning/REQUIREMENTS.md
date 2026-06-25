@@ -45,7 +45,7 @@
 
 ### Dashboard (DASH) — Phase 8
 
-- [ ] **DASH-01**: 사용자가 Dashboard에서 수집 파이프라인 헬스(마지막 실행 시각·시도/성공/실패 카운트·status)를 본다
+- [x] **DASH-01**: 사용자가 Dashboard에서 수집 파이프라인 헬스(마지막 실행 시각·시도/성공/실패 카운트·status)를 본다
 - [x] **DASH-02**: status가 `NO_RUNS` / `PARTIAL_SUCCESS` / 정상일 때 각각 구분되게 표시되고 `summaryMessage` 마커가 노출된다 (시크릿 노출 없음)
 - [ ] **DASH-03**: 사용자가 추적 중인 활성 품목 목록(displayName, category)을 본다
 - [ ] **DASH-04**: 각 품목의 최신 시세(minPrice, 수집 시각 KST)가 요약 카드로 보인다
