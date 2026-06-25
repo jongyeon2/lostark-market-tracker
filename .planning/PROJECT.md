@@ -14,18 +14,25 @@
 
 <!-- Shipped and confirmed valuable. -->
 
-- [x] 조회 API (latest 캐시, prices 타임라인=스냅샷+이벤트, 큰 범위 다운샘플) — Validated in Phase 3: Read API + Cache (API-01..05)
-- [x] 운영 가시성 (/health/collection) — Validated in Phase 3: Read API + Cache (OPS-01)
+- ✓ 시계열 영속화 (price_snapshot UNIQUE 멱등, UTC TIMESTAMPTZ, collection_run 실행 이력) — v1.0 (Phase 1, DATA-01..04)
+- ✓ 10분 주기 시세 수집 파이프라인 (스케줄러 + 레이트리밋 + 부분 실패 처리) — v1.0 (Phase 2, COLL-01..05)
+- ✓ 조회 API (latest 캐시, prices 타임라인=스냅샷+이벤트, 큰 범위 다운샘플) — v1.0 (Phase 3, API-01..05)
+- ✓ 운영 가시성 (/health/collection) — v1.0 (Phase 3, OPS-01)
+- ✓ 관리자 이벤트/품목 CRUD (시크릿 인증) — v1.0 (Phase 4, ADMIN-01..03)
+- ✓ event-impact (이벤트 전후 변화율, 충분성/staleness 가드) — v1.0 (Phase 5, IMPACT-01..02; 2주차 말 하드 게이트 통과)
+- ✓ 배포 산출물 (docker-compose, CI=Testcontainers, 격리 시드, README 데모 표면) — v1.0 (Phase 1/6, DIST-01..04)
 
 ### Active
 
-<!-- Current scope. 상세 REQ-ID는 REQUIREMENTS.md. -->
+<!-- 다음 마일스톤 범위. 아직 미스코프 — /gsd-new-milestone으로 확정. -->
 
-- [ ] 10분 주기 시세 수집 파이프라인 (스케줄러 + 레이트리밋 + 부분 실패 처리)
-- [ ] 시계열 영속화 (price_snapshot, UNIQUE 멱등, UTC TIMESTAMPTZ, collection_run 실행 이력)
-- [ ] 관리자 이벤트/품목 CRUD (시크릿 인증)
-- [ ] event-impact (이벤트 전후 변화율, 충분성/staleness 가드) — **2주차 말 하드 게이트 통과 조건부**
-- [ ] 배포 산출물 (docker-compose, CI=Testcontainers, 격리 시드, README 데모 표면)
+v1.0 전 범위(24/24) 배포·검증 완료. 다음 마일스톤은 아직 정해지지 않았다. v2 후보(아카이브된 REQUIREMENTS v2 섹션 / 아래 Out of Scope에서 승격 가능):
+
+- [ ] event-impact 고도화 — 카테고리 베이스라인 대비 초과상승률, median/스무딩 (IMPACT-V2)
+- [ ] 관측성 — Micrometer 카운터(429 / skipped tick / failed item / cache hit·miss) (OPS-V2)
+- [ ] 매직넘버 `@ConfigurationProperties` 외부화 (CFG-V2)
+- [ ] 소스 확장 — 경매장(AUCTIONS)/보석 (SRC-V2)
+- [ ] 데모 배포 — Railway/Fly/Render (DEPLOY-V2)
 
 ### Out of Scope
 
@@ -47,6 +54,7 @@
 - **도메인 지식:** 강화 수단인 융화재료처럼 골드가 많이 드는 고변동 품목이 로아온·시즌 종료·대형 업데이트 시점에 시세 변동이 가장 심하다 — 검색으로 못 얻는, 이 프로젝트 차별점의 출처.
 - **DB 선택 배경:** 기존 Choice 프로젝트에서 MySQL을 경험 → 이번엔 PostgreSQL로 시계열 스냅샷 저장 + 복합 인덱스 설계를 경험.
 - **상관 ≠ 인과:** 이벤트-가격은 "시점상 겹친다(상관)"이지 "이벤트가 가격을 올렸다(인과)"가 아니다. 응답 문구/README를 거기에 맞추고 과대 주장하지 않는다.
+- **현재 상태 (v1.0 shipped, 2026-06-25):** Java ~5,790 LOC (main 67 파일 + test 23 파일). Spring Boot 3.4.1 / Java 21 / PostgreSQL 16 / Redis 7, Flyway V1–V3, 전체 빌드 그린(86 tests, 0 failures, 1 skipped=@Disabled Task-0 스파이크). 6 phases / 15 plans / 약 5일. 잔여: CI 배지 Node 20 deprecation 경고는 액션 @v5 상향으로 정리(커밋 03584e0) — 다음 push에서 annotation 클린 최종 확인.
 
 ## Constraints
 
@@ -62,14 +70,18 @@
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| 접근법 B (A→B 단계화) + C(event-impact)를 헤드라인으로 | 학습 목표(스케줄러·캐시·레이트리밋)가 곧 포트폴리오 차별점; B가 셋을 정면으로 다루는 유일안 | — Pending |
-| 틱 내 병렬 팬아웃 + allOf().join(), 분산 락 제거 (1A) | fixedDelay가 동기 틱을 이미 직렬화; @Async fire-and-forget이 그 보장을 깨므로 await로 유지 → 단일 인스턴스에 분산 락 불필요 | — Pending |
-| price_snapshot UNIQUE(tracked_item_id, collected_at) + 틱 정규화 collected_at | 재시도/중복 틱의 중복 행 방지(멱등성) | — Pending |
-| collection_run 테이블 | /health/collection의 출처 + 구멍이 수집 실패인지 프로세스 다운인지 구분 | — Pending |
-| DB = PostgreSQL (MySQL 아님) | TIMESTAMPTZ/시계열 범위 쿼리; Choice에서 MySQL 경험했으니 이번엔 Postgres 경험 | — Pending |
-| 2주차 말 하드 게이트 (T-A) | 신뢰 수집+조회가 안 서면 event-impact를 v2로 강등 — 수집 신뢰성 우선 | — Pending |
-| 관리자 엔드포인트 시크릿 인증 게이트 (6A) | 공개 레포/데모에서 인증 없는 쓰기 엔드포인트는 감점 | — Pending |
-| 레이트리밋·@Async를 의도적 학습 쇼케이스로 유지 | MVP 규모엔 과중하지만 학습 목표 자체 — README에 정직히 서술 (Codex "과중" 지적은 합의된 트레이드오프) | — Pending |
+| 접근법 B (A→B 단계화) + C(event-impact)를 헤드라인으로 | 학습 목표(스케줄러·캐시·레이트리밋)가 곧 포트폴리오 차별점; B가 셋을 정면으로 다루는 유일안 | ✓ Good — v1.0 전 범위 배포, event-impact가 헤드라인으로 동작 |
+| 틱 내 병렬 팬아웃 + allOf().join(), 분산 락 제거 (1A) | fixedDelay가 동기 틱을 이미 직렬화; @Async fire-and-forget이 그 보장을 깨므로 await로 유지 → 단일 인스턴스에 분산 락 불필요 | ✓ Good — Phase 2 수집기 배포, 부분 실패 격리 동작 |
+| price_snapshot UNIQUE(tracked_item_id, collected_at) + 틱 정규화 collected_at | 재시도/중복 틱의 중복 행 방지(멱등성) | ✓ Good — Testcontainers IT가 멱등성 증명 |
+| collection_run 테이블 | /health/collection의 출처 + 구멍이 수집 실패인지 프로세스 다운인지 구분 | ✓ Good — /health/collection 배포 |
+| DB = PostgreSQL (MySQL 아님) | TIMESTAMPTZ/시계열 범위 쿼리; Choice에서 MySQL 경험했으니 이번엔 Postgres 경험 | ✓ Good — TIMESTAMPTZ UTC + date_trunc 다운샘플 활용 |
+| 2주차 말 하드 게이트 (T-A) | 신뢰 수집+조회가 안 서면 event-impact를 v2로 강등 — 수집 신뢰성 우선 | ✓ Good — 게이트 통과로 Phase 5 진행 |
+| 관리자 엔드포인트 시크릿 인증 게이트 (6A) | 공개 레포/데모에서 인증 없는 쓰기 엔드포인트는 감점 | ✓ Good — X-Admin-Secret OncePerRequestFilter 배포 |
+| 레이트리밋·@Async를 의도적 학습 쇼케이스로 유지 | MVP 규모엔 과중하지만 학습 목표 자체 — README에 정직히 서술 (Codex "과중" 지적은 합의된 트레이드오프) | ✓ Good — README에 정직히 서술 |
+| 자체 Lua 원자적 Redis 토큰버킷 (Bucket4j 대신) | 재시작 후 토큰 복원 + fail-closed를 직접 제어; 레이트리밋 학습 목표에 부합 | ✓ Good — Phase 2 (COLL-03) 배포 |
+| min_price 유지 + avg_price/trade_count v2 강등 | Task 0 실측: avg_price/trade_count는 일단위 전용(상세 Stats[]), per-tick 미제공 | ✓ Good — 모델 잠금 비준 (DATA-03) |
+| 데모 이벤트 10분 그리드 5분 오프셋 배치 | 앵커 타이 규칙상 그리드 정확 배치는 pre==post → change_rate 0; 오프셋이 실제 non-zero 산출 | ✓ Good — Phase 6, SyntheticDemoDataIT가 non-zero 단언 |
+| CI = 로컬과 동일 `./gradlew build` 단일 ubuntu job (CD는 v2) | 리뷰어가 로컬에서 돌리는 것과 동일 명령; CD/시크릿/매트릭스는 MVP 과중 | ✓ Good — 전체 Testcontainers 스위트 그린. CI 액션은 @v5로 상향(Node 24, deprecation 정리) |
 
 ## Evolution
 
@@ -89,4 +101,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-23 after Phase 3 (Read API + Cache) completion*
+*Last updated: 2026-06-25 after v1.0 MVP milestone*

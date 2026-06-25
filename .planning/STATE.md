@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
+status: Awaiting next milestone
 stopped_at: Completed 06-02-PLAN.md (README demo surface)
-last_updated: "2026-06-25T01:42:40.936Z"
-last_activity: 2026-06-25 -- 06-02 (README demo surface) complete; all 15 plans done
+last_updated: "2026-06-25T03:06:47.056Z"
+last_activity: 2026-06-25 — Milestone v1.0 completed and archived
 progress:
   total_phases: 6
   completed_phases: 6
@@ -18,19 +18,17 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-20)
+See: .planning/PROJECT.md (updated 2026-06-25 after v1.0 milestone)
 
 **Core value:** 레이트리밋이 걸린 외부 마켓 API에서 시세를 빠짐없이 수집해 시계열로 쌓고, 캐시로 안정적으로 서빙한다
-**Current focus:** Phase 6 — distribution + docs
+**Current focus:** v1.0 MVP shipped — planning next milestone (/gsd-new-milestone)
 
 ## Current Position
 
-Phase: 6 — COMPLETE (verified 4/4)
-Plan: 06-01 + 06-02 complete (2/2)
-Status: Phase 6 verified passed — milestone v1.0 all 6 phases / 15 plans done (100%)
-Last activity: 2026-06-25 -- 06-02 complete + Phase 6 verification passed (4/4 success criteria)
-
-Progress: [██████████] 100%
+Phase: Milestone v1.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-06-25 — Milestone v1.0 completed and archived
 
 ## Performance Metrics
 
@@ -89,3 +87,7 @@ None
 Last session: 2026-06-25T01:42:40.930Z
 Stopped at: Completed 06-02-PLAN.md (README demo surface)
 Resume file: None
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone
