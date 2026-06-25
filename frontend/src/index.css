@@ -1,3 +1,104 @@
+/* Inter variable font (bundled — no runtime network) with the UI-SPEC fallback stack. */
+@import '@fontsource-variable/inter';
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+/*
+  UI-SPEC design tokens — the SINGLE source of truth for all v1.1 screens (Phases 8-10
+  consume these tokens, never raw hex). Light single theme only (dark mode is FE-V2-03).
+
+  shadcn semantic roles (slate base) mapped to the UI-SPEC palette:
+    Dominant bg  #F8FAFC (slate-50)   | card #FFFFFF | border #E2E8F0 (slate-200)
+    Text         #0F172A (slate-900)  | muted #64748B (slate-500)
+    Accent       #2563EB (blue-600)   | destructive #DC2626 (red-600)
+*/
 :root {
-  font-family: Inter, system-ui, -apple-system, sans-serif;
+  --radius: 0.625rem;
+
+  --background: #f8fafc; /* slate-50  — app background / dominant surface */
+  --foreground: #0f172a; /* slate-900 — primary text */
+
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+
+  --primary: #2563eb; /* blue-600 — brand accent (active nav / primary CTA / focus) */
+  --primary-foreground: #ffffff;
+
+  --secondary: #f1f5f9; /* slate-100 — subtle secondary surface */
+  --secondary-foreground: #0f172a;
+
+  --muted: #f1f5f9; /* slate-100 */
+  --muted-foreground: #64748b; /* slate-500 — secondary text */
+
+  /* shadcn component hover/active surface — intentionally NOT the brand blue accent */
+  --accent: #f1f5f9; /* slate-100 */
+  --accent-foreground: #0f172a;
+
+  --destructive: #dc2626; /* red-600 — error visuals */
+  --destructive-foreground: #ffffff;
+
+  --border: #e2e8f0; /* slate-200 */
+  --input: #e2e8f0;
+  --ring: #2563eb; /* blue-600 — focus-visible ring (accent role) */
+
+  /*
+    Semantic colors — meaning, not decoration. Kept distinct from the single blue accent
+    so "price up" green never collides with the accent (UI-SPEC Color rationale).
+  */
+  --up: #16a34a; /* green-600 — price up / status healthy */
+  --down: #dc2626; /* red-600  — price down / AUTH_ERROR */
+  --warning: #d97706; /* amber-600 — PARTIAL_SUCCESS / RATE_LIMITED / insufficient_data */
+  --neutral: #64748b; /* slate-500 — NO_RUNS / empty / downsampled */
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Semantic color utilities (text-up / bg-warning / border-down …) */
+  --color-up: var(--up);
+  --color-down: var(--down);
+  --color-warning: var(--warning);
+  --color-neutral: var(--neutral);
+
+  --font-sans: 'Inter Variable', Inter, system-ui, -apple-system, sans-serif;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    /* Numeric/price text aligns by digit; Tailwind's built-in `tabular-nums` utility
+       opts in per-element where digits must line up (price tables, counts). */
+    font-feature-settings: 'cv11', 'ss01';
+  }
 }
