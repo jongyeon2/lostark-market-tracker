@@ -1,0 +1,11 @@
+# Seed profile: fills the database with synthetic demo history (SyntheticDemoData / SeedDataRunner)
+# so a freshly cloned reviewer sees a non-empty timeline + event-impact WITHOUT a LOSTARK_API_KEY.
+#
+# Datasource and Redis inherit application.yml's localhost docker-compose defaults — run this profile
+# against `docker compose up` (Postgres 16 + Redis 7).
+#
+# The @Scheduled collector is pushed out of the way: a large initial-delay (mirrors
+# application-test.yml's 3600000 = 1h) means the live collector never fires during a demo, so the
+# synthetic data is the sole source and no outbound API call / API key is needed.
+collection:
+  initial-delay-ms: 3600000

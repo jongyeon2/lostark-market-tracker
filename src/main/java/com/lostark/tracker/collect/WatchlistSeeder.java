@@ -5,6 +5,7 @@ import com.lostark.tracker.repository.TrackedItemRepository;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -26,6 +27,7 @@ import java.util.List;
  */
 @Component
 @Profile({"dev", "seed"})
+@Order(1) // Run BEFORE SeedDataRunner(@Order(2)) so active items exist when the synthetic seeder reads them.
 public class WatchlistSeeder implements ApplicationRunner {
 
     /** A watchlist entry: stable Id, display name (ItemName filter), and leaf CategoryCode. */
