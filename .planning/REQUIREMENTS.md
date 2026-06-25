@@ -48,8 +48,8 @@
 ### Distribution (DIST)
 
 - [ ] **DIST-01**: docker-compose로 Postgres+Redis를 띄워 리뷰어가 로컬에서 재현할 수 있다
-- [ ] **DIST-02**: GitHub Actions CI가 Testcontainers(Postgres+Redis)로 빌드+테스트를 자동 실행한다
-- [ ] **DIST-03**: 격리된 시드 데이터(synthetic 플래그/프로파일)로 타임라인·event-impact를 빈 화면 없이 데모한다
+- [x] **DIST-02**: GitHub Actions CI가 Testcontainers(Postgres+Redis)로 빌드+테스트를 자동 실행한다
+- [x] **DIST-03**: 격리된 시드 데이터(synthetic 플래그/프로파일)로 타임라인·event-impact를 빈 화면 없이 데모한다
 - [ ] **DIST-04**: README가 아키텍처 다이어그램·설계 트레이드오프·curl 예시·샘플 JSON 응답·로컬 실행·시드 모드·보존 정책 한 줄을 포함한다
 
 ## v2 Requirements

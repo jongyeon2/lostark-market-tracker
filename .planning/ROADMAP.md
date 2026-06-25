@@ -176,7 +176,7 @@ Plans:
 
 **Wave 1**
 
-- [ ] 06-01: GitHub Actions CI(Testcontainers) + 격리 시드 프로파일/픽스처
+- [x] 06-01: GitHub Actions CI(Testcontainers) + 격리 시드 프로파일/픽스처
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -195,4 +195,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Read API + Cache | 3/3 | Complete   | 2026-06-23 |
 | 4. Admin + Events | 2/2 | Complete   | 2026-06-24 |
 | 5. Event Impact (게이트 조건부) | 2/2 | Complete   | 2026-06-24 |
-| 6. Distribution + Docs | 0/2 | Not started | - |
+| 6. Distribution + Docs | 1/2 | In Progress|  |
