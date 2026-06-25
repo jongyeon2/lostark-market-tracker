@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Frontend Demo Dashboard
-status: verifying
-stopped_at: Phase 8 UI-SPEC approved
-last_updated: "2026-06-25T12:48:34.775Z"
+status: ready_to_plan
+stopped_at: Phase 08 complete (3/3) — ready to discuss Phase 9
+last_updated: 2026-06-25T12:51:38.799Z
 last_activity: 2026-06-25
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 6
-  completed_plans: 6
+  completed_plans: 21
   percent: 40
 ---
 
@@ -21,20 +21,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-25 after v1.0 milestone)
 
 **Core value:** 레이트리밋이 걸린 외부 마켓 API에서 시세를 빠짐없이 수집해 시계열로 쌓고, 캐시로 안정적으로 서빙한다
-**Current focus:** Phase 08 — dashboard
+**Current focus:** Phase 9 — item timeline
 
 ## Current Position
 
-Phase: 08 (dashboard) — EXECUTING
-Plan: 3 of 3
-Status: Phase complete — ready for verification
+Phase: 9
+Plan: Not started
+Status: Ready to plan
 Last activity: 2026-06-25
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 7
+- Total plans completed: 10
 - Average duration: —
 - Total execution time: 0 hours
 
@@ -45,6 +45,7 @@ Last activity: 2026-06-25
 | 03 | 3 | - | - |
 | 04 | 2 | - | - |
 | 05 | 2 | - | - |
+| 08 | 3 | - | - |
 
 **Recent Trend:**
 
