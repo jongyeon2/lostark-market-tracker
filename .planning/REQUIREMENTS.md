@@ -101,7 +101,7 @@
 | OPS-01 | Phase 3 | Complete |
 | ADMIN-01..03 | Phase 4 | Complete |
 | IMPACT-01..02 | Phase 5 | Complete |
-| DIST-02..04 | Phase 6 | Pending |
+| DIST-02..04 | Phase 6 | Complete |
 
 **Coverage:**
 - v1 requirements: 24 total
