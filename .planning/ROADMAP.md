@@ -16,7 +16,7 @@
 - [x] **Phase 3: Read API + Cache** - Redis 캐시 latest/타임라인/다운샘플 + 헬스 (completed 2026-06-23)
 - [x] **Phase 4: Admin + Events** - 시크릿 인증 뒤 품목/이벤트 CRUD (completed 2026-06-24)
 - [x] **Phase 5: Event Impact (게이트 조건부)** - 이벤트 전후 변화율 + 데이터 충분성 가드 (completed 2026-06-24)
-- [ ] **Phase 6: Distribution + Docs** - CI · 격리 시드 · README 데모 표면
+- [x] **Phase 6: Distribution + Docs** - CI · 격리 시드 · README 데모 표면 (completed 2026-06-25)
 
 ## Phase Details
 
@@ -180,7 +180,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 06-02: README 데모 표면(아키텍처·curl·샘플 JSON·시드 모드·보존 정책)
+- [x] 06-02: README 데모 표면(아키텍처·curl·샘플 JSON·시드 모드·보존 정책)
 
 ## Progress
 
@@ -195,4 +195,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Read API + Cache | 3/3 | Complete   | 2026-06-23 |
 | 4. Admin + Events | 2/2 | Complete   | 2026-06-24 |
 | 5. Event Impact (게이트 조건부) | 2/2 | Complete   | 2026-06-24 |
-| 6. Distribution + Docs | 1/2 | In Progress|  |
+| 6. Distribution + Docs | 2/2 | Complete   | 2026-06-25 |
