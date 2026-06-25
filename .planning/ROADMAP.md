@@ -178,7 +178,7 @@ Phase 7 → (8 · 9 병렬 가능) → 10 → 11
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 7. Frontend Foundation | v1.1 | 3/3 | Complete   | 2026-06-25 |
-| 8. Dashboard | v1.1 | 0/? | Not started | — |
+| 8. Dashboard | v1.1 | 1/3 | In Progress|  |
 | 9. Item Timeline | v1.1 | 0/? | Not started | — |
 | 10. Event Impact | v1.1 | 0/? | Not started | — |
 | 11. Demo Surface + Docs | v1.1 | 0/? | Not started | — |

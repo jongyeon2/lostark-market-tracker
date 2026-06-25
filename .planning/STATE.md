@@ -4,13 +4,13 @@ milestone: v1.1
 milestone_name: Frontend Demo Dashboard
 status: executing
 stopped_at: Phase 8 UI-SPEC approved
-last_updated: "2026-06-25T12:29:40.347Z"
-last_activity: 2026-06-25 -- Phase 08 planning complete
+last_updated: "2026-06-25T12:40:07.339Z"
+last_activity: 2026-06-25
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 6
-  completed_plans: 3
+  completed_plans: 4
   percent: 20
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-25 after v1.0 milestone)
 
 **Core value:** 레이트리밋이 걸린 외부 마켓 API에서 시세를 빠짐없이 수집해 시계열로 쌓고, 캐시로 안정적으로 서빙한다
-**Current focus:** Phase 07 — frontend-foundation
+**Current focus:** Phase 08 — dashboard
 
 ## Current Position
 
-Phase: 07 (frontend-foundation) — EXECUTING
-Plan: 3 of 3
+Phase: 08 (dashboard) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-06-25 -- Phase 08 planning complete
+Last activity: 2026-06-25
 
 ## Performance Metrics
 
