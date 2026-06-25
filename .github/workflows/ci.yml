@@ -1,0 +1,38 @@
+name: CI
+
+# Runs on EVERY push and pull request so the README badge reflects the live test state.
+# The job runs the exact command a reviewer runs locally — ./gradlew build — which
+# compiles and executes the full JUnit5 + Testcontainers suite against the runner's Docker
+# (Postgres 16 + Redis 7). Single ubuntu-latest job only — no CD step, no repo
+# credentials, no build matrix — the MVP (shipping is v2 per design §110).
+on:
+  push:
+  pull_request:
+
+# Least privilege: the build only needs to read the checked-out source.
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      # The repo is authored on Windows where the exec bit may be absent.
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      # Full build: compileJava + the entire Testcontainers suite. No -PdockerApiVersion
+      # override — the build defaults api.version to 1.44, which ubuntu-latest's Docker
+      # engine accepts, so Testcontainers boots Postgres 16 + Redis 7 exactly as locally.
+      # The @Disabled Task-0 spike never runs, so no network call and no LOSTARK_API_KEY.
+      - name: Build and test
+        run: ./gradlew build --no-daemon
