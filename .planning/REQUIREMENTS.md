@@ -52,11 +52,11 @@
 
 ### Item Timeline (TIME) — Phase 9
 
-- [ ] **TIME-01**: 사용자가 품목을 선택하면 해당 품목의 최신가 카드가 보인다
-- [ ] **TIME-02**: 선택 품목의 가격 시계열(min_price)이 Recharts 라인 차트로 그려진다 (x축 시간 KST, 데이터 UTC)
-- [ ] **TIME-03**: 응답이 다운샘플(`downsampled=true`)이면 이를 배지로 표시하고 `bucketWidth` 버킷 평균선을 그린다 (raw일 땐 원점)
-- [ ] **TIME-04**: 기간과 겹치는 게임 이벤트가 차트 위 세로 마커(`ReferenceLine`)로 `eventType`별 구분·title 툴팁과 함께 표시된다
-- [ ] **TIME-05**: 사용자가 조회 기간(from/to)을 바꿀 수 있고, 빈 기간(200 empty)·잘못된 기간(400)·없는 품목(404)이 각각 적절히 처리된다
+- [x] **TIME-01**: 사용자가 품목을 선택하면 해당 품목의 최신가 카드가 보인다
+- [x] **TIME-02**: 선택 품목의 가격 시계열(min_price)이 Recharts 라인 차트로 그려진다 (x축 시간 KST, 데이터 UTC)
+- [x] **TIME-03**: 응답이 다운샘플(`downsampled=true`)이면 이를 배지로 표시하고 `bucketWidth` 버킷 평균선을 그린다 (raw일 땐 원점)
+- [x] **TIME-04**: 기간과 겹치는 게임 이벤트가 차트 위 세로 마커(`ReferenceLine`)로 `eventType`별 구분·title 툴팁과 함께 표시된다
+- [x] **TIME-05**: 사용자가 조회 기간(from/to)을 바꿀 수 있고, 빈 기간(200 empty)·잘못된 기간(400)·없는 품목(404)이 각각 적절히 처리된다
 
 ### Event Impact (IMPCT) — Phase 10
 

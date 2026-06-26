@@ -33,7 +33,7 @@ v1.0이 만든 신뢰 가능한 read API(`/api/health/collection`, `/api/items`,
 
 - [x] **Phase 7: Frontend Foundation** — Vite+React+TS+Tailwind 골격, 프록시, 타입드 API 클라이언트, 앱 셸 (completed 2026-06-25)
 - [x] **Phase 8: Dashboard** — collection health + 활성 품목 목록 + 품목별 최신가 요약 (completed 2026-06-25)
-- [ ] **Phase 9: Item Timeline** — item selector + 최신가 카드 + 가격 라인 차트 + 이벤트 마커
+- [x] **Phase 9: Item Timeline** — item selector + 최신가 카드 + 가격 라인 차트 + 이벤트 마커 (completed 2026-06-26)
 - [ ] **Phase 10: Event Impact** — 이벤트별 전후 변화율 + ok/insufficient_data + 상관≠인과 문구
 - [ ] **Phase 11: Demo Surface + Docs** — seed 재현 + frontend/README + 루트 README + (선택) 정적 서빙
 
@@ -117,7 +117,7 @@ v1.0이 만든 신뢰 가능한 read API(`/api/health/collection`, `/api/items`,
   - 이벤트 마커가 가격선과 겹쳐 "서사"가 읽히는지 — 마커 색/범례/툴팁이 명확한지 직접 확인
   - 다운샘플 배지가 "지금 보는 건 원점이 아니라 버킷 평균"임을 정직하게 전달하는지 확인
 
-**Plans:** 4/5 plans executed
+**Plans:** 5/5 plans complete
 
 Plans:
 - **Wave 1**
@@ -127,7 +127,7 @@ Plans:
   - [x] 09-02-PLAN.md — 공용 ItemSelect 드롭다운 + 타임라인 전용 LatestPriceCard (D-05/D-07)
   - [x] 09-04-PLAN.md — Recharts 가격선 차트 + eventType ReferenceLine 마커·범례 + 다운샘플 배지 (D-01/D-02/D-08)
 - **Wave 3** *(blocked on Wave 2 completion)*
-  - [ ] 09-05-PLAN.md — TimelinePage 통합 + 기본 선택(D-06) + 400/404/200-empty 분기(D-09) + 시각 checkpoint
+  - [x] 09-05-PLAN.md — TimelinePage 통합 + 기본 선택(D-06) + 400/404/200-empty 분기(D-09) + 시각 checkpoint
 
 ### Phase 10: Event Impact
 
@@ -191,7 +191,7 @@ Phase 7 → (8 · 9 병렬 가능) → 10 → 11
 |-------|-----------|----------------|--------|-----------|
 | 7. Frontend Foundation | v1.1 | 3/3 | Complete   | 2026-06-25 |
 | 8. Dashboard | v1.1 | 3/3 | Complete   | 2026-06-25 |
-| 9. Item Timeline | v1.1 | 4/5 | In Progress|  |
+| 9. Item Timeline | v1.1 | 5/5 | Complete   | 2026-06-26 |
 | 10. Event Impact | v1.1 | 0/? | Not started | — |
 | 11. Demo Surface + Docs | v1.1 | 0/? | Not started | — |
 
