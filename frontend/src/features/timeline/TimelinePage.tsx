@@ -55,7 +55,7 @@ function ChartArea({
     const status = err instanceof ApiError ? err.status : null
     if (status === 400) {
       return (
-        <Alert variant="destructive" className="max-w-xl">
+        <Alert variant="destructive" className="max-w-md">
           <TriangleAlert />
           <AlertTitle>조회 기간을 다시 확인해 주세요</AlertTitle>
           <AlertDescription>
@@ -66,7 +66,7 @@ function ChartArea({
     }
     if (status === 404) {
       return (
-        <Alert className="max-w-xl">
+        <Alert className="max-w-md">
           <PackageSearch />
           <AlertTitle>존재하지 않는 품목이에요</AlertTitle>
           <AlertDescription>
