@@ -60,10 +60,10 @@
 
 ### Event Impact (IMPCT) — Phase 10
 
-- [ ] **IMPCT-01**: 사용자가 window(시간, 1..168)를 지정해 선택 품목의 이벤트별 전후 변화율을 조회한다
-- [ ] **IMPCT-02**: 각 이벤트가 prePrice / postPrice / changeRate(%) 와 함께 occurred_at 내림차순으로 표시된다
-- [ ] **IMPCT-03**: `status=ok` 와 `insufficient_data` 가 구분 표시되고, insufficient는 희소(anchor null) vs stale(anchor 있으나 오래됨)을 `preAnchorAt`/`postAnchorAt`로 구분해 이유를 보여준다
-- [ ] **IMPCT-04**: "상관 ≠ 인과(이벤트가 가격을 올렸다고 단정하지 않음)" 안내 문구가 화면에 분명히 노출된다
+- [x] **IMPCT-01**: 사용자가 window(시간, 1..168)를 지정해 선택 품목의 이벤트별 전후 변화율을 조회한다
+- [x] **IMPCT-02**: 각 이벤트가 prePrice / postPrice / changeRate(%) 와 함께 occurred_at 내림차순으로 표시된다
+- [x] **IMPCT-03**: `status=ok` 와 `insufficient_data` 가 구분 표시되고, insufficient는 희소(anchor null) vs stale(anchor 있으나 오래됨)을 `preAnchorAt`/`postAnchorAt`로 구분해 이유를 보여준다
+- [x] **IMPCT-04**: "상관 ≠ 인과(이벤트가 가격을 올렸다고 단정하지 않음)" 안내 문구가 화면에 분명히 노출된다
 
 ### Demo Surface (DEMO) — Phase 11
 
