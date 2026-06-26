@@ -40,7 +40,7 @@
 
 **v1.1 Frontend Demo Dashboard (정의됨 2026-06-25)** — 21개 요구사항(FND 5 + DASH 4 + TIME 5 + IMPCT 4 + DEMO 3), Phase 7~11. 상세·트레이서빌리티는 `.planning/REQUIREMENTS.md`, 페이즈는 `.planning/ROADMAP.md`.
 
-> 진행: Phase 7(FND-01..05)·Phase 8 Dashboard(DASH-01..04) 완료 — health 카드 + 활성 품목 카드 그리드(품목별 최신가 fan-out)가 한 화면에서 동작. 잔여: Phase 9 Timeline(TIME) · Phase 10 Event Impact(IMPCT) · Phase 11 Demo Surface(DEMO).
+> 진행: Phase 7(FND-01..05)·Phase 8 Dashboard(DASH-01..04)·Phase 9 Timeline(TIME-01..05) 완료 — 대시보드(health + 품목 카드 그리드)에 더해 품목 타임라인(셀렉터 + 최신가 카드 + 이벤트 마커 라인 차트 + 다운샘플·400/404/empty 정직 처리)이 한 화면에서 동작(human-verified). 잔여: Phase 10 Event Impact(IMPCT) · Phase 11 Demo Surface(DEMO).
 
 v1.0 전 범위(24/24)는 배포·검증 완료(Validated 참조). v2 후보(아카이브된 REQUIREMENTS v2 섹션 / 아래 Out of Scope에서 승격 가능):
 
@@ -118,4 +118,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-25 — Phase 8 (Dashboard) 완료 (DASH-01..04)*
+*Last updated: 2026-06-26 — Phase 9 (Item Timeline) 완료 (TIME-01..05)*
