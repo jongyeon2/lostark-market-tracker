@@ -192,7 +192,7 @@ Phase 7 → (8 · 9 병렬 가능) → 10 → 11
 | 7. Frontend Foundation | v1.1 | 3/3 | Complete   | 2026-06-25 |
 | 8. Dashboard | v1.1 | 3/3 | Complete   | 2026-06-25 |
 | 9. Item Timeline | v1.1 | 5/5 | Complete   | 2026-06-26 |
-| 10. Event Impact | v1.1 | 2/4 | In Progress|  |
+| 10. Event Impact | v1.1 | 3/4 | In Progress|  |
 | 11. Demo Surface + Docs | v1.1 | 0/? | Not started | — |
 
 *Plan 수는 `/gsd-plan-phase [N]`에서 확정.*
