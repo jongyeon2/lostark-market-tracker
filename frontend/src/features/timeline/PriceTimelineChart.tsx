@@ -2,6 +2,7 @@ import {
   CartesianGrid,
   Line,
   LineChart,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -9,7 +10,8 @@ import {
 } from 'recharts'
 
 import { formatKst, toEpochMs } from '@/lib/formatKst'
-import type { Timeline } from '@/lib/schemas'
+import type { EventPoint, Timeline } from '@/lib/schemas'
+import { EVENT_MARKERS, MARKER_DASH, MARKER_STROKE_WIDTH } from '@/features/timeline/eventMarkers'
 
 // The headline visualization (TIME-02/03/04): the selected item's min_price line with event markers
 // overlaid. Off-by-9h guard (Phase-7 D-09): the x-axis positions on raw UTC epoch ms and only the
@@ -58,8 +60,40 @@ function PriceTooltip({ active, payload, downsampled }: PriceTooltipProps) {
   )
 }
 
+// Marker hover affordance (D-02): a transparent SVG hover target spanning the marker height with a
+// native <title> child, so the browser shows "{event title} · {KST}" on hover. This sidesteps the
+// Recharts single-Tooltip conflict (the price line owns the Tooltip) and keeps the chart label-free.
+function MarkerLabel({
+  ev,
+  viewBox,
+}: {
+  ev: EventPoint
+  // viewBox is injected by Recharts via cloneElement when this element is used as a label.
+  viewBox?: { x?: number; y?: number; width?: number; height?: number }
+}) {
+  if (!viewBox || viewBox.x == null) return null
+  const x = viewBox.x
+  const y = viewBox.y ?? 0
+  const height = viewBox.height ?? 0
+  return (
+    <g>
+      <rect
+        x={x - 5}
+        y={y}
+        width={10}
+        height={height}
+        fill="transparent"
+        style={{ pointerEvents: 'all', cursor: 'help' }}
+      >
+        <title>{`${ev.title} · ${formatKst(ev.occurredAt)} KST`}</title>
+      </rect>
+    </g>
+  )
+}
+
 export function PriceTimelineChart({
   snapshots,
+  events,
   downsampled,
 }: Pick<Timeline, 'snapshots' | 'events' | 'downsampled' | 'bucketWidth'>) {
   const rows: ChartRow[] = snapshots
@@ -94,6 +128,19 @@ export function PriceTimelineChart({
           activeDot={{ r: 4 }}
           isAnimationActive={false}
         />
+        {/* TIME-04: one dashed, eventType-colored vertical marker per window event. Dashed so it is
+            distinguishable from the solid price line by FORM, not color alone (accessibility). */}
+        {events.map((ev, i) => (
+          <ReferenceLine
+            key={i}
+            x={toEpochMs(ev.occurredAt)}
+            stroke={EVENT_MARKERS[ev.eventType].color}
+            strokeDasharray={MARKER_DASH}
+            strokeWidth={MARKER_STROKE_WIDTH}
+            ifOverflow="extendDomain"
+            label={<MarkerLabel ev={ev} />}
+          />
+        ))}
       </LineChart>
     </ResponsiveContainer>
   )
