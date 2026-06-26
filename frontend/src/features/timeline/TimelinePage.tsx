@@ -1,10 +1,114 @@
 import { useEffect } from 'react'
+import { PackageSearch, TriangleAlert } from 'lucide-react'
 
-import { useItems } from '@/lib/queries'
+import { useItems, useTimeline } from '@/lib/queries'
+import { ApiError } from '@/lib/api'
 import { ItemSelect } from '@/features/_shared/ItemSelect'
 import { LatestPriceCard } from '@/features/_shared/LatestPriceCard'
 import { useTimelineParams } from '@/features/timeline/useTimelineParams'
 import { RangeControls } from '@/features/timeline/RangeControls'
+import { PriceTimelineChart } from '@/features/timeline/PriceTimelineChart'
+import { EventMarkerLegend } from '@/features/timeline/EventMarkerLegend'
+import { DownsampleBadge } from '@/features/timeline/DownsampleBadge'
+import { ErrorState } from '@/components/state/ErrorState'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
+
+// last-30-days window as ISO instants — used by the 200-empty CTA to reset the range (D-03/D-09).
+const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
+function last30Days(): [string, string] {
+  const now = Date.now()
+  return [new Date(now - THIRTY_DAYS_MS).toISOString(), new Date(now).toISOString()]
+}
+
+/*
+  ChartArea — the chart scope, kept in its OWN error boundary so a chart failure never blanks the
+  LatestPriceCard and vice-versa (Phase-7 D-08 / Phase-8 D-07). It is HONEST about every outcome
+  (D-09, TIME-05): instead of one generic error it reads ApiError.status and shows distinct copy for
+  400 (to≤from) / 404 (unknown item) / 200-empty (no data in range) — each with its own next action.
+*/
+function ChartArea({
+  itemId,
+  from,
+  to,
+  onResetRange,
+}: {
+  itemId: number
+  from: string
+  to: string
+  onResetRange: () => void
+}) {
+  const timeline = useTimeline(itemId, from, to)
+
+  if (timeline.status === 'pending') {
+    return (
+      <div className="space-y-3" role="status" aria-busy="true">
+        <Skeleton className="h-[360px] w-full" />
+        <p className="text-muted-foreground text-sm">불러오는 중…</p>
+      </div>
+    )
+  }
+
+  if (timeline.status === 'error') {
+    const err = timeline.error
+    const status = err instanceof ApiError ? err.status : null
+    if (status === 400) {
+      return (
+        <Alert variant="destructive" className="max-w-xl">
+          <TriangleAlert />
+          <AlertTitle>조회 기간을 다시 확인해 주세요</AlertTitle>
+          <AlertDescription>
+            종료일이 시작일보다 같거나 빠릅니다. 시작일 이후의 종료일을 선택하고 다시 불러오세요.
+          </AlertDescription>
+        </Alert>
+      )
+    }
+    if (status === 404) {
+      return (
+        <Alert className="max-w-xl">
+          <PackageSearch />
+          <AlertTitle>존재하지 않는 품목이에요</AlertTitle>
+          <AlertDescription>
+            선택한 품목을 찾을 수 없습니다. 위 목록에서 다른 품목을 선택해 주세요.
+          </AlertDescription>
+        </Alert>
+      )
+    }
+    // network/other — inherited shared error copy ('백엔드에 연결하지 못했어요…').
+    return <ErrorState onRetry={() => timeline.refetch()} />
+  }
+
+  const { snapshots, events, downsampled, bucketWidth } = timeline.data
+
+  if (snapshots.length === 0) {
+    return (
+      <div className="flex flex-col items-center gap-4 py-16 text-center">
+        <h2 className="text-xl font-semibold">이 기간에는 시세 데이터가 없어요</h2>
+        <p className="text-muted-foreground max-w-md text-base">
+          선택한 기간에 수집된 가격이 없습니다. 기간을 넓히거나 아래 "최근 30일"을 눌러보세요.
+        </p>
+        <Button onClick={onResetRange}>최근 30일 보기</Button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* legend left, downsample badge top-right (09-UI-SPEC Layout). */}
+      <div className="flex items-start justify-between gap-4">
+        <EventMarkerLegend />
+        <DownsampleBadge downsampled={downsampled} bucketWidth={bucketWidth} />
+      </div>
+      <PriceTimelineChart
+        snapshots={snapshots}
+        events={events}
+        downsampled={downsampled}
+        bucketWidth={bucketWidth}
+      />
+    </div>
+  )
+}
 
 /*
   TimelinePage — composes the headline timeline screen (TIME-01/05) top-to-bottom per 09-UI-SPEC:
@@ -43,7 +147,15 @@ export function TimelinePage() {
       {/* Latest-price card — rendered only once a selection is resolved (its own AsyncBoundary). */}
       {itemId != null && <LatestPriceCard itemId={itemId} displayName={displayName} />}
 
-      {/* Chart area (legend + 360px chart + downsample badge, status-branched) — Task 2. */}
+      {/* Chart area — own error scope; only fetches once a selection is resolved (itemId != null). */}
+      {itemId != null && (
+        <ChartArea
+          itemId={itemId}
+          from={from}
+          to={to}
+          onResetRange={() => setRange(...last30Days())}
+        />
+      )}
     </div>
   )
 }
