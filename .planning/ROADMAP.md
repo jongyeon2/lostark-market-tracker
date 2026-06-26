@@ -117,11 +117,11 @@ v1.0이 만든 신뢰 가능한 read API(`/api/health/collection`, `/api/items`,
   - 이벤트 마커가 가격선과 겹쳐 "서사"가 읽히는지 — 마커 색/범례/툴팁이 명확한지 직접 확인
   - 다운샘플 배지가 "지금 보는 건 원점이 아니라 버킷 평균"임을 정직하게 전달하는지 확인
 
-**Plans:** 5 plans in 3 waves
+**Plans:** 1/5 plans executed
 
 Plans:
 - **Wave 1**
-  - [ ] 09-01-PLAN.md — recharts/@radix-select 설치 + 수기 select 블록 + 이벤트 마커 색·버킷 라벨 토큰 (D-01/D-08)
+  - [x] 09-01-PLAN.md — recharts/@radix-select 설치 + 수기 select 블록 + 이벤트 마커 색·버킷 라벨 토큰 (D-01/D-08)
   - [ ] 09-03-PLAN.md — useTimelineParams URL 상태(?item=&from=&to=, 기본 30일) + RangeControls(프리셋·KST 날짜 입력) (D-03/D-04)
 - **Wave 2** *(blocked on Wave 1 completion)*
   - [ ] 09-02-PLAN.md — 공용 ItemSelect 드롭다운 + 타임라인 전용 LatestPriceCard (D-05/D-07)
@@ -191,7 +191,7 @@ Phase 7 → (8 · 9 병렬 가능) → 10 → 11
 |-------|-----------|----------------|--------|-----------|
 | 7. Frontend Foundation | v1.1 | 3/3 | Complete   | 2026-06-25 |
 | 8. Dashboard | v1.1 | 3/3 | Complete   | 2026-06-25 |
-| 9. Item Timeline | v1.1 | 0/? | Not started | — |
+| 9. Item Timeline | v1.1 | 1/5 | In Progress|  |
 | 10. Event Impact | v1.1 | 0/? | Not started | — |
 | 11. Demo Surface + Docs | v1.1 | 0/? | Not started | — |
 
