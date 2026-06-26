@@ -117,6 +117,18 @@ v1.0이 만든 신뢰 가능한 read API(`/api/health/collection`, `/api/items`,
   - 이벤트 마커가 가격선과 겹쳐 "서사"가 읽히는지 — 마커 색/범례/툴팁이 명확한지 직접 확인
   - 다운샘플 배지가 "지금 보는 건 원점이 아니라 버킷 평균"임을 정직하게 전달하는지 확인
 
+**Plans:** 5 plans in 3 waves
+
+Plans:
+- **Wave 1**
+  - [ ] 09-01-PLAN.md — recharts/@radix-select 설치 + 수기 select 블록 + 이벤트 마커 색·버킷 라벨 토큰 (D-01/D-08)
+  - [ ] 09-03-PLAN.md — useTimelineParams URL 상태(?item=&from=&to=, 기본 30일) + RangeControls(프리셋·KST 날짜 입력) (D-03/D-04)
+- **Wave 2** *(blocked on Wave 1 completion)*
+  - [ ] 09-02-PLAN.md — 공용 ItemSelect 드롭다운 + 타임라인 전용 LatestPriceCard (D-05/D-07)
+  - [ ] 09-04-PLAN.md — Recharts 가격선 차트 + eventType ReferenceLine 마커·범례 + 다운샘플 배지 (D-01/D-02/D-08)
+- **Wave 3** *(blocked on Wave 2 completion)*
+  - [ ] 09-05-PLAN.md — TimelinePage 통합 + 기본 선택(D-06) + 400/404/200-empty 분기(D-09) + 시각 checkpoint
+
 ### Phase 10: Event Impact
 
 **Goal**: 이벤트별 전후 변화율을 표로 보여주되, `insufficient_data`의 이유(희소 vs stale)를 구분하고 "상관 ≠ 인과"를 분명히 고지해 — 데이터에 정직한 분석 화면을 만든다.
