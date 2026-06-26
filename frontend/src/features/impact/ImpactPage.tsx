@@ -1,11 +1,104 @@
 import { useEffect } from 'react'
+import { PackageSearch, TriangleAlert } from 'lucide-react'
 
-import { useItems } from '@/lib/queries'
+import { useItems, useEventImpact } from '@/lib/queries'
+import { ApiError } from '@/lib/api'
 import { ItemSelect } from '@/features/_shared/ItemSelect'
 import { LatestPriceCard } from '@/features/_shared/LatestPriceCard'
 import { useImpactParams } from '@/features/impact/useImpactParams'
 import { WindowControls } from '@/features/impact/WindowControls'
 import { CorrelationBanner } from '@/features/impact/CorrelationBanner'
+import { EventImpactTable } from '@/features/impact/EventImpactTable'
+import { EventImpactCards } from '@/features/impact/EventImpactCards'
+import { ErrorState } from '@/components/state/ErrorState'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
+
+/*
+  ImpactResults — the results scope, kept in its OWN error boundary so a results failure never blanks
+  the LatestPriceCard and vice-versa (D-12, Phase-7 D-08 isolation). It is HONEST about every outcome
+  (D-03/D-09): instead of one generic error it reads ApiError.status and shows distinct copy for
+  400 (window ≤0 or >168) / 404 (unknown item) / 200-empty (no events, D-11) — each with its own next
+  action. Copy is verbatim from 10-UI-SPEC; the backend occurred_at-desc order is preserved.
+*/
+function ImpactResults({
+  itemId,
+  window,
+  onResetWindow,
+}: {
+  itemId: number
+  window: number
+  onResetWindow: () => void
+}) {
+  const impact = useEventImpact(itemId, window)
+
+  if (impact.status === 'pending') {
+    return (
+      <div className="space-y-3" role="status" aria-busy="true">
+        <Skeleton className="h-[320px] w-full" />
+        <p className="text-muted-foreground text-sm">불러오는 중…</p>
+      </div>
+    )
+  }
+
+  if (impact.status === 'error') {
+    const status = impact.error instanceof ApiError ? impact.error.status : null
+    if (status === 400) {
+      // D-03 recovery: out-of-range window → distinct copy + "24시간으로 보기" resets to the default.
+      return (
+        <Alert variant="destructive" className="max-w-md">
+          <TriangleAlert />
+          <AlertTitle>윈도우 값을 다시 확인해 주세요</AlertTitle>
+          <AlertDescription>
+            윈도우는 1~168시간 사이의 정수여야 합니다. 프리셋 버튼을 누르거나 범위 안의 값을 입력해 다시 불러오세요.
+          </AlertDescription>
+          <div className="col-start-2 mt-3">
+            <Button onClick={onResetWindow}>24시간으로 보기</Button>
+          </div>
+        </Alert>
+      )
+    }
+    if (status === 404) {
+      return (
+        <Alert className="max-w-md">
+          <PackageSearch />
+          <AlertTitle>존재하지 않는 품목이에요</AlertTitle>
+          <AlertDescription>
+            선택한 품목을 찾을 수 없습니다. 위 목록에서 다른 품목을 선택해 주세요.
+          </AlertDescription>
+        </Alert>
+      )
+    }
+    // network/other — inherited shared error copy ('백엔드에 연결하지 못했어요…').
+    return <ErrorState onRetry={() => impact.refetch()} />
+  }
+
+  const { events } = impact.data
+
+  // D-11: 200 + empty events (admin registered 0 events) — distinct from per-row insufficient. The
+  // shared EmptyState's heading is fixed ("표시할 데이터가 아직 없어요"); the 10-UI-SPEC Copywriting
+  // Contract requires the heading "등록된 이벤트가 없어요", so we render the exact contract copy in an
+  // EmptyState-shaped block rather than double up headings.
+  if (events.length === 0) {
+    return (
+      <div className="flex flex-col items-center gap-4 py-16 text-center">
+        <h2 className="text-xl font-semibold">등록된 이벤트가 없어요</h2>
+        <p className="text-muted-foreground max-w-md text-base">
+          이 품목에 연결된 게임 이벤트가 아직 없습니다. 다른 품목을 선택하거나 관리자가 이벤트를 등록하면 표시됩니다.
+        </p>
+      </div>
+    )
+  }
+
+  // Both responsive views render; CSS (md breakpoint) toggles which is visible (D-04/D-09).
+  return (
+    <>
+      <EventImpactTable events={events} />
+      <EventImpactCards events={events} />
+    </>
+  )
+}
 
 /*
   ImpactPage — composes the event-impact screen (IMPCT-01..04) top-to-bottom per 10-UI-SPEC Layout:
@@ -48,7 +141,10 @@ export function ImpactPage() {
       {/* Latest-price card — its own AsyncBoundary, rendered once a selection resolves (D-12). */}
       {itemId != null && <LatestPriceCard itemId={itemId} displayName={displayName} />}
 
-      {/* Results area — Task 2 wires <ImpactResults itemId window onResetWindow /> here. */}
+      {/* Results area — own async/error scope, independent of the latest-price card (D-12). */}
+      {itemId != null && (
+        <ImpactResults itemId={itemId} window={window} onResetWindow={() => setWindow(24)} />
+      )}
     </div>
   )
 }
