@@ -6,7 +6,7 @@
 
 **핵심 가치:** 외부 마켓 API에서 시세를 빠짐없이 수집·저장·서빙한다. 그 위에 얹는 헤드라인 기능이 **event-impact**(이벤트 전후 가격 변화율 상관)입니다.
 
-프론트엔드는 없습니다 — **JSON이 곧 UI**입니다. 아래 `curl` 예시 + 샘플 응답으로 전체 기능을 재현할 수 있습니다.
+백엔드가 헤드라인입니다 — **JSON이 곧 API 표면**입니다. 아래 `curl` 예시 + 샘플 응답으로 전체 기능을 재현할 수 있고, 같은 read API를 소비하는 **브라우저 프론트 데모**(3화면)도 선택적으로 제공합니다.
 
 ---
 
@@ -97,6 +97,20 @@ LOSTARK_API_KEY=<your-jwt> ./gradlew bootRun --args='--spring.profiles.active=de
 
 - `ADMIN_API_SECRET` 이 비어 있으면 `/api/admin/**` 는 **fail-closed**로 모두 `401` 입니다(공개 읽기 표면과 수집 파이프라인은 정상 동작). 관리자 호출을 쓰려면 `.env` 에 값을 채우세요.
 - 빌드 + 전체 테스트: `./gradlew build` (CI가 동일 명령 실행). 로컬 테스트는 Docker 필요, `-PdockerApiVersion=1.44` 권장.
+
+---
+
+## 프론트 데모 (브라우저)
+
+curl이 아니라 브라우저로 보고 싶다면, 같은 read API를 소비하는 **데스크톱 우선 React 데모(3화면)** 를 띄울 수 있습니다.
+
+1. **seed 백엔드 기동** — 위 "로컬 실행"의 seed 프로파일(`./gradlew bootRun --args='--spring.profiles.active=seed'`, API 키 불필요).
+2. **프론트 기동** — `cd frontend && npm install && npm run dev` → http://localhost:5173
+3. **3화면** — Dashboard(`/`) · Item Timeline(`/timeline`) · Event Impact(`/impact`)
+
+![Dashboard 화면 — 수집 파이프라인 헬스 카드와 활성 품목 최신가 워치리스트](frontend/docs/screenshots/dashboard.png)
+
+자세한 실행·Vite 프록시 설명·화면별 안내는 [`frontend/README`](frontend/README.md)에 일원화돼 있습니다(단일 진실 원천). **curl로도, 브라우저로도 동일한 read API** 를 보며, 데이터는 seed 합성 데이터입니다.
 
 ---
 
