@@ -34,7 +34,7 @@ public class SeedDataRunner implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
         SeedSummary summary = syntheticDemoData.seed();
-        log.info("[seed] synthetic demo data ready: {} price snapshots, {} game events",
-                summary.snapshots(), summary.events());
+        log.info("[seed] synthetic demo data ready: {} price snapshots, {} game events, {} collection runs",
+                summary.snapshots(), summary.events(), summary.runs());
     }
 }

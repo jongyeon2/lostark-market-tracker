@@ -1,9 +1,11 @@
 package com.lostark.tracker.seed;
 
+import com.lostark.tracker.domain.CollectionRun;
 import com.lostark.tracker.domain.EventType;
 import com.lostark.tracker.domain.GameEvent;
 import com.lostark.tracker.domain.PriceSnapshot;
 import com.lostark.tracker.domain.TrackedItem;
+import com.lostark.tracker.repository.CollectionRunRepository;
 import com.lostark.tracker.repository.GameEventRepository;
 import com.lostark.tracker.repository.PriceSnapshotRepository;
 import com.lostark.tracker.repository.TrackedItemRepository;
@@ -50,21 +52,24 @@ public class SyntheticDemoData {
     private static final int TICK_COUNT = SEED_DAYS * 24 * 6;
 
     /** A summary of what one {@link #seed()} run wrote — logged by {@link SeedDataRunner}. */
-    public record SeedSummary(int snapshots, int events) {
+    public record SeedSummary(int snapshots, int events, int runs) {
     }
 
     private final TrackedItemRepository trackedItemRepository;
     private final PriceSnapshotRepository priceSnapshotRepository;
     private final GameEventRepository gameEventRepository;
+    private final CollectionRunRepository collectionRunRepository;
     private final Clock clock;
 
     public SyntheticDemoData(TrackedItemRepository trackedItemRepository,
                              PriceSnapshotRepository priceSnapshotRepository,
                              GameEventRepository gameEventRepository,
+                             CollectionRunRepository collectionRunRepository,
                              Clock clock) {
         this.trackedItemRepository = trackedItemRepository;
         this.priceSnapshotRepository = priceSnapshotRepository;
         this.gameEventRepository = gameEventRepository;
+        this.collectionRunRepository = collectionRunRepository;
         this.clock = clock;
     }
 
@@ -88,7 +93,20 @@ public class SyntheticDemoData {
         if (!items.isEmpty() && gameEventRepository.count() == 0) {
             events = seedEvents(gridNow);
         }
-        return new SeedSummary(snapshots, events);
+
+        // Seed a synthetic SUCCESS collection_run so the health card reads 12/12 SUCCESS, consistent
+        // with the seeded snapshots — startedAt=gridNow is the newest run, so it overrides any stale
+        // keyless AUTH_ERROR run left in a persisted volume. Same entity/contract as a real tick with
+        // an explicitly null marker (D-12: never a secret). Idempotent on the 10-minute grid.
+        int runs = 0;
+        if (!items.isEmpty() && !collectionRunRepository.existsByStartedAtAndStatus(gridNow, "SUCCESS")) {
+            int n = items.size();
+            CollectionRun run = new CollectionRun(gridNow, gridNow, n, n, 0, "SUCCESS");
+            run.setSummaryMessage(null);
+            collectionRunRepository.save(run);
+            runs = 1;
+        }
+        return new SeedSummary(snapshots, events, runs);
     }
 
     private int seedSnapshots(TrackedItem item, OffsetDateTime gridNow) {
