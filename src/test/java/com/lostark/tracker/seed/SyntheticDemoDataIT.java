@@ -1,6 +1,8 @@
 package com.lostark.tracker.seed;
 
+import com.lostark.tracker.domain.CollectionRun;
 import com.lostark.tracker.domain.TrackedItem;
+import com.lostark.tracker.repository.CollectionRunRepository;
 import com.lostark.tracker.repository.GameEventRepository;
 import com.lostark.tracker.repository.PriceSnapshotRepository;
 import com.lostark.tracker.repository.TrackedItemRepository;
@@ -50,6 +52,8 @@ class SyntheticDemoDataIT extends PostgresRedisContainers {
     @Autowired
     GameEventRepository gameEventRepository;
     @Autowired
+    CollectionRunRepository collectionRunRepository;
+    @Autowired
     Clock clock;
 
     @BeforeEach
@@ -58,6 +62,8 @@ class SyntheticDemoDataIT extends PostgresRedisContainers {
         priceSnapshotRepository.deleteAll();
         trackedItemRepository.deleteAll();
         gameEventRepository.deleteAll();
+        // collection_run has no FK to the above — clear it so each test starts from a known run history.
+        collectionRunRepository.deleteAll();
     }
 
     @Test
@@ -111,5 +117,30 @@ class SyntheticDemoDataIT extends PostgresRedisContainers {
         // Per-tick existsBy guard + event count() guard make a second run a no-op.
         assertThat(afterSecond).isEqualTo(afterFirst);
         assertThat(gameEventRepository.count()).isEqualTo(2);
+    }
+
+    @Test
+    void seedWritesSuccessRunThatBeatsAStalePersistedAuthErrorRun() {
+        trackedItemRepository.save(new TrackedItem("9001", "데모 아이템", "50010"));
+
+        // A stale keyless AUTH_ERROR run left in a persisted volume — the very face seed must override.
+        OffsetDateTime now = OffsetDateTime.now(clock);
+        CollectionRun stale = new CollectionRun(now.minusHours(1), now.minusHours(1), 12, 0, 12, "FAILED");
+        stale.setSummaryMessage("AUTH_ERROR");
+        collectionRunRepository.save(stale);
+
+        syntheticDemoData.seed();
+
+        // The newest run (startedAt=gridNow) must now be the synthetic SUCCESS — what the health card reads.
+        CollectionRun latest = collectionRunRepository.findTopByOrderByStartedAtDesc().orElseThrow();
+        assertThat(latest.getStatus()).isEqualTo("SUCCESS");
+        assertThat(latest.getItemsAttempted()).isEqualTo(1);
+        assertThat(latest.getItemsSucceeded()).isEqualTo(1);
+        assertThat(latest.getItemsFailed()).isZero();
+        assertThat(latest.getSummaryMessage()).isNull();
+
+        // Idempotent on the same 10-minute grid: a second seed() adds no duplicate SUCCESS run.
+        syntheticDemoData.seed();
+        assertThat(collectionRunRepository.count()).isEqualTo(2); // stale FAILED + one synthetic SUCCESS
     }
 }
