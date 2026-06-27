@@ -68,7 +68,7 @@
 ### Demo Surface (DEMO) — Phase 11
 
 - [x] **DEMO-01**: 리뷰어가 seed 프로파일 백엔드 + `npm run dev`만으로 3개 화면을 전부 비어있지 않게 재현할 수 있다
-- [ ] **DEMO-02**: `frontend/README` + 루트 README가 실행 순서(seed 백엔드 → dev 서버 → 화면)와 스크린샷을 문서화한다
+- [x] **DEMO-02**: `frontend/README` + 루트 README가 실행 순서(seed 백엔드 → dev 서버 → 화면)와 스크린샷을 문서화한다
 - [ ] **DEMO-03** *(선택/stretch)*: Spring 정적 서빙으로 프론트 빌드를 단일 출처(`docker compose up` 한 번)에 패키징한다 — 명시적 선택 항목, 슬립 시 v2
 
 ## Future Requirements (v2 / 연기)
