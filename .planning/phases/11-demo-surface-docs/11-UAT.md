@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 11-demo-surface-docs
 source: [11-01-SUMMARY.md, 11-02-SUMMARY.md, 11-03-SUMMARY.md]
 started: 2026-06-27T04:11:49Z
@@ -58,12 +58,24 @@ blocked: 0
 
 ## Gaps
 
-- truth: "seed 모드 Dashboard 헬스 카드가 seed 합성 수집 성공 상태(또는 라이브 수집 비활성)를 보여준다 — API 키 없이도 정상으로 보인다"
+- truth: "seed 모드 Dashboard 헬스 카드가 seed 합성 수집 성공 상태(시도12·성공12·실패0·SUCCESS)를 보여준다 — API 키 없이도 정상으로 보인다"
   status: failed
   reason: "User reported: 수집헬스 카드에 시도는 12번인데 12개가 다 실패했다고 뜨고 카드에 나온 원인은 인증오류 라는데?"
   severity: major
   test: 3
-  root_cause: ""     # Filled by diagnosis
-  artifacts: []      # Filled by diagnosis
-  missing: []        # Filled by diagnosis
-  debug_session: ""  # Filled by diagnosis
+  root_cause: "SyntheticDemoData.seed()는 PriceSnapshot·GameEvent만 심고 collection_run을 심지 않는다. 헬스 카드(CollectionHealthService.latestHealth() → CollectionRunRepository.findTopByOrderByStartedAtDesc())는 프로파일·나이 무관 '최신 run 1건'만 반영한다. 라이브 @Scheduled 수집기는 dev/기본 프로파일에서 collection.initial-delay-ms 기본값 0으로 부팅 즉시 키 없이 발화 → run(itemsAttempted=12[=WATCHLIST 12품목], succeeded=0, failed=12, status=FAILED, summaryMessage=AUTH_ERROR). docker-compose.yml의 명명 볼륨 pgdata가 Postgres를 영속시켜 그 실패 run이 docker compose down/up 후에도 살아남아 seed 대시보드의 '최신 run'으로 재등장. HealthCard.tsx가 '시도12·성공0·실패12' + SummaryMarker(AUTH_ERROR)를 그대로 렌더 → 사용자 보고와 정확히 일치. 정상 seed 부팅(깨끗한 볼륨)이라도 헬스 카드는 NO_RUNS('아직 수집 실행 기록이 없어요')로 떠 timeline/impact는 가득 찬데 헤드라인 수집 헬스 위젯만 비어 데모 내적 모순."
+  artifacts:
+    - path: "src/main/java/com/lostark/tracker/seed/SyntheticDemoData.java"
+      issue: "seed()가 collection_run을 심지 않아 헬스 카드가 seed 데이터의 수집 성공을 표현할 근거가 없음"
+    - path: "src/main/java/com/lostark/tracker/health/CollectionHealthService.java"
+      issue: "findTopByOrderByStartedAtDesc()로 프로파일·나이 무관 최신 run만 반영 — 영속 볼륨의 과거 키리스 AUTH_ERROR run이 seed 데모의 얼굴이 됨"
+    - path: "docker-compose.yml"
+      issue: "pgdata 명명 볼륨으로 collection_run 영속 → 과거 dev/기본 키리스 tick의 실패 run이 재시작 후 잔존"
+    - path: "src/main/resources/application-dev.yml"
+      issue: "collection.initial-delay-ms 미설정 → 기본 0 → dev/기본 프로파일 부팅 즉시 키 없이 tick 발화(seed 전 1회만 실행해도 실패 run 적재)"
+  missing:
+    - "SyntheticDemoData.seed()가 합성 SUCCESS collection_run(attempted=12·succeeded=12·failed=0·status=SUCCESS·summaryMessage=null·startedAt/finishedAt=gridNow)을 멱등하게 적재 → startedAt=gridNow가 최신이라 영속 볼륨의 과거 실패 run을 덮고 헬스 카드가 녹색 12/12로 표시"
+    - "CollectionRunRepository에 멱등 가드용 existsByStartedAtAndStatus(OffsetDateTime, String) 추가"
+    - "SyntheticDemoDataIT에 seed 후 latest run = SUCCESS(12/12, AUTH_ERROR 아님) 단언 + 과거 실패 run 선적재 시에도 seed가 최신 SUCCESS로 덮는지 회귀 테스트"
+    - "(선택적 하드닝) seed 프로파일에서 라이브 스케줄러 완전 비활성화 검토 — 1h initial-delay는 일반 데모만 커버, 장시간 데모/볼륨 잔존은 미커버"
+  debug_session: ".planning/debug/seed-health-card-auth-error.md"
