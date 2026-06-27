@@ -35,7 +35,7 @@ v1.0이 만든 신뢰 가능한 read API(`/api/health/collection`, `/api/items`,
 - [x] **Phase 8: Dashboard** — collection health + 활성 품목 목록 + 품목별 최신가 요약 (completed 2026-06-25)
 - [x] **Phase 9: Item Timeline** — item selector + 최신가 카드 + 가격 라인 차트 + 이벤트 마커 (completed 2026-06-26)
 - [x] **Phase 10: Event Impact** — 이벤트별 전후 변화율 + ok/insufficient_data + 상관≠인과 문구 (completed 2026-06-26)
-- [ ] **Phase 11: Demo Surface + Docs** — seed 재현 + frontend/README + 루트 README + (선택) 정적 서빙
+- [x] **Phase 11: Demo Surface + Docs** — seed 재현 + frontend/README + 루트 README + (선택) 정적 서빙 (completed 2026-06-27)
 
 ## Phase Details
 
@@ -193,6 +193,6 @@ Phase 7 → (8 · 9 병렬 가능) → 10 → 11
 | 8. Dashboard | v1.1 | 3/3 | Complete   | 2026-06-25 |
 | 9. Item Timeline | v1.1 | 5/5 | Complete   | 2026-06-26 |
 | 10. Event Impact | v1.1 | 4/4 | Complete    | 2026-06-26 |
-| 11. Demo Surface + Docs | v1.1 | 2/3 | In Progress|  |
+| 11. Demo Surface + Docs | v1.1 | 3/3 | Complete   | 2026-06-27 |
 
 *Plan 수는 `/gsd-plan-phase [N]`에서 확정.*
