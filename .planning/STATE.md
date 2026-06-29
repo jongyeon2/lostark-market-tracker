@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Item Visual/Data Enrichment
 status: executing
-stopped_at: Phase 12 complete — 큐레이션 15개 잠금
-last_updated: "2026-06-29T05:55:00.000Z"
-last_activity: 2026-06-29 -- Phase 12 complete (spike findings locked, curation ratified)
+stopped_at: Phase 12 complete — 12-SPIKE-FINDINGS.md 잠금
+last_updated: "2026-06-29T06:44:35.287Z"
+last_activity: 2026-06-29 -- Phase 13 planning complete
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 1
+  total_plans: 3
   completed_plans: 1
   percent: 33
 ---
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-06-29 after v1.1 milestone)
 
 ## Current Position
 
-Phase: 12 API Spike + Data Lock (게이트) — ✅ Complete
-Plan: 12-01 complete (SUMMARY 작성, 큐레이션 휴먼 비준)
-Status: Phase 13 착수 대기 (키 불필요 — findings 상수만 소비)
-Last activity: 2026-06-29 -- Phase 12 complete (spike findings locked, curation ratified)
+Phase: 13 Backend Enrichment + Seed Expansion — 📋 Planned (2 plans, 2 waves)
+Plan: 13-01 (data: V4 nullable + TrackedItem + WatchlistSeeder 큐레이션 15개) → 13-02 (read: 4 DTO 패스스루 + 수집/캐시/event-impact 0줄 가드)
+Status: Ready to execute
+Last activity: 2026-06-29 -- Phase 13 planning complete
 
 ## Performance Metrics
 
@@ -94,7 +94,8 @@ Resume file: .planning/phases/12-api-spike-data-lock/12-SPIKE-FINDINGS.md
 
 ## Operator Next Steps
 
-- 다음: `/clear` 후 `/gsd-discuss-phase 13` 또는 `/gsd-plan-phase 13` (백엔드 enrichment + seed). Phase 13은 키 불필요 — 12-SPIKE-FINDINGS.md의 6필드 표만 소비
-- 잔여 도메인 결정(선택): 만개 포함 시 1회 재실측, 운명 융화재료 포함 여부 — Phase 13 착수 전 정할 수 있음
+- 다음: `/clear` 후 `/gsd-execute-phase 13` (Phase 13 계획 완료 — 2 plans/2 waves). 키 불필요 — 12-SPIKE-FINDINGS.md 상수만 소비
+- 계획 결정(잠금): watchlist를 큐레이션 15개로 **교체**(미검증 12개 제거), enrichment는 read-path additive로 컨트롤러/캐시-베이크 부착(잠금 5파일 0줄), role_group/item_group은 nullable VARCHAR(String). 만개 보류·운명 Deferred 유지(키 재실측 필요 → 범위 밖)
+- Phase 14 합의 대상: DTO 필드명 iconUrl/itemGroup/roleGroup + roleGroup ∈ {MATERIAL,DEALER,SUPPORT}를 프론트 zod 스키마와 정렬
 - ⚠️ 스파이크 중 대화 노출 JWT 키 **포털 재발급 권장**(.env는 gitignored·추적 0)
 - 불변 제약 상시 가드: 프론트 API 직접호출 금지 · 실키 미커밋 · 수집/캐시/event-impact 0줄 무변경
