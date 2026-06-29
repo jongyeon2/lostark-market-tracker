@@ -38,7 +38,7 @@ v1.2 마일스톤 범위. 각 항목은 roadmap phase에 매핑된다(Traceabili
 - [x] **ICON-05**: Event Impact 품목 카드에 아이콘을 표시한다.
 - [x] **ICON-06**: 융화재료/딜러각인/서포터각인 역할 그룹을 배지로 시각 구분한다(필터 컨트롤은 v2).
 - [x] **ICON-07**: 추가 품목(융화재료·큐레이션 각인서)이 Dashboard/Timeline/Event Impact에서 선택 가능하다.
-- [ ] **ICON-08**: frontend/README·루트 README에 데이터 출처·API 실측 결과·fallback 전략을 기록한다.
+- [x] **ICON-08**: frontend/README·루트 README에 데이터 출처·API 실측 결과·fallback 전략을 기록한다.
 
 ## v2 Requirements
 
@@ -94,7 +94,7 @@ phase 매핑은 roadmap 생성 시 채움.
 | ICON-05 | Phase 14 | Complete |
 | ICON-06 | Phase 14 | Complete |
 | ICON-07 | Phase 14 | Complete |
-| ICON-08 | Phase 14 | Pending |
+| ICON-08 | Phase 14 | Complete |
 
 **Coverage:**
 - v1 requirements: 21 total
