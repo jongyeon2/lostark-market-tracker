@@ -52,6 +52,14 @@
   --down: #dc2626; /* red-600  — price down / AUTH_ERROR */
   --warning: #d97706; /* amber-600 — PARTIAL_SUCCESS / RATE_LIMITED / insufficient_data */
   --neutral: #64748b; /* slate-500 — NO_RUNS / empty / downsampled */
+
+  /*
+    Role-group colors — a semantic color set (meaning, NOT the blue-600 accent), worn as a
+    solid pill behind white text. Each is dark enough for white-text contrast ≥ 4.7:1 (AA).
+  */
+  --role-dealer: #e11d48; /* rose-600    — 딜러 = 공격 */
+  --role-support: #047857; /* emerald-700 — 서포터 = 회복·버프 */
+  --role-material: #b45309; /* amber-700   — 융화재료 = 재화 */
 }
 
 @theme inline {
@@ -80,6 +88,11 @@
   --color-down: var(--down);
   --color-warning: var(--warning);
   --color-neutral: var(--neutral);
+
+  /* Role-group utilities (bg-role-dealer / text-role-support …) — solid pill + white text */
+  --color-role-dealer: var(--role-dealer);
+  --color-role-support: var(--role-support);
+  --color-role-material: var(--role-material);
 
   --font-sans: 'Inter Variable', Inter, system-ui, -apple-system, sans-serif;
 
