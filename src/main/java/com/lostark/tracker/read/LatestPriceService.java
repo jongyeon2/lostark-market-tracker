@@ -2,6 +2,7 @@ package com.lostark.tracker.read;
 
 import com.lostark.tracker.cache.LatestPriceCache;
 import com.lostark.tracker.domain.PriceSnapshot;
+import com.lostark.tracker.domain.TrackedItem;
 import com.lostark.tracker.repository.PriceSnapshotRepository;
 import com.lostark.tracker.repository.TrackedItemRepository;
 import com.lostark.tracker.web.dto.LatestPriceResponse;
@@ -45,15 +46,17 @@ public class LatestPriceService {
         }
 
         // Miss: distinguish "no such item" from "item exists but has no price yet" — both are 404 (D-10).
-        if (!trackedItemRepository.existsById(itemId)) {
-            throw new ItemNotFoundException(itemId);
-        }
+        // findById (same single read as existsById) also yields the item's static enrichment, which we
+        // bake into the cached value so subsequent HITs stay zero-DB (API-02).
+        TrackedItem item = trackedItemRepository.findById(itemId)
+                .orElseThrow(() -> new ItemNotFoundException(itemId));
         PriceSnapshot newest = priceSnapshotRepository
                 .findTopByTrackedItem_IdOrderByCollectedAtDesc(itemId)
                 .orElseThrow(() -> new ItemNotFoundException(itemId));
 
-        LatestPriceResponse response =
-                new LatestPriceResponse(itemId, newest.getMinPrice(), newest.getCollectedAt());
+        LatestPriceResponse response = new LatestPriceResponse(
+                itemId, newest.getMinPrice(), newest.getCollectedAt(),
+                item.getIconUrl(), item.getItemGroup(), item.getRoleGroup());
         cache.put(itemId, response);
         return response;
     }

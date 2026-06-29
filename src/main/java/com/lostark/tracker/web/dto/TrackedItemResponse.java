@@ -7,7 +7,10 @@ public record TrackedItemResponse(
         String externalItemId,
         String displayName,
         String category,
-        boolean active
+        boolean active,
+        String iconUrl,
+        String itemGroup,
+        String roleGroup
 ) {
     public static TrackedItemResponse from(TrackedItem item) {
         return new TrackedItemResponse(
@@ -15,7 +18,10 @@ public record TrackedItemResponse(
                 item.getExternalItemId(),
                 item.getDisplayName(),
                 item.getCategory(),
-                item.isActive()
+                item.isActive(),
+                item.getIconUrl(),
+                item.getItemGroup(),
+                item.getRoleGroup()
         );
     }
 }

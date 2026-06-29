@@ -11,10 +11,17 @@ import java.time.OffsetDateTime;
  * D-11) so the cached value round-trips through Redis as the exact same instant it was stored at —
  * no server-side timezone conversion, which is what guards against the off-by-9h KST/UTC bug.
  * camelCase fields match {@code TrackedItemResponse} for a consistent API surface.
+ *
+ * <p>{@code iconUrl}/{@code itemGroup}/{@code roleGroup} are static enrichment baked alongside the
+ * price when the service fills the cache on a MISS — so a cache HIT returns them with NO extra DB
+ * read (the API-02 zero-DB showcase is preserved).
  */
 public record LatestPriceResponse(
         Long itemId,
         Long minPrice,
-        OffsetDateTime collectedAt
+        OffsetDateTime collectedAt,
+        String iconUrl,
+        String itemGroup,
+        String roleGroup
 ) {
 }
