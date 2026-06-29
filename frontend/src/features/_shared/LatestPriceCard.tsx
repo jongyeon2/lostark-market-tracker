@@ -29,9 +29,9 @@ export function LatestPriceCard({
       <CardHeader>
         {/* Identity (icon/name/role badge) stays visible regardless of the price-area state — the
             selected item's enrichment is passed in, already loaded (ICON-04·D-04). */}
-        <CardTitle className="flex items-center gap-2 text-xl">
+        <CardTitle className="flex items-center gap-2 text-base">
           <ItemIcon iconUrl={iconUrl ?? null} roleGroup={roleGroup ?? null} size="md" />
-          <span>{displayName}</span>
+          <span className="whitespace-nowrap">{displayName}</span>
           <RoleBadge roleGroup={roleGroup ?? null} />
         </CardTitle>
       </CardHeader>
