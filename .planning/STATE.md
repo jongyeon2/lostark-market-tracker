@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Item Visual/Data Enrichment
 status: executing
-stopped_at: Phase 14 UI-SPEC approved
-last_updated: "2026-06-29T11:08:55.160Z"
-last_activity: 2026-06-29 -- Phase 14 planning complete
+stopped_at: Phase 14 complete (3/3 plans, build 그린)
+last_updated: "2026-06-30T00:00:00.000Z"
+last_activity: 2026-06-30 -- Phase 14 실행 완료 (아이콘/fallback/docs)
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 6
-  completed_plans: 4
-  percent: 67
+  completed_plans: 6
+  percent: 100
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-29 after v1.1 milestone)
 
 **Core value:** 레이트리밋이 걸린 외부 마켓 API에서 시세를 빠짐없이 수집해 시계열로 쌓고, 캐시로 안정적으로 서빙한다
-**Current focus:** v1.2 Item Visual/Data Enrichment — Phase 12(스파이크)·Phase 13(백엔드 enrichment/seed) 완료. enrichment가 nullable 컬럼·엔티티·시더·4개 read DTO에 베이크됨. 다음: Phase 14(프론트 아이콘/fallback/docs).
+**Current focus:** v1.2 Item Visual/Data Enrichment — Phase 12(스파이크)·13(백엔드 enrichment/seed)·14(프론트 아이콘/fallback/docs) **3개 phase 전부 완료**. enrichment가 nullable 컬럼·엔티티·시더·4개 read DTO·프론트 4화면·README까지 관통. 다음: v1.2 마일스톤 마감(`/gsd-verify-work 14` 또는 `/gsd-complete-milestone`).
 
 ## Current Position
 
-Phase: 13 Backend Enrichment + Seed Expansion — ✓ Complete (2/2 plans, build 그린)
-Plan: 13-01 ✓ (data: V4 nullable + TrackedItem + WatchlistSeeder 큐레이션 15개) · 13-02 ✓ (read: 4 DTO 패스스루 + 수집/캐시/event-impact 8파일 0줄 가드)
-Status: Ready to execute
-Last activity: 2026-06-29 -- Phase 14 planning complete
+Phase: 14 Frontend Icons + Fallback + Docs — ✓ Complete (3/3 plans, frontend build 그린, 백엔드 src/ 0줄)
+Plan: 14-01 ✓ (공유 기반: enrichment 4 zod 스키마 + 역할 3색 토큰 + ItemIcon/RoleBadge/roleGroup) · 14-02 ✓ (4화면 아이콘·역할 배지·sortByRole 정렬, EventImpactCards 0줄) · 14-03 ✓ (루트/frontend README 출처·실측·fallback·자산 섹터 서사)
+Status: Phase complete — ICON-01..08 전부 Complete
+Last activity: 2026-06-30 -- Phase 14 실행 완료
 
 ## Performance Metrics
 
@@ -71,6 +71,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase ?]: 01-02: 4테이블 Flyway V1 잠금 + JPA ddl-auto=validate 일치; OffsetDateTime<->TIMESTAMPTZ UTC; UNIQUE(item,collected_at) 멱등 DATA-01~04 IT 증명
 - [Phase ?]: 01-03 Task0(확정): avg_price/trade_count는 일단위 제공(상세 Stats) → min_price 유지·avg_price V2 추가·trade_count per-tick 제외; 매칭 external_item_id=API Id+display_name; 레이트 100/min 확정
 - [Phase 12]: 12-01(확정): 각인서 CategoryCode=40000(leaf), 융화재료=50010(재련 재료); Icon 필드명=Icon, CDN=cdn-lostark.game.onstove.com/efui_iconatlas/use/; 큐레이션 15개 잠금(융화재료 4 MATERIAL + 딜러 9 + 서포터 2[각성·전문의] DEALER/SUPPORT); 유물 각인서 아이콘 동일(use_9_25)→라벨병기(D-06); 만개 보류(0건)·구원 제외(실재 아님)·운명 융화재료 Deferred
+- [Phase 14]: 14-01(확정): eventImpactSchema는 실제 백엔드 EnrichedEventImpactResponse **평면**({itemId,window,iconUrl,itemGroup,roleGroup,events}) — CONTEXT/UI-SPEC 중첩 enrichment 서술 부정확(코드가 진실, src 확인); roleGroup=z.enum 3값 nullable로 boundary loud-fail(D-06); 역할 3색=semantic 색군(rose-600/emerald-700/amber-700, accent blue-600과 분리, D-01); RoleBadge는 ui/badge.tsx 0줄 className 오버라이드; ItemIcon 고정 슬롯 + null/onError 역할색 글리프(ScrollText/FlaskConical/Package) 시프트 0, lucide-react만
+- [Phase 14]: 14-02: ICON-05는 ImpactPage 정체성 영역(LatestPriceCard) 1회로 충족·EventImpactCards 0줄(D-04 zone 분리); 셀렉터 sortByRole 후 SECTIONS filter(null→기타), 큐레이션 누락 0(ICON-07) · 14-03: README findings 요약+링크(단일출처 12-SPIKE-FINDINGS, D-10), 스크린샷 캡처 수동 위임(D-11), 코드 diff 0
 
 ### Pending Todos
 
@@ -88,14 +90,14 @@ None
 
 ## Session Continuity
 
-Last session: 2026-06-29T10:46:09.134Z
-Stopped at: Phase 14 UI-SPEC approved
-Resume file: .planning/phases/14-frontend-icons-fallback-docs/14-UI-SPEC.md
+Last session: 2026-06-30T00:00:00.000Z
+Stopped at: Phase 14 complete (3/3 plans)
+Resume file: None
 
 ## Operator Next Steps
 
-- 다음: `/clear` 후 `/gsd-verify-work 13`(빌드 UAT 권장) 또는 `/gsd-plan-phase 14`(프론트 아이콘/fallback/docs). Phase 13 완료 — ITEM-01~04·SEED-01~04 전부 Complete
-- Phase 13 결과(잠금): tracked_item에 nullable icon_url/item_group/role_group(V4) + TrackedItem 6-arg 생성자/getter; WatchlistSeeder 큐레이션 15개(MATERIAL 4/DEALER 9/SUPPORT 2) enrichment 멱등 seed; 4 read 응답(item list/latest/timeline/event-impact)이 iconUrl/itemGroup/roleGroup 노출(latest는 캐시 베이크로 HIT zero-DB 보존, event-impact는 EnrichedEventImpactResponse wrapper)
-- Phase 14 합의 대상: DTO 필드명 iconUrl/itemGroup/roleGroup + roleGroup ∈ {MATERIAL,DEALER,SUPPORT}를 프론트 zod 스키마와 정렬; 동일 아이콘(각인서 use_9_25) 라벨 병기 + fallback(역할색+lucide)
+- 다음: `/clear` 후 `/gsd-verify-work 14`(시각 UAT — seed 백엔드+`npm run dev`로 3화면 아이콘·역할 배지·셀렉터 그룹·offline fallback 확인 권장) 또는 v1.2 마일스톤 마감 `/gsd-complete-milestone`. Phase 14 완료 — ICON-01~08 전부 Complete
+- Phase 14 결과(잠금): 프론트 `_shared`에 ItemIcon(고정 슬롯+null/onError 역할색 글리프)·RoleBadge(solid 한글 배지)·roleGroup(sortByRole) + 4 zod 스키마 enrichment(eventImpact 평면); 4화면(Dashboard 카드·셀렉터·Timeline 최신가·Impact 정체성) 아이콘·역할 배지·역할군 정렬; 루트/frontend README 출처·실측·fallback·자산 섹터 서사. 백엔드 src/ 0줄, 신규 npm 의존 0, frontend build 그린
+- ⚠️ **수동 D-11**: 아이콘·역할 배지 반영 새 3화면 스크린샷은 사용자가 직접 캡처 교체 필요(`frontend/docs/screenshots/{dashboard,item-timeline,event-impact}.png`) — seed 백엔드+`npm run dev`로 캡처
 - ⚠️ 스파이크 중 대화 노출 JWT 키 **포털 재발급 권장**(.env는 gitignored·추적 0)
-- 불변 제약 상시 가드(증명됨): 수집/캐시/event-impact 8파일 0줄 + V1–V3 불변 + 시더/합성기 키·가격 0건 — 전체 회귀 그린
+- 불변 제약 상시 가드(증명됨): 수집/캐시/event-impact 백엔드 8파일 0줄 + V1–V3 불변 + 시더/합성기 키·가격 0건 — 전체 회귀 그린
