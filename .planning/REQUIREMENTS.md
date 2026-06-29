@@ -17,17 +17,17 @@ v1.2 마일스톤 범위. 각 항목은 roadmap phase에 매핑된다(Traceabili
 
 ### ITEM — 백엔드 enrichment 컬럼 + DTO
 
-- [ ] **ITEM-01**: `tracked_item`에 icon_url/item_group/role_group enrichment 컬럼을 Flyway V4(nullable)로 추가한다(V1–V3 마이그레이션 불변).
-- [ ] **ITEM-02**: TrackedItem 엔티티가 신규 컬럼을 매핑하고 `ddl-auto=validate`가 통과한다.
+- [x] **ITEM-01**: `tracked_item`에 icon_url/item_group/role_group enrichment 컬럼을 Flyway V4(nullable)로 추가한다(V1–V3 마이그레이션 불변).
+- [x] **ITEM-02**: TrackedItem 엔티티가 신규 컬럼을 매핑하고 `ddl-auto=validate`가 통과한다.
 - [ ] **ITEM-03**: 4개 read 응답 DTO(item list / latest / timeline / event-impact)에 iconUrl·itemGroup·roleGroup을 노출한다.
 - [ ] **ITEM-04**: 수집 스케줄러·Redis 캐시·EventImpactService 계산 로직은 0줄도 변경하지 않는다(회귀 테스트로 단언).
 
 ### SEED — seed/watchlist 확장
 
-- [ ] **SEED-01**: WatchlistSeeder가 큐레이션 확정 품목(융화재료 + 딜러/서포터 각인서, 12~20개)을 enrichment(icon_url/item_group/role_group)와 함께 등록한다.
-- [ ] **SEED-02**: SyntheticDemoData가 신규 품목의 합성 스냅샷·이벤트를 API 키 없이 재현한다.
+- [x] **SEED-01**: WatchlistSeeder가 큐레이션 확정 품목(융화재료 + 딜러/서포터 각인서, 12~20개)을 enrichment(icon_url/item_group/role_group)와 함께 등록한다.
+- [x] **SEED-02**: SyntheticDemoData가 신규 품목의 합성 스냅샷·이벤트를 API 키 없이 재현한다.
 - [ ] **SEED-03**: seed 프로파일만으로(키 없이) 신규 품목과 아이콘이 채워진다(브라우저 확인 기준).
-- [ ] **SEED-04**: seed/watchlist 코드·문서에 실 API 키·민감정보를 남기지 않는다.
+- [x] **SEED-04**: seed/watchlist 코드·문서에 실 API 키·민감정보를 남기지 않는다.
 
 ### ICON — 프론트 아이콘 + fallback + docs
 
@@ -79,14 +79,14 @@ phase 매핑은 roadmap 생성 시 채움.
 | SPIKE-03 | Phase 12 | Pending |
 | SPIKE-04 | Phase 12 | Pending |
 | SPIKE-05 | Phase 12 | Pending |
-| ITEM-01 | Phase 13 | Pending |
-| ITEM-02 | Phase 13 | Pending |
+| ITEM-01 | Phase 13 | Complete |
+| ITEM-02 | Phase 13 | Complete |
 | ITEM-03 | Phase 13 | Pending |
 | ITEM-04 | Phase 13 | Pending |
-| SEED-01 | Phase 13 | Pending |
-| SEED-02 | Phase 13 | Pending |
+| SEED-01 | Phase 13 | Complete |
+| SEED-02 | Phase 13 | Complete |
 | SEED-03 | Phase 13 | Pending |
-| SEED-04 | Phase 13 | Pending |
+| SEED-04 | Phase 13 | Complete |
 | ICON-01 | Phase 14 | Pending |
 | ICON-02 | Phase 14 | Pending |
 | ICON-03 | Phase 14 | Pending |

@@ -136,7 +136,7 @@ Phase 12 → Phase 13 → Phase 14 (선형 — 각 phase가 직전 산출물에 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 12. API Spike + Data Lock | v1.2 | 0/? | Not started | — |
-| 13. Backend Enrichment + Seed | v1.2 | 0/? | Not started | — |
+| 13. Backend Enrichment + Seed | v1.2 | 1/2 | In Progress|  |
 | 14. Frontend Icons + Fallback + Docs | v1.2 | 0/? | Not started | — |
 
 *Plan 수는 `/gsd-plan-phase [N]`에서 확정.*

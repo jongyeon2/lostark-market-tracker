@@ -4,14 +4,14 @@ milestone: v1.2
 milestone_name: Item Visual/Data Enrichment
 status: executing
 stopped_at: Phase 12 complete — 12-SPIKE-FINDINGS.md 잠금
-last_updated: "2026-06-29T06:44:35.287Z"
-last_activity: 2026-06-29 -- Phase 13 planning complete
+last_updated: "2026-06-29T06:57:23.915Z"
+last_activity: 2026-06-29 -- Phase 13-01 executed (data layer + seed)
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 3
-  completed_plans: 1
-  percent: 33
+  completed_plans: 2
+  percent: 67
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-06-29 after v1.1 milestone)
 
 ## Current Position
 
-Phase: 13 Backend Enrichment + Seed Expansion — 📋 Planned (2 plans, 2 waves)
-Plan: 13-01 (data: V4 nullable + TrackedItem + WatchlistSeeder 큐레이션 15개) → 13-02 (read: 4 DTO 패스스루 + 수집/캐시/event-impact 0줄 가드)
-Status: Ready to execute
-Last activity: 2026-06-29 -- Phase 13 planning complete
+Phase: 13 Backend Enrichment + Seed Expansion — ◆ Executing (1/2 plans complete)
+Plan: 13-01 ✓ (data: V4 nullable + TrackedItem + WatchlistSeeder 큐레이션 15개 — build 그린) → 13-02 (read: 4 DTO 패스스루 + 수집/캐시/event-impact 0줄 가드)
+Status: 13-02 ready to execute (Wave 2)
+Last activity: 2026-06-29 -- Phase 13-01 executed (data layer + seed)
 
 ## Performance Metrics
 
