@@ -5,7 +5,7 @@ milestone_name: Item Visual/Data Enrichment
 status: executing
 stopped_at: Phase 14 complete (3/3 plans, build 그린)
 last_updated: "2026-06-30T00:00:00.000Z"
-last_activity: 2026-06-30 -- Phase 14 실행 완료 (아이콘/fallback/docs)
+last_activity: 2026-06-30 -- Quick 260630-0rh: LatestPriceCard 가로 한 줄 수정
 progress:
   total_phases: 3
   completed_phases: 3
@@ -81,6 +81,12 @@ None yet.
 ### Blockers/Concerns
 
 None
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260630-0rh | Timeline·Impact LatestPriceCard 긴 품목명 세로 잘림 수정 (가로 한 줄 + 제목 축소) | 2026-06-30 | ec0bc97 | [260630-0rh-timeline-impact-latestpricecard](./quick/260630-0rh-timeline-impact-latestpricecard/) |
 
 ## Deferred Items
 
