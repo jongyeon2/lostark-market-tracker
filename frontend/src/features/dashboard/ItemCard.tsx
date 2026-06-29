@@ -24,8 +24,8 @@ export function ItemCard({ item }: { item: TrackedItem }) {
       {/* Identity stays visible regardless of the price-area state (it is already loaded). */}
       <CardHeader>
         {/* [icon][name][role badge] inline (ICON-02·D-04) — icon/badge come from the already-loaded item. */}
-        <CardTitle className="flex items-center gap-2 text-xl">
-          <ItemIcon iconUrl={item.iconUrl} roleGroup={item.roleGroup} size="md" />
+        <CardTitle className="flex items-center gap-2 text-base">
+          <ItemIcon iconUrl={item.iconUrl} roleGroup={item.roleGroup} size="sm" />
           <span>{item.displayName}</span>
           <RoleBadge roleGroup={item.roleGroup} />
         </CardTitle>

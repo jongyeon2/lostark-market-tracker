@@ -26,7 +26,10 @@ export function LatestPriceCard({
 
   return (
     <Card className="w-fit min-w-56">
-      <CardHeader>
+      {/* container-type:normal overrides shadcn CardHeader's @container (container-type:inline-size),
+          which otherwise contains the inline-size and stops the w-fit card from growing to the
+          nowrap title — leaving the title clipped at min-w-56 (224px). */}
+      <CardHeader className="[container-type:normal]">
         {/* Identity (icon/name/role badge) stays visible regardless of the price-area state — the
             selected item's enrichment is passed in, already loaded (ICON-04·D-04). */}
         <CardTitle className="flex items-center gap-2 text-base">

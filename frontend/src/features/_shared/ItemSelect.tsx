@@ -37,7 +37,7 @@ export function ItemSelect({
     return (
       <div className="flex flex-col gap-1">
         <Select disabled>
-          <SelectTrigger className="w-56" aria-label="품목 선택">
+          <SelectTrigger className="w-72" aria-label="품목 선택">
             <SelectValue placeholder="품목 선택" />
           </SelectTrigger>
         </Select>
@@ -61,7 +61,7 @@ export function ItemSelect({
       value={value != null ? String(value) : undefined}
       onValueChange={(v) => onChange(Number(v))}
     >
-      <SelectTrigger className="w-56" aria-label="품목 선택">
+      <SelectTrigger className="w-72" aria-label="품목 선택">
         <SelectValue placeholder="품목 선택" />
       </SelectTrigger>
       <SelectContent>
