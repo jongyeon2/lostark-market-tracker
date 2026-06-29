@@ -23,3 +23,22 @@
 - README.md rewritten into the single reproducible reviewer entry point — CI badge, mermaid architecture diagram, honest Redis/rate-limit/@Async trade-offs, seed-mode setup, ≥3 curl + 5 sample JSON blocks against the real API, and a clone→seed→curl event-impact reproduction.
 
 ---
+
+## v1.1 Frontend Demo Dashboard (Shipped: 2026-06-29)
+
+**Phases completed:** 5 phases (7–11), 19 plans
+
+**Delivered:** v1.0의 read API 5종을 백엔드 0줄 변경(Vite 프록시 dev 동일 출처)으로 소비하는 React + TypeScript + Tailwind + Recharts 브라우저 대시보드 3화면을 seed 프로파일 기준 빈 화면 없이 완성 — README의 curl 데모를 클릭 가능한 데모 표면으로 전환.
+
+**Key accomplishments:**
+
+- **Phase 7 (Frontend Foundation):** Vite 6 + React 19 + TS + Tailwind v4 `frontend/` 앱 + `/api`→:8080 dev 프록시(백엔드 무변경) + shadcn/ui(slate/new-york), zod-as-single-source DTO 스키마 5종 + `.parse`-at-boundary 타입드 API 클라이언트 + TanStack Query fetch-on-mount + native-Intl KST 포맷터, React-Router 앱 셸(3탭 내비)·공용 Loading/Empty/Error AsyncBoundary.
+- **Phase 8 (Dashboard):** health status 4등급(정상/일부 실패/전체 실패/수집 대기)을 시맨틱 색+한국어 라벨+lucide 배지로 표현하는 StatusBadge, `/api/health/collection`을 전폭 proof-of-life `HealthCard`로, 활성 품목 반응형 카드 그리드 + 품목당 `useLatestPrice` 최신가 요약.
+- **Phase 9 (Item Timeline):** 프로젝트 헤드라인 시각화 — UTC 위치/KST 라벨 min_price 라인 위에 eventType별 점선 ReferenceLine 마커를 겹치고 다운샘플 배지·버킷선, URL searchParams 단일 출처 useTimelineParams(기본 30일)·7/30/90일 프리셋, 공유 ItemSelect + 진입 시 자동 선택 + 400/404/200-empty 정직 분기.
+- **Phase 10 (Event Impact):** 손수 작성한 shadcn table·`?item=&window=` URL 상태 + ok/insufficient_data를 occurred_at-desc 한 목록에 섞고 null changeRate를 희소/stale 이유+anchor 근거로 치환, 상승/하락 색 구분, 항상 노출되는 비해제형 "상관 ≠ 인과" 배너(과대해석 방지), window 범위 미바운딩으로 백엔드 400 시연 유지.
+- **Phase 11 (Demo Surface + Docs):** 3화면 로딩·빈·에러 일관성과 데스크톱 우선 반응형 순회 점검, 스크린샷 캡처 프로토콜 + frontend/README 단일 출처 재현 문서(seed 백엔드 → `npm run dev` → 3화면) + 루트 README 프론트 데모 포인터(기존 curl 섹션 보존).
+- **Gap closure 11-04 (UAT Test 3):** `SyntheticDemoData.seed()`가 timeline/impact와 일관된 합성 SUCCESS `collection_run`(시도=성공=활성품목수·실패=0·마커 없음·startedAt=gridNow)을 멱등 적재 — seed 데모 헬스 카드가 영속 볼륨의 과거 키리스 AUTH_ERROR run 대신 '12/12 SUCCESS'를 보임. 읽기 경로·DTO·프론트·스키마 0줄 변경, Testcontainers 회귀 단언으로 고정.
+
+**Deferred to v2:** DEMO-03(Spring 정적 서빙 단일 출처 패키징, 선택/stretch였고 슬립), 관리자 쓰기 UI·실시간 갱신·다크모드/i18n·실배포+프론트 CI·카테고리 베이스라인 시각화(FE-V2-01..05).
+
+---

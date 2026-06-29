@@ -1,8 +1,14 @@
+---
+status: resolved
+updated: 2026-06-29T00:20:00Z
+resolved_by: 11-04-PLAN.md
+---
+
 # Debug: seed 모드 대시보드 수집 헬스 카드가 "12/12 실패 · 인증오류"
 
 **발견 경로:** `/gsd-verify-work 11` Test 3 (Dashboard 실데이터로 채워짐) UAT 이슈
 **심각도:** major
-**상태:** diagnosed (코드 정적 분석으로 근본 원인 확정 — 라이브 재현은 fix 후 verify-work 재실행)
+**상태:** resolved (11-04에서 수정·검증 완료 — seed()가 합성 SUCCESS collection_run을 멱등 적재해 헬스 카드 12/12 SUCCESS, UAT Test 3 gap 닫힘. 커밋 6c7cf0f·d03a9bb·4c13f44·9b38507)
 
 ## 증상
 

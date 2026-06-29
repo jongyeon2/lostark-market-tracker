@@ -8,17 +8,15 @@
 
 **레이트리밋이 걸린 외부 마켓 API에서 시세를 빠짐없이 수집해 시계열로 쌓고, 캐시로 안정적으로 서빙한다.** 다른 모든 게 실패해도 이 수집·저장·서빙 파이프라인은 동작해야 한다. event-impact(이벤트 상관)는 그 위에 얹는 헤드라인 기능이며, 수집 신뢰성이 흔들리면 상관 분석은 나쁜 데이터 위 장식 수학이 된다.
 
-## Current Milestone: v1.1 Frontend Demo Dashboard
+## Current State
 
-**Goal:** v1.0이 만든 read API를 브라우저 대시보드(React + TS + Tailwind + Recharts)로 시각화해, README의 curl 데모를 클릭 가능한 데모 표면으로 전환한다. 백엔드는 불변경(Vite 프록시로 dev 동일 출처).
+**Shipped:**
+- ✅ **v1.0 MVP** (2026-06-25) — 신뢰 가능한 10분 수집 파이프라인 + Redis 캐시 read API + event-impact + 관리자 CRUD + CI·seed·README 데모 표면 (Phases 1–6, 24/24 요구사항). [archive](milestones/v1.0-ROADMAP.md)
+- ✅ **v1.1 Frontend Demo Dashboard** (2026-06-29) — v1.0 read API를 백엔드 0줄 변경(Vite 프록시 dev 동일 출처)으로 소비하는 React + TS + Tailwind + Recharts 3화면(Dashboard / Item Timeline / Event Impact)을 seed 기준 빈 화면 없이 재현. README의 curl 데모를 클릭 가능한 데모 표면으로 전환 (Phases 7–11, 필수 20/20; DEMO-03 정적 서빙은 v2 강등). [archive](milestones/v1.1-ROADMAP.md)
 
-**Target features:**
-- Dashboard — collection health + 활성 품목 목록 + 품목별 최신가 요약
-- Item Timeline — item selector + 최신가 카드 + 가격 라인 차트 + 이벤트 세로 마커
-- Event Impact — 이벤트별 전후 변화율 + ok/insufficient_data 구분 + "상관 ≠ 인과" 고지
-- Demo Surface — seed 기준 재현 + frontend/README + 루트 README + (선택) 정적 서빙
+**현재 코드 상태:** 백엔드 Java ~5,790 LOC(main 67 + test 23 파일) · 프론트 TypeScript ~2,621 LOC(`frontend/src`). Spring Boot 3.4.1 / Java 21 / PostgreSQL 16 / Redis 7 + Vite 6 / React 19 / Tailwind v4 / Recharts / shadcn(slate·new-york) / zod / TanStack Query. 전체 Testcontainers 스위트 그린.
 
-**Key context:** Recharts · Vite 프록시(백엔드 무변경) · v1.1 · seed 프로파일 우선 · UTC 데이터→KST 표시(off-by-9h 가드 UI 연장) · read-only 시각화(관리자 쓰기 UI·실시간·CD는 v2). Phase 7~11 (v1.0의 6에 이어 연속 번호).
+**다음 마일스톤(v1.2):** 미정 — `/gsd-new-milestone`로 범위 정의. 후보: 관측성(OPS-V2, Micrometer) · 라이브 배포(DEPLOY-V2) · event-impact 고도화(IMPACT-V2) · 소스 확장(SRC-V2) · 매직넘버 외부화(CFG-V2). 백엔드 포트폴리오 관점 권장 묶음 = 관측성 + 라이브 배포(프로덕션 readiness 한 겹).
 
 ## Requirements
 
@@ -33,23 +31,22 @@
 - ✓ 관리자 이벤트/품목 CRUD (시크릿 인증) — v1.0 (Phase 4, ADMIN-01..03)
 - ✓ event-impact (이벤트 전후 변화율, 충분성/staleness 가드) — v1.0 (Phase 5, IMPACT-01..02; 2주차 말 하드 게이트 통과)
 - ✓ 배포 산출물 (docker-compose, CI=Testcontainers, 격리 시드, README 데모 표면) — v1.0 (Phase 1/6, DIST-01..04)
+- ✓ 프론트 데모 대시보드 3화면 (Dashboard: collection health·활성 품목·최신가 / Item Timeline: min_price 라인차트+eventType 마커+다운샘플 / Event Impact: 전후 변화율+희소/stale 구분+"상관≠인과" 상시 배너) — v1.1 (Phase 7–11, FND/DASH/TIME/IMPCT-전체 + DEMO-01..02)
+- ✓ 백엔드 무변경 데모 표면 (Vite 프록시 dev 동일 출처, seed 기준 재현, frontend/README+루트 README+스크린샷, UTC→KST 표시 가드) — v1.1 (Phase 7/11)
 
 ### Active
 
-<!-- 현재 마일스톤 범위. 상세는 .planning/REQUIREMENTS.md. -->
+<!-- 다음 마일스톤 범위. 현재 활성 REQUIREMENTS.md 없음(마일스톤 사이) — /gsd-new-milestone에서 생성. -->
 
-**v1.1 Frontend Demo Dashboard (정의됨 2026-06-25)** — 21개 요구사항(FND 5 + DASH 4 + TIME 5 + IMPCT 4 + DEMO 3), Phase 7~11. 상세·트레이서빌리티는 `.planning/REQUIREMENTS.md`, 페이즈는 `.planning/ROADMAP.md`.
+**다음 마일스톤(v1.2) 미정.** v1.0(24/24)·v1.1(필수 20/20) 모두 배포·검증 완료(Validated 참조). `/gsd-new-milestone`로 범위를 정의한다. v2 후보(승격 가능):
 
-> 진행: Phase 7(FND-01..05)·Phase 8 Dashboard(DASH-01..04)·Phase 9 Timeline(TIME-01..05)·Phase 10 Event Impact(IMPCT-01..04) 완료 — 대시보드·타임라인에 더해 이벤트 영향 화면(window 프리셋/입력 + 이벤트별 전후 변화율 표/카드 + ok/insufficient 희소·stale 구분 + "상관 ≠ 인과" 상시 배너 + 400/404/empty 정직 처리)이 한 화면에서 동작(human-verified). 잔여: Phase 11 Demo Surface(DEMO).
-
-v1.0 전 범위(24/24)는 배포·검증 완료(Validated 참조). v2 후보(아카이브된 REQUIREMENTS v2 섹션 / 아래 Out of Scope에서 승격 가능):
-
+- [ ] 관측성 — Micrometer 카운터(429 / skipped tick / failed item / cache hit·miss) + Actuator (OPS-V2) ★ 권장
+- [ ] 데모 배포 — Railway/Fly/Render + 프론트 CI (DEPLOY-V2) ★ 권장
 - [ ] event-impact 고도화 — 카테고리 베이스라인 대비 초과상승률, median/스무딩 (IMPACT-V2)
-- [ ] 관측성 — Micrometer 카운터(429 / skipped tick / failed item / cache hit·miss) (OPS-V2)
-- [ ] 매직넘버 `@ConfigurationProperties` 외부화 (CFG-V2)
 - [ ] 소스 확장 — 경매장(AUCTIONS)/보석 (SRC-V2)
-- [ ] 데모 배포 — Railway/Fly/Render (DEPLOY-V2)
-- [ ] 프론트 고도화 — 관리자 쓰기 UI, 실시간 갱신, 정적 서빙/실배포 (FE-V2)
+- [ ] 매직넘버 `@ConfigurationProperties` 외부화 (CFG-V2)
+- [ ] 프론트 고도화 — 관리자 쓰기 UI, 실시간 갱신 (FE-V2-01..03)
+- [ ] DEMO-03 — Spring 정적 서빙 단일 출처 패키징 (v1.1에서 슬립, FE-V2-04)
 
 ### Out of Scope
 
@@ -99,6 +96,10 @@ v1.0 전 범위(24/24)는 배포·검증 완료(Validated 참조). v2 후보(아
 | min_price 유지 + avg_price/trade_count v2 강등 | Task 0 실측: avg_price/trade_count는 일단위 전용(상세 Stats[]), per-tick 미제공 | ✓ Good — 모델 잠금 비준 (DATA-03) |
 | 데모 이벤트 10분 그리드 5분 오프셋 배치 | 앵커 타이 규칙상 그리드 정확 배치는 pre==post → change_rate 0; 오프셋이 실제 non-zero 산출 | ✓ Good — Phase 6, SyntheticDemoDataIT가 non-zero 단언 |
 | CI = 로컬과 동일 `./gradlew build` 단일 ubuntu job (CD는 v2) | 리뷰어가 로컬에서 돌리는 것과 동일 명령; CD/시크릿/매트릭스는 MVP 과중 | ✓ Good — 전체 Testcontainers 스위트 그린. CI 액션은 @v5로 상향(Node 24, deprecation 정리) |
+| 프론트 = Vite 프록시(백엔드 무변경) + Recharts + shadcn/zod/TanStack Query (v1.1) | dev 동일 출처로 CORS·백엔드 변경 회피; 선언형 차트, zod 단일 출처 DTO·`.parse`-at-boundary로 타입 안전 | ✓ Good — v1.1 3화면 배포, 백엔드 src 0줄 변경 |
+| UTC 데이터 유지 + KST 표시 (off-by-9h 가드를 UI까지 연장, v1.1) | 차트 위치는 UTC instant, 라벨만 KST → 시각 오프셋 버그 차단 | ✓ Good — 타임라인/임팩트 시각 일관(human-verified) |
+| seed 데모에 합성 SUCCESS collection_run 멱등 적재 (11-04 gap closure) | seed가 snapshot/event만 심어 헬스 카드가 영속 볼륨의 과거 키리스 AUTH_ERROR run을 표시 — UAT Test 3 gap | ✓ Good — startedAt=gridNow가 stale run 덮음, 읽기 경로·DTO·프론트 0줄 변경, Testcontainers 회귀 고정 |
+| DEMO-03(정적 서빙) 슬립 → v2 | 단일 출처 패키징은 명시적 stretch였고 Vite 프록시로 데모 충분 | — Pending — v2(FE-V2-04)에서 재평가 |
 
 ## Evolution
 
@@ -118,4 +119,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-27 — Phase 10 (Event Impact) 완료 (IMPCT-01..04)*
+*Last updated: 2026-06-29 — v1.1 Frontend Demo Dashboard 마일스톤 종료 (Phases 7–11, 필수 20/20; DEMO-03 v2 강등)*

@@ -1,9 +1,10 @@
 ---
-status: diagnosed
+status: complete
 phase: 11-demo-surface-docs
 source: [11-01-SUMMARY.md, 11-02-SUMMARY.md, 11-03-SUMMARY.md]
 started: 2026-06-27T04:11:49Z
-updated: 2026-06-27T04:11:49Z
+updated: 2026-06-29T00:20:00Z
+resolved_by: 11-04-PLAN.md
 ---
 
 ## Current Test
@@ -59,7 +60,8 @@ blocked: 0
 ## Gaps
 
 - truth: "seed 모드 Dashboard 헬스 카드가 seed 합성 수집 성공 상태(시도12·성공12·실패0·SUCCESS)를 보여준다 — API 키 없이도 정상으로 보인다"
-  status: failed
+  status: resolved
+  resolved_by: "11-04-PLAN.md — seed()가 합성 SUCCESS collection_run을 멱등 적재(startedAt=gridNow가 영속 볼륨의 과거 AUTH_ERROR run을 덮음). SyntheticDemoDataIT 회귀 단언으로 고정. 커밋 6c7cf0f·d03a9bb·4c13f44·9b38507"
   reason: "User reported: 수집헬스 카드에 시도는 12번인데 12개가 다 실패했다고 뜨고 카드에 나온 원인은 인증오류 라는데?"
   severity: major
   test: 3

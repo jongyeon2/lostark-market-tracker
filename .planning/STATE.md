@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Frontend Demo Dashboard
-status: verifying
-stopped_at: Completed Phase 11 gap closure 11-04 (seed SUCCESS collection_run) — UAT Test 3 gap closed
-last_updated: "2026-06-27T04:45:00.000Z"
-last_activity: 2026-06-27
+status: milestone_complete
+stopped_at: Shipped v1.1 Frontend Demo Dashboard — archived (Phases 7–11, 19 plans, tag v1.1). 다음 마일스톤(v1.2) 미정.
+last_updated: "2026-06-29T00:30:00.000Z"
+last_activity: 2026-06-29
 progress:
   total_phases: 5
   completed_phases: 5
@@ -18,17 +18,17 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-25 after v1.0 milestone)
+See: .planning/PROJECT.md (updated 2026-06-29 after v1.1 milestone)
 
 **Core value:** 레이트리밋이 걸린 외부 마켓 API에서 시세를 빠짐없이 수집해 시계열로 쌓고, 캐시로 안정적으로 서빙한다
-**Current focus:** Phase 11 — demo-surface-docs
+**Current focus:** 마일스톤 사이 — 다음 마일스톤(v1.2) 범위 정의 대기 (`/gsd-new-milestone`)
 
 ## Current Position
 
-Phase: 11 (demo-surface-docs) — EXECUTING
-Plan: 4 of 4 (11-04 gap closure complete)
-Status: Phase + UAT Test 3 gap closure complete — ready for re-verification
-Last activity: 2026-06-27
+Milestone: v1.1 Frontend Demo Dashboard — ✅ SHIPPED 2026-06-29 (tag v1.1, archived)
+Phases: 7–11 전부 완료 (19 plans), 필수 요구사항 20/20, DEMO-03 v2 강등
+Status: 마일스톤 종료 — 다음 마일스톤 미정
+Last activity: 2026-06-29
 
 ## Performance Metrics
 
@@ -87,11 +87,12 @@ None
 
 ## Session Continuity
 
-Last session: 2026-06-27T04:45:00.000Z
-Stopped at: Completed Phase 11 gap closure 11-04 (seed SUCCESS collection_run) — UAT Test 3 gap closed
+Last session: 2026-06-29T00:30:00.000Z
+Stopped at: Shipped v1.1 Frontend Demo Dashboard — archived (ROADMAP/REQUIREMENTS → milestones/, MILESTONES.md·PROJECT.md 갱신, tag v1.1, RETROSPECTIVE 갱신)
 Resume file: None
 
 ## Operator Next Steps
 
-- Phase 7부터 착수: `/gsd-discuss-phase 7` (컨텍스트 정리) 또는 `/gsd-plan-phase 7` (바로 계획)
-- 이 마일스톤은 frontend 작업 → `ui_phase`/`ui_safety_gate`가 켜져 있어 plan-phase 시 UI-SPEC 단계가 동작
+- 다음 마일스톤 착수: `/clear` 후 `/gsd-new-milestone` (questioning → research → requirements → roadmap)
+- 권장 v1.2 묶음 = 관측성(OPS-V2, Micrometer 카운터+Actuator) + 라이브 배포(DEPLOY-V2) — 백엔드 포트폴리오 ROI 최대, Core Value(수집 신뢰성)를 측정·실증으로 마무리
+- 대안: event-impact 고도화(IMPACT-V2, 분석 깊이) · 소스 확장(SRC-V2) · CFG-V2는 `/gsd-quick` 곁다리
