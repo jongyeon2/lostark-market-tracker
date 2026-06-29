@@ -6,7 +6,7 @@
 <domain>
 ## Phase Boundary
 
-본인 JWT 키로 `/markets/options`·`/markets/items`를 **1회 실측**해 융화재료·유물 각인서의 `external_item_id`·`display_name`·`category`·**iconUrl 제공 여부**를 확정하고, 거래 가능·아이콘 구별 여부가 확인된 **큐레이션 ~16개**(범위 12~20)와 **fallback 전략**을 `12-SPIKE-FINDINGS.md`로 잠근다. 이후 Phase 13(백엔드 enrichment/seed)·14(프론트 아이콘)는 이 findings 상수만 소비한다(런타임은 키 불필요). v1.0 Task 0의 spike-then-lock 패턴 재사용.
+본인 JWT 키로 `/markets/options`·`/markets/items`를 **1회 실측**해 융화재료·유물 각인서의 `external_item_id`·`display_name`·`category`·**iconUrl 제공 여부**를 확정하고, 거래 가능·아이콘 구별 여부가 확인된 **큐레이션 ~17개**(범위 12~20)와 **fallback 전략**을 `12-SPIKE-FINDINGS.md`로 잠근다. 이후 Phase 13(백엔드 enrichment/seed)·14(프론트 아이콘)는 이 findings 상수만 소비한다(런타임은 키 불필요). v1.0 Task 0의 spike-then-lock 패턴 재사용.
 
 이 페이즈는 **데이터를 잠그는 게이트**다 — 코드 산출물은 기존 spike 인프라 확장 + findings 문서이며, enrichment 컬럼·DTO·seed·프론트는 이 페이즈가 만들지 않는다(후속 phase).
 
@@ -21,10 +21,10 @@
 ## Implementation Decisions
 
 ### 큐레이션 구성·분류
-- **D-01:** 융화재료는 **오레하 상급 + 오레하 최상급 + 아비도스 융화재료** 3종을 목표로 잠근다. 운명 계열은 스파이크에서 거래 가능·식별이 확인되면 추가 검토, 미확인 시 보류(→ Deferred).
+- **D-01:** 융화재료는 **상급 오레하 + 최상급 오레하 + 아비도스 융화재료 + 상급 아비도스 융화재료(T4)** 4종을 목표로 잠근다. (상급 아비도스 융화재료는 4티어 강화 융화재료 — 사용자 도메인 확인으로 추가, 2026-06-29.) 운명 계열은 스파이크에서 거래 가능·식별이 확인되면 추가 검토, 미확인 시 보류(→ Deferred). **거래 가능·정확 `external_item_id`·`iconUrl`은 스파이크가 실측 확정** — 미거래/식별 불가 품목은 findings에서 제외.
 - **D-02:** 각인서는 **딜러·서포터 균형** 구성 — 딜러 각인 다수(~9) + 서포터 각인(각성/만개/전문의 등, ~4)을 포함해 role_group 배지 데모가 3군을 모두 보이게 한다. 전체 덤프가 아닌 도메인 안목 큐레이션.
 - **D-03:** `role_group` enum = **`DEALER` / `SUPPORT` / `MATERIAL`** 3값으로 잠근다. (딜러각인=DEALER, 서포터각인=SUPPORT, 융화재료=MATERIAL.) `item_group`은 이와 별개로 각인서/강화재료(융화재료) 등 품목군 구분에 사용 — Phase 14 배지·zod 스키마가 이 값을 소비.
-- **D-04:** 총 큐레이션 목표 **~16개** (융화재료 3 + 각인서 ~13). 최종 개수는 스파이크 거래확인 통과분으로 확정하되 12~20 범위 유지.
+- **D-04:** 총 큐레이션 목표 **~17개** (융화재료 4 + 각인서 ~13). 최종 개수는 스파이크 거래확인 통과분으로 확정하되 12~20 범위 유지.
 
 ### Fallback·아이콘 구별
 - **D-05:** 아이콘 부재/로딩 실패 fallback = **역할색 배경 + lucide 글리프**(각인서=책 계열, 융화재료=플라스크/망치 계열). 외부 라이브러리 없이 기존 lucide만 사용. 고정 슬롯이라 레이아웃 시프트 없음(ICON-01에서 이미 확정). 정확한 글리프·역할색 팔레트는 Phase 14 재량.
