@@ -108,9 +108,39 @@ curl이 아니라 브라우저로 보고 싶다면, 같은 read API를 소비하
 2. **프론트 기동** — `cd frontend && npm install && npm run dev` → http://localhost:5173
 3. **3화면** — Dashboard(`/`) · Item Timeline(`/timeline`) · Event Impact(`/impact`)
 
-![Dashboard 화면 — 수집 파이프라인 헬스 카드와 활성 품목 최신가 워치리스트](frontend/docs/screenshots/dashboard.png)
+![Dashboard 화면 — 수집 파이프라인 헬스 카드와 활성 품목 최신가 워치리스트(품목 아이콘·역할 배지·역할군 정렬)](frontend/docs/screenshots/dashboard.png)
 
 자세한 실행·Vite 프록시 설명·화면별 안내는 [`frontend/README`](frontend/README.md)에 일원화돼 있습니다(단일 진실 원천). **curl로도, 브라우저로도 동일한 read API** 를 보며, 데이터는 seed 합성 데이터입니다.
+
+---
+
+## 시각 enrichment — 아이콘 · 역할 배지 · fallback
+
+3화면은 품목을 텍스트만이 아니라 **아이콘 + 역할 배지**로 보여줍니다. 이 시각 계층은 별도 데이터 소스가 아니라, 백엔드가 이미 서빙하는 read 응답 위에 얹혀 있습니다.
+
+### 데이터 출처 — API `Icon` URL → DB → read 응답
+
+품목 아이콘은 로스트아크 Open API 응답의 `Icon` 필드(CDN `https://cdn-lostark.game.onstove.com/efui_iconatlas/use/<file>.png`)에서 옵니다. Phase 12 스파이크가 이 값을 실측해, 백엔드 `tracked_item`의 enrichment 컬럼(`icon_url` / `item_group` / `role_group`)에 시드 상수로 잠갔습니다. 네 개 read 응답(`/api/items`, `/latest`, `/prices`, `/event-impact`)이 이 값을 **그대로 패스스루**하므로(기존 응답에 필드만 추가됨), 프론트는 Lostark API를 직접 부르지 않고 백엔드 DTO만 소비합니다. `role_group`은 `DEALER` / `SUPPORT` / `MATERIAL` 세 값(또는 null)입니다.
+
+### API 실측 요약 — 각인서는 동일 글리프, 융화재료는 구별됨
+
+스파이크 실측 결과 **유물 각인서 11종은 전부 동일한 글리프(`use_9_25.png`)** 였습니다 — 직업·효과와 무관한 등급 단일 아이콘이라, 아이콘만으로는 각인서를 구분할 수 없습니다. 그래서 각인서는 **실아이콘 + 한글 품목명 라벨 + 역할 배지**로 식별하고, fallback으로 일부러 대체하지 않습니다. 반면 **융화재료 4종은 서로 다른 아이콘**을 가집니다. 상세 실측 표(파일명·category_code·role_group 매핑)는 [`12-SPIKE-FINDINGS.md`](.planning/phases/12-api-spike-data-lock/12-SPIKE-FINDINGS.md)에 있습니다(여기엔 요약만 — 전재하지 않음).
+
+### fallback 전략 — CDN이 막혀도 안 깨진다
+
+공용 `<ItemIcon>`은 고정 px 슬롯에 아이콘을 렌더하고, `iconUrl`이 null이거나 `<img>`가 onError(네트워크 차단·깨진 URL 포함)를 내면 **역할색 글리프 타일**(딜러·서포터 = 책 글리프 `ScrollText`, 융화재료 = 플라스크 `FlaskConical`, 미상 = `Package`)로 대체합니다. 슬롯이 고정 크기라 **레이아웃 시프트가 0**이고, fallback이 "미완성"이 아니라 의도된 디자인으로 읽힙니다. 외부 아이콘 라이브러리 없이 기존 `lucide-react`만 씁니다.
+
+### 도메인 안목 — `role_group` = "자산 섹터"
+
+`role_group`(딜러 / 서포터 / 융화재료)은 금융 마켓의 **자산 섹터**와 동형입니다. 큐레이션 15개는 단순 덤프가 아니라 안목의 선택입니다 — 특히 고가·고변동 **융화재료(오레하 · 아비도스)** 는 로아ON · 시즌 말 · 대형 업데이트 같은 이벤트에 시세 변동이 가장 큰 "섹터"라, event-impact 헤드라인 서사와 맞물립니다.
+
+### 스크린샷 (아이콘 · 역할 배지 반영)
+
+Dashboard 화면은 위 "프론트 데모" 섹션을, 나머지 두 화면은 아래를 참조하세요.
+
+![Item Timeline 화면 — 최신가 카드의 아이콘·역할 배지와 시세 라인 차트](frontend/docs/screenshots/item-timeline.png)
+
+![Event Impact 화면 — 선택 품목 정체성 영역의 아이콘·역할 배지와 이벤트 전후 변화율](frontend/docs/screenshots/event-impact.png)
 
 ---
 
