@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Item Visual/Data Enrichment
-status: Phase 13 완료 — 다음 Phase 14(프론트) 계획 대기. ITEM-01~04·SEED-01~04 전부 완료.
+status: executing
 stopped_at: Phase 14 UI-SPEC approved
-last_updated: "2026-06-29T10:46:09.140Z"
-last_activity: 2026-06-29 -- Phase 13 executed (enrichment + seed + read passthrough)
+last_updated: "2026-06-29T11:00:48.604Z"
+last_activity: 2026-06-29 -- Phase 14 planning complete
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 3
+  total_plans: 6
   completed_plans: 3
-  percent: 67
+  percent: 50
 ---
 
 # Project State
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-06-29 after v1.1 milestone)
 
 Phase: 13 Backend Enrichment + Seed Expansion — ✓ Complete (2/2 plans, build 그린)
 Plan: 13-01 ✓ (data: V4 nullable + TrackedItem + WatchlistSeeder 큐레이션 15개) · 13-02 ✓ (read: 4 DTO 패스스루 + 수집/캐시/event-impact 8파일 0줄 가드)
-Status: Phase 13 완료 — 다음 Phase 14(프론트) 계획 대기. ITEM-01~04·SEED-01~04 전부 완료.
-Last activity: 2026-06-29 -- Phase 13 executed (enrichment + seed + read passthrough)
+Status: Ready to execute
+Last activity: 2026-06-29 -- Phase 14 planning complete
 
 ## Performance Metrics
 
