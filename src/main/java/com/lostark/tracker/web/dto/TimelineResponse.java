@@ -10,11 +10,17 @@ import java.util.List;
  * <p>{@code downsampled} reports whether the server aggregated the snapshots (raw point count &gt; N),
  * and {@code bucketWidth} ({@code "hour"}/{@code "day"}, null when raw) is the chosen {@code date_trunc}
  * unit (D-08). Snapshots are {@link PricePoint}s so raw and bucketed points share one shape.
+ *
+ * <p>{@code iconUrl}/{@code itemGroup}/{@code roleGroup} are the item's static enrichment as top-level
+ * metadata (read-path additive; range reads are not cached). The controller fills them via findById.
  */
 public record TimelineResponse(
         boolean downsampled,
         String bucketWidth,
         List<PricePoint> snapshots,
-        List<EventPoint> events
+        List<EventPoint> events,
+        String iconUrl,
+        String itemGroup,
+        String roleGroup
 ) {
 }

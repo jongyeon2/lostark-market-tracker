@@ -2,6 +2,7 @@ package com.lostark.tracker.web;
 
 import com.lostark.tracker.read.DownsampleService;
 import com.lostark.tracker.read.DownsampleService.DownsampleResult;
+import com.lostark.tracker.domain.TrackedItem;
 import com.lostark.tracker.read.WindowQueryService;
 import com.lostark.tracker.read.WindowQueryService.WindowResult;
 import com.lostark.tracker.repository.TrackedItemRepository;
@@ -57,9 +58,9 @@ public class PricesController {
             throw new InvalidRequestException("from must be before to (window must be positive)");
         }
         // Missing item -> 404 via the shared 03-01 contract; "valid window, no data" stays a 200 below.
-        if (!trackedItemRepository.existsById(id)) {
-            throw new ItemNotFoundException(id);
-        }
+        // findById (same single read as existsById) also yields the item's enrichment for the response.
+        TrackedItem item = trackedItemRepository.findById(id)
+                .orElseThrow(() -> new ItemNotFoundException(id));
 
         WindowResult window = windowQueryService.fetchWindow(id, from, to);
         DownsampleResult downsampled = downsampleService.downsample(id, from, to, window.snapshots());
@@ -69,6 +70,9 @@ public class PricesController {
                 downsampled.downsampled(),
                 downsampled.bucketWidth(),
                 downsampled.snapshots(),
-                events);
+                events,
+                item.getIconUrl(),
+                item.getItemGroup(),
+                item.getRoleGroup());
     }
 }

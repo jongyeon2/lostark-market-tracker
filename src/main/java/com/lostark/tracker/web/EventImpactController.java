@@ -1,7 +1,9 @@
 package com.lostark.tracker.web;
 
+import com.lostark.tracker.domain.TrackedItem;
 import com.lostark.tracker.read.EventImpactService;
 import com.lostark.tracker.repository.TrackedItemRepository;
+import com.lostark.tracker.web.dto.EnrichedEventImpactResponse;
 import com.lostark.tracker.web.dto.EventImpactResponse;
 import com.lostark.tracker.web.error.InvalidRequestException;
 import com.lostark.tracker.web.error.ItemNotFoundException;
@@ -41,7 +43,7 @@ public class EventImpactController {
     }
 
     @GetMapping("/{id}/event-impact")
-    public EventImpactResponse eventImpact(@PathVariable long id, @RequestParam int window) {
+    public EnrichedEventImpactResponse eventImpact(@PathVariable long id, @RequestParam int window) {
         // Window validation (400) BEFORE the existence check (404), per D-08/D-13.
         if (window <= 0) {
             throw new InvalidRequestException("window must be a positive number of hours");
@@ -49,9 +51,15 @@ public class EventImpactController {
         if (window > MAX_WINDOW_HOURS) {
             throw new InvalidRequestException("window must be <= " + MAX_WINDOW_HOURS + " hours");
         }
-        if (!trackedItemRepository.existsById(id)) {
-            throw new ItemNotFoundException(id);
-        }
-        return eventImpactService.eventImpact(id, window);
+        // findById (same single read as existsById) also yields the item's enrichment for the wrapper.
+        TrackedItem item = trackedItemRepository.findById(id)
+                .orElseThrow(() -> new ItemNotFoundException(id));
+        // Service call is unchanged (ITEM-04: EventImpactService/EventImpactResponse stay 0-line);
+        // the controller wraps the result to attach enrichment as top-level metadata.
+        EventImpactResponse base = eventImpactService.eventImpact(id, window);
+        return new EnrichedEventImpactResponse(
+                base.itemId(), base.window(),
+                item.getIconUrl(), item.getItemGroup(), item.getRoleGroup(),
+                base.events());
     }
 }
