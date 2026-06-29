@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Item Visual/Data Enrichment
 status: Phase 13 완료 — 다음 Phase 14(프론트) 계획 대기. ITEM-01~04·SEED-01~04 전부 완료.
-stopped_at: Phase 14 context gathered
-last_updated: "2026-06-29T10:31:39.250Z"
+stopped_at: Phase 14 UI-SPEC approved
+last_updated: "2026-06-29T10:46:09.140Z"
 last_activity: 2026-06-29 -- Phase 13 executed (enrichment + seed + read passthrough)
 progress:
   total_phases: 3
@@ -88,9 +88,9 @@ None
 
 ## Session Continuity
 
-Last session: 2026-06-29T10:31:39.244Z
-Stopped at: Phase 14 context gathered
-Resume file: .planning/phases/14-frontend-icons-fallback-docs/14-CONTEXT.md
+Last session: 2026-06-29T10:46:09.134Z
+Stopped at: Phase 14 UI-SPEC approved
+Resume file: .planning/phases/14-frontend-icons-fallback-docs/14-UI-SPEC.md
 
 ## Operator Next Steps
 
