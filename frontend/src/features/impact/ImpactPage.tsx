@@ -123,7 +123,10 @@ export function ImpactPage() {
     }
   }, [itemId, items, setItem])
 
-  const displayName = items?.find((i) => i.id === itemId)?.displayName ?? ''
+  // Pull the selected item once so its enrichment (icon/role) flows to the identity card (ICON-05,
+  // shown ONCE here — not on each event card, to avoid colliding with Event/Status badges, D-04).
+  const selected = items?.find((i) => i.id === itemId)
+  const displayName = selected?.displayName ?? ''
 
   return (
     <div className="space-y-6">
@@ -139,7 +142,14 @@ export function ImpactPage() {
       </div>
 
       {/* Latest-price card — its own AsyncBoundary, rendered once a selection resolves (D-12). */}
-      {itemId != null && <LatestPriceCard itemId={itemId} displayName={displayName} />}
+      {itemId != null && (
+        <LatestPriceCard
+          itemId={itemId}
+          displayName={displayName}
+          iconUrl={selected?.iconUrl ?? null}
+          roleGroup={selected?.roleGroup ?? null}
+        />
+      )}
 
       {/* Results area — own async/error scope, independent of the latest-price card (D-12). */}
       {itemId != null && (

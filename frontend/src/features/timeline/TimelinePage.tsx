@@ -132,7 +132,9 @@ export function TimelinePage() {
     }
   }, [itemId, items, setItem])
 
-  const displayName = items?.find((i) => i.id === itemId)?.displayName ?? ''
+  // Pull the selected item once so its enrichment (icon/role) flows to the identity card (ICON-04).
+  const selected = items?.find((i) => i.id === itemId)
+  const displayName = selected?.displayName ?? ''
 
   return (
     <div className="space-y-6">
@@ -145,7 +147,14 @@ export function TimelinePage() {
       </div>
 
       {/* Latest-price card — rendered only once a selection is resolved (its own AsyncBoundary). */}
-      {itemId != null && <LatestPriceCard itemId={itemId} displayName={displayName} />}
+      {itemId != null && (
+        <LatestPriceCard
+          itemId={itemId}
+          displayName={displayName}
+          iconUrl={selected?.iconUrl ?? null}
+          roleGroup={selected?.roleGroup ?? null}
+        />
+      )}
 
       {/* Chart area — own error scope; only fetches once a selection is resolved (itemId != null). */}
       {itemId != null && (
