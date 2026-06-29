@@ -5,7 +5,7 @@ milestone_name: Item Visual/Data Enrichment
 status: executing
 stopped_at: Phase 14 complete (3/3 plans, build 그린)
 last_updated: "2026-06-30T00:00:00.000Z"
-last_activity: 2026-06-30 -- Quick 260630-0rh: LatestPriceCard 가로 한 줄 수정
+last_activity: 2026-06-30 -- Quick 260630-16d: 카드/셀렉터 비율 조정 3건
 progress:
   total_phases: 3
   completed_phases: 3
@@ -87,6 +87,7 @@ None
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260630-0rh | Timeline·Impact LatestPriceCard 긴 품목명 세로 잘림 수정 (가로 한 줄 + 제목 축소) | 2026-06-30 | ec0bc97 | [260630-0rh-timeline-impact-latestpricecard](./quick/260630-0rh-timeline-impact-latestpricecard/) |
+| 260630-16d | Phase 14 카드/셀렉터 비율 조정 3건 (대시보드 카드 축소 · LatestPriceCard container-type 확장 · 셀렉터 트리거 폭) | 2026-06-30 | e18e714 | [260630-16d-phase-14-3](./quick/260630-16d-phase-14-3/) |
 
 ## Deferred Items
 
