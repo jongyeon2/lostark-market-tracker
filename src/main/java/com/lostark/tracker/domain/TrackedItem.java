@@ -38,13 +38,33 @@ public class TrackedItem {
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
+    // Read-path additive enrichment (V4, v1.2): nullable display metadata transcribed from the
+    // Phase 12 spike curation. Never touched by collect/cache/event-impact; seed-time immutable
+    // (no setters — JPA uses field access).
+    @Column(name = "icon_url")
+    private String iconUrl;
+
+    @Column(name = "item_group")
+    private String itemGroup;
+
+    @Column(name = "role_group")
+    private String roleGroup;
+
     protected TrackedItem() {
     }
 
     public TrackedItem(String externalItemId, String displayName, String category) {
+        this(externalItemId, displayName, category, null, null, null);
+    }
+
+    public TrackedItem(String externalItemId, String displayName, String category,
+                       String iconUrl, String itemGroup, String roleGroup) {
         this.externalItemId = externalItemId;
         this.displayName = displayName;
         this.category = category;
+        this.iconUrl = iconUrl;
+        this.itemGroup = itemGroup;
+        this.roleGroup = roleGroup;
     }
 
     @PrePersist
@@ -92,5 +112,17 @@ public class TrackedItem {
 
     public OffsetDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    public String getIconUrl() {
+        return iconUrl;
+    }
+
+    public String getItemGroup() {
+        return itemGroup;
+    }
+
+    public String getRoleGroup() {
+        return roleGroup;
     }
 }
