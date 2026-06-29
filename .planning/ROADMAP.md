@@ -46,7 +46,7 @@ v1.1이 세운 데모 대시보드 3화면(Dashboard / Item Timeline / Event Imp
 **Phase Numbering:** v1.1의 마지막 phase(11)에 이어 12부터 연속 번호.
 
 - [x] **Phase 12: API Spike + Data Lock (게이트)** — `/markets/options`·`/markets/items` 실측으로 iconUrl/item id/category·fallback·큐레이션 목록 잠금 ✅ (큐레이션 15개, 만개 보류)
-- [ ] **Phase 13: Backend Enrichment + Seed Expansion** — V4 nullable 컬럼 + 4개 DTO 패스스루 + seed/watchlist 확장(키 없는 재현)
+- [x] **Phase 13: Backend Enrichment + Seed Expansion** — V4 nullable 컬럼 + 4개 DTO 패스스루 + seed/watchlist 확장(키 없는 재현) (completed 2026-06-29)
 - [ ] **Phase 14: Frontend Icons + Fallback + Docs** — 공용 `<ItemIcon>` + 3화면·셀렉터 아이콘·역할 배지 + docs
 
 ## Phase Details
@@ -136,7 +136,7 @@ Phase 12 → Phase 13 → Phase 14 (선형 — 각 phase가 직전 산출물에 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 12. API Spike + Data Lock | v1.2 | 0/? | Not started | — |
-| 13. Backend Enrichment + Seed | v1.2 | 1/2 | In Progress|  |
+| 13. Backend Enrichment + Seed | v1.2 | 2/2 | Complete   | 2026-06-29 |
 | 14. Frontend Icons + Fallback + Docs | v1.2 | 0/? | Not started | — |
 
 *Plan 수는 `/gsd-plan-phase [N]`에서 확정.*

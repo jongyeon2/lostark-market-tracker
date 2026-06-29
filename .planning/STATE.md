@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Item Visual/Data Enrichment
 status: executing
-stopped_at: Phase 12 complete — 12-SPIKE-FINDINGS.md 잠금
-last_updated: "2026-06-29T06:57:23.915Z"
-last_activity: 2026-06-29 -- Phase 13-01 executed (data layer + seed)
+stopped_at: Phase 13 complete — enrichment 데이터 계층 + read-path 패스스루 (build 그린)
+last_updated: "2026-06-29T07:05:00.000Z"
+last_activity: 2026-06-29 -- Phase 13 executed (enrichment + seed + read passthrough)
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 3
-  completed_plans: 2
-  percent: 67
+  completed_plans: 3
+  percent: 100
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-29 after v1.1 milestone)
 
 **Core value:** 레이트리밋이 걸린 외부 마켓 API에서 시세를 빠짐없이 수집해 시계열로 쌓고, 캐시로 안정적으로 서빙한다
-**Current focus:** v1.2 Item Visual/Data Enrichment — Phase 12(API Spike 게이트) 완료. 큐레이션 15개·CategoryCode·Icon·fallback 잠금. 다음: Phase 13(백엔드 enrichment/seed).
+**Current focus:** v1.2 Item Visual/Data Enrichment — Phase 12(스파이크)·Phase 13(백엔드 enrichment/seed) 완료. enrichment가 nullable 컬럼·엔티티·시더·4개 read DTO에 베이크됨. 다음: Phase 14(프론트 아이콘/fallback/docs).
 
 ## Current Position
 
-Phase: 13 Backend Enrichment + Seed Expansion — ◆ Executing (1/2 plans complete)
-Plan: 13-01 ✓ (data: V4 nullable + TrackedItem + WatchlistSeeder 큐레이션 15개 — build 그린) → 13-02 (read: 4 DTO 패스스루 + 수집/캐시/event-impact 0줄 가드)
-Status: 13-02 ready to execute (Wave 2)
-Last activity: 2026-06-29 -- Phase 13-01 executed (data layer + seed)
+Phase: 13 Backend Enrichment + Seed Expansion — ✓ Complete (2/2 plans, build 그린)
+Plan: 13-01 ✓ (data: V4 nullable + TrackedItem + WatchlistSeeder 큐레이션 15개) · 13-02 ✓ (read: 4 DTO 패스스루 + 수집/캐시/event-impact 8파일 0줄 가드)
+Status: Phase 13 완료 — 다음 Phase 14(프론트) 계획 대기. ITEM-01~04·SEED-01~04 전부 완료.
+Last activity: 2026-06-29 -- Phase 13 executed (enrichment + seed + read passthrough)
 
 ## Performance Metrics
 
@@ -88,14 +88,14 @@ None
 
 ## Session Continuity
 
-Last session: 2026-06-29 -- Phase 12 executed (spike run x2, curation ratified)
-Stopped at: Phase 12 complete — 12-SPIKE-FINDINGS.md 잠금
-Resume file: .planning/phases/12-api-spike-data-lock/12-SPIKE-FINDINGS.md
+Last session: 2026-06-29 -- Phase 13 executed (enrichment 데이터 계층 + read-path 패스스루, build 그린)
+Stopped at: Phase 13 complete — V4 enrichment + 큐레이션 15개 seed + 4 read DTO 패스스루
+Resume file: None
 
 ## Operator Next Steps
 
-- 다음: `/clear` 후 `/gsd-execute-phase 13` (Phase 13 계획 완료 — 2 plans/2 waves). 키 불필요 — 12-SPIKE-FINDINGS.md 상수만 소비
-- 계획 결정(잠금): watchlist를 큐레이션 15개로 **교체**(미검증 12개 제거), enrichment는 read-path additive로 컨트롤러/캐시-베이크 부착(잠금 5파일 0줄), role_group/item_group은 nullable VARCHAR(String). 만개 보류·운명 Deferred 유지(키 재실측 필요 → 범위 밖)
-- Phase 14 합의 대상: DTO 필드명 iconUrl/itemGroup/roleGroup + roleGroup ∈ {MATERIAL,DEALER,SUPPORT}를 프론트 zod 스키마와 정렬
+- 다음: `/clear` 후 `/gsd-verify-work 13`(빌드 UAT 권장) 또는 `/gsd-plan-phase 14`(프론트 아이콘/fallback/docs). Phase 13 완료 — ITEM-01~04·SEED-01~04 전부 Complete
+- Phase 13 결과(잠금): tracked_item에 nullable icon_url/item_group/role_group(V4) + TrackedItem 6-arg 생성자/getter; WatchlistSeeder 큐레이션 15개(MATERIAL 4/DEALER 9/SUPPORT 2) enrichment 멱등 seed; 4 read 응답(item list/latest/timeline/event-impact)이 iconUrl/itemGroup/roleGroup 노출(latest는 캐시 베이크로 HIT zero-DB 보존, event-impact는 EnrichedEventImpactResponse wrapper)
+- Phase 14 합의 대상: DTO 필드명 iconUrl/itemGroup/roleGroup + roleGroup ∈ {MATERIAL,DEALER,SUPPORT}를 프론트 zod 스키마와 정렬; 동일 아이콘(각인서 use_9_25) 라벨 병기 + fallback(역할색+lucide)
 - ⚠️ 스파이크 중 대화 노출 JWT 키 **포털 재발급 권장**(.env는 gitignored·추적 0)
-- 불변 제약 상시 가드: 프론트 API 직접호출 금지 · 실키 미커밋 · 수집/캐시/event-impact 0줄 무변경
+- 불변 제약 상시 가드(증명됨): 수집/캐시/event-impact 8파일 0줄 + V1–V3 불변 + 시더/합성기 키·가격 0건 — 전체 회귀 그린
