@@ -58,4 +58,91 @@ class MarketsApiSpikeTest extends PostgresRedisContainers {
             assertThat(detail.getStatusCode().is2xxSuccessful()).isTrue();
         }
     }
+
+    /**
+     * Phase 12 spike (D-09): confirm the 유물 각인서 (40000) and 융화재료 leaf CategoryCodes, the
+     * icon URL field, and whether engraving icons are distinct (Pitfall 7) — the inputs the curation
+     * lock in 12-SPIKE-FINDINGS.md depends on. Prints only public metadata (Id/Name/Grade/Icon);
+     * prices are intentionally omitted from output so no price原文 lands in a captured console dump.
+     */
+    @Test
+    void captureEngravingAndMaterialCategories() {
+        Assumptions.assumeTrue(apiKey != null && !apiKey.isBlank(),
+                "LOSTARK_API_KEY not set — skipping live Phase 12 spike");
+
+        // 1) /markets/options — dump the category tree. Read the 유물 각인서 (40000) and 융화재료
+        //    leaf codes from Categories[].Subs[].Code (a parent code returns TotalCount:0).
+        ResponseEntity<String> options = client.getMarketOptions();
+        System.out.println("=== SPIKE options STATUS = " + options.getStatusCode());
+        System.out.println("=== SPIKE options BODY   = " + options.getBody());
+        assertThat(options.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(options.getBody()).isNotBlank();
+
+        // 2) 유물 각인서 (CategoryCode 40000, community-confirmed; re-verify from the options dump).
+        //    Print Id/Name/Grade/Icon per item and report whether the engraving icons are distinct
+        //    or identical — Phase 14 falls back to label-병기 when identical (D-06; Pitfall 7).
+        ResponseEntity<String> engravings = client.searchMarketItems(ENGRAVING_CATEGORY, "");
+        System.out.println("=== SPIKE engraving(" + ENGRAVING_CATEGORY + ") STATUS = " + engravings.getStatusCode());
+        printItemFields("engraving", engravings.getBody());
+        printIconDistinctness("engraving", engravings.getBody());
+        assertThat(engravings.getStatusCode().is2xxSuccessful()).isTrue();
+
+        // 3) 융화재료 (D-01: 상급/최상급 오레하 + 아비도스 + 상급 아비도스). The leaf CategoryCode is
+        //    read from the options dump above; until confirmed, query candidate names across the
+        //    강화재료 leaf candidates so the developer can see which category actually returns them.
+        for (int categoryCode : MATERIAL_CATEGORY_CANDIDATES) {
+            for (String material : MATERIAL_NAME_CANDIDATES) {
+                ResponseEntity<String> mat = client.searchMarketItems(categoryCode, material);
+                System.out.println("=== SPIKE material cat=" + categoryCode + " name='" + material
+                        + "' STATUS = " + mat.getStatusCode());
+                printItemFields("material/" + categoryCode + "/" + material, mat.getBody());
+                assertThat(mat.getStatusCode().is2xxSuccessful()).isTrue();
+            }
+        }
+    }
+
+    /** 유물 각인서 leaf CategoryCode (community-confirmed; re-verified from the options dump). */
+    private static final int ENGRAVING_CATEGORY = 40000;
+
+    /** 융화재료 leaf CategoryCode candidates — confirm the real one from the /markets/options dump. */
+    private static final int[] MATERIAL_CATEGORY_CANDIDATES = {50010, 50020};
+
+    /** D-01 융화재료 4종 candidate names queried by ItemName filter. */
+    private static final java.util.List<String> MATERIAL_NAME_CANDIDATES = java.util.List.of(
+            "상급 오레하 융화 재료", "최상급 오레하 융화 재료", "아비도스 융화 재료", "상급 아비도스 융화 재료");
+
+    /** Print Id/Name/Grade/Icon per item (no price fields) so the findings table can be hand-built. */
+    private static void printItemFields(String label, String body) {
+        if (body == null || body.isBlank()) {
+            System.out.println("--- " + label + ": <empty body>");
+            return;
+        }
+        var item = java.util.regex.Pattern.compile(
+                "\"Id\":(\\d+).*?\"Name\":\"([^\"]*)\".*?\"Grade\":\"([^\"]*)\".*?\"Icon\":\"([^\"]*)\"",
+                java.util.regex.Pattern.DOTALL).matcher(body);
+        int count = 0;
+        while (item.find()) {
+            System.out.printf("--- %s | Id=%s | Name=%s | Grade=%s | Icon=%s%n",
+                    label, item.group(1), item.group(2), item.group(3), item.group(4));
+            count++;
+        }
+        if (count == 0) {
+            System.out.println("--- " + label + ": no Id/Name/Grade/Icon tuples matched (check category)");
+        }
+    }
+
+    /** Report whether the Icon URLs in a response are all distinct or contain duplicates (Pitfall 7). */
+    private static void printIconDistinctness(String label, String body) {
+        if (body == null || body.isBlank()) {
+            return;
+        }
+        var icon = java.util.regex.Pattern.compile("\"Icon\":\"([^\"]*)\"").matcher(body);
+        var all = new java.util.ArrayList<String>();
+        while (icon.find()) {
+            all.add(icon.group(1));
+        }
+        long distinct = all.stream().distinct().count();
+        System.out.printf("=== SPIKE %s icons: total=%d distinct=%d -> %s%n",
+                label, all.size(), distinct, distinct == all.size() ? "ALL DISTINCT" : "HAS DUPLICATES");
+    }
 }

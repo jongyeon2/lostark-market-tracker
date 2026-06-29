@@ -37,22 +37,49 @@ public class LostarkSpikeClient {
     }
 
     /**
+     * GET {@code /markets/options} — returns the full category tree. Leaf {@code CategoryCode}s
+     * live at {@code Categories[].Subs[].Code} (a parent code returns {@code TotalCount:0}; only a
+     * leaf returns items, per the Task 0 finding). The Phase 12 spike reads this to confirm the
+     * 유물 각인서 (40000) and 융화재료 leaf codes empirically before locking the curation list.
+     * Returns status + headers + raw body; no persistence.
+     */
+    public ResponseEntity<String> getMarketOptions() {
+        return restClient.get()
+                .uri("/markets/options")
+                .retrieve()
+                .toEntity(String.class);
+    }
+
+    /**
      * Single POST to {@code /markets/items}. CategoryCode 50010 is "재련 재료" (refining materials),
      * a leaf category confirmed during the Task 0 spike to return items; {@code ItemName} is added
      * only when provided (a blank name lists the category). Returns status + headers + raw body.
+     *
+     * <p>Backward-compatible overload: delegates to {@link #searchMarketItems(int, String)} with the
+     * Task 0 leaf code so existing callers (and the original spike case) keep working unchanged.
      */
     public ResponseEntity<String> searchMarketItems(String itemName) {
+        return searchMarketItems(50010, itemName);
+    }
+
+    /**
+     * POST {@code /markets/items} with a parameterized {@code CategoryCode} so the Phase 12 spike can
+     * query the 유물 각인서 category (40000) and 융화재료 leaf categories with the same request shape.
+     * {@code CategoryCode} must be a leaf (a parent code yields {@code TotalCount:0}); {@code ItemName}
+     * is an optional filter added only when provided. Returns status + headers + raw body.
+     */
+    public ResponseEntity<String> searchMarketItems(int categoryCode, String itemName) {
         String nameField = (itemName == null || itemName.isBlank())
                 ? ""
                 : "\"ItemName\": \"%s\",%n".formatted(itemName);
         String requestBody = """
                 {
-                  %s"CategoryCode": 50010,
+                  %s"CategoryCode": %d,
                   "Sort": "CURRENT_MIN_PRICE",
                   "PageNo": 1,
                   "SortCondition": "ASC"
                 }
-                """.formatted(nameField);
+                """.formatted(nameField, categoryCode);
 
         return restClient.post()
                 .uri("/markets/items")
