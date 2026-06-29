@@ -45,7 +45,7 @@ v1.1이 세운 데모 대시보드 3화면(Dashboard / Item Timeline / Event Imp
 
 **Phase Numbering:** v1.1의 마지막 phase(11)에 이어 12부터 연속 번호.
 
-- [ ] **Phase 12: API Spike + Data Lock (게이트)** — `/markets/options`·`/markets/items` 실측으로 iconUrl/item id/category·fallback·큐레이션 목록 잠금
+- [x] **Phase 12: API Spike + Data Lock (게이트)** — `/markets/options`·`/markets/items` 실측으로 iconUrl/item id/category·fallback·큐레이션 목록 잠금 ✅ (큐레이션 15개, 만개 보류)
 - [ ] **Phase 13: Backend Enrichment + Seed Expansion** — V4 nullable 컬럼 + 4개 DTO 패스스루 + seed/watchlist 확장(키 없는 재현)
 - [ ] **Phase 14: Frontend Icons + Fallback + Docs** — 공용 `<ItemIcon>` + 3화면·셀렉터 아이콘·역할 배지 + docs
 

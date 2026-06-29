@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Item Visual/Data Enrichment
 status: executing
-stopped_at: Phase 12 context gathered
-last_updated: "2026-06-29T02:16:44.207Z"
-last_activity: 2026-06-29 -- Phase 12 planning complete
+stopped_at: Phase 12 complete — 큐레이션 15개 잠금
+last_updated: "2026-06-29T05:55:00.000Z"
+last_activity: 2026-06-29 -- Phase 12 complete (spike findings locked, curation ratified)
 progress:
   total_phases: 3
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 1
-  completed_plans: 0
-  percent: 0
+  completed_plans: 1
+  percent: 33
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-29 after v1.1 milestone)
 
 **Core value:** 레이트리밋이 걸린 외부 마켓 API에서 시세를 빠짐없이 수집해 시계열로 쌓고, 캐시로 안정적으로 서빙한다
-**Current focus:** v1.2 Item Visual/Data Enrichment — requirements/roadmap 확정(21 reqs, Phase 12–14). Phase 12(API Spike) 착수 대기.
+**Current focus:** v1.2 Item Visual/Data Enrichment — Phase 12(API Spike 게이트) 완료. 큐레이션 15개·CategoryCode·Icon·fallback 잠금. 다음: Phase 13(백엔드 enrichment/seed).
 
 ## Current Position
 
-Phase: Not started — roadmap 확정 (다음: Phase 12 API Spike + Data Lock 게이트)
-Plan: —
-Status: Ready to execute
-Last activity: 2026-06-29 -- Phase 12 planning complete
+Phase: 12 API Spike + Data Lock (게이트) — ✅ Complete
+Plan: 12-01 complete (SUMMARY 작성, 큐레이션 휴먼 비준)
+Status: Phase 13 착수 대기 (키 불필요 — findings 상수만 소비)
+Last activity: 2026-06-29 -- Phase 12 complete (spike findings locked, curation ratified)
 
 ## Performance Metrics
 
@@ -70,6 +70,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase ?]: 01-01: Docker api.version=1.44 핀 (엔진 29.x가 docker-java 기본 v1.32 거부); Testcontainers 공유 베이스 PostgresRedisContainers 확립
 - [Phase ?]: 01-02: 4테이블 Flyway V1 잠금 + JPA ddl-auto=validate 일치; OffsetDateTime<->TIMESTAMPTZ UTC; UNIQUE(item,collected_at) 멱등 DATA-01~04 IT 증명
 - [Phase ?]: 01-03 Task0(확정): avg_price/trade_count는 일단위 제공(상세 Stats) → min_price 유지·avg_price V2 추가·trade_count per-tick 제외; 매칭 external_item_id=API Id+display_name; 레이트 100/min 확정
+- [Phase 12]: 12-01(확정): 각인서 CategoryCode=40000(leaf), 융화재료=50010(재련 재료); Icon 필드명=Icon, CDN=cdn-lostark.game.onstove.com/efui_iconatlas/use/; 큐레이션 15개 잠금(융화재료 4 MATERIAL + 딜러 9 + 서포터 2[각성·전문의] DEALER/SUPPORT); 유물 각인서 아이콘 동일(use_9_25)→라벨병기(D-06); 만개 보류(0건)·구원 제외(실재 아님)·운명 융화재료 Deferred
 
 ### Pending Todos
 
@@ -87,12 +88,13 @@ None
 
 ## Session Continuity
 
-Last session: 2026-06-29T02:02:28.031Z
-Stopped at: Phase 12 context gathered
-Resume file: .planning/phases/12-api-spike-data-lock/12-CONTEXT.md
+Last session: 2026-06-29 -- Phase 12 executed (spike run x2, curation ratified)
+Stopped at: Phase 12 complete — 12-SPIKE-FINDINGS.md 잠금
+Resume file: .planning/phases/12-api-spike-data-lock/12-SPIKE-FINDINGS.md
 
 ## Operator Next Steps
 
-- 다음: `/clear` 후 `/gsd-discuss-phase 12` (스파이크 접근 구체화) 또는 `/gsd-plan-phase 12` (바로 계획)
-- Phase 12는 **게이트** — 본인 JWT로 1회 실측해 iconUrl/item id/category·큐레이션 12~20개·fallback을 findings로 잠근 뒤 Phase 13(백엔드)·14(프론트) 진행
+- 다음: `/clear` 후 `/gsd-discuss-phase 13` 또는 `/gsd-plan-phase 13` (백엔드 enrichment + seed). Phase 13은 키 불필요 — 12-SPIKE-FINDINGS.md의 6필드 표만 소비
+- 잔여 도메인 결정(선택): 만개 포함 시 1회 재실측, 운명 융화재료 포함 여부 — Phase 13 착수 전 정할 수 있음
+- ⚠️ 스파이크 중 대화 노출 JWT 키 **포털 재발급 권장**(.env는 gitignored·추적 0)
 - 불변 제약 상시 가드: 프론트 API 직접호출 금지 · 실키 미커밋 · 수집/캐시/event-impact 0줄 무변경
