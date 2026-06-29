@@ -32,12 +32,12 @@ v1.2 마일스톤 범위. 각 항목은 roadmap phase에 매핑된다(Traceabili
 ### ICON — 프론트 아이콘 + fallback + docs
 
 - [x] **ICON-01**: 공용 `<ItemIcon>` 컴포넌트가 iconUrl을 렌더하고 onError 시 역할색 글리프/이니셜 fallback으로 대체한다(고정 슬롯 → 레이아웃 시프트 없음, 아이콘 부재/CDN 차단에도 UI 무파손).
-- [ ] **ICON-02**: Dashboard 품목 카드에 아이콘을 표시한다.
-- [ ] **ICON-03**: 품목 셀렉터(ItemSelect) 옵션에 아이콘을 표시한다.
-- [ ] **ICON-04**: Item Timeline 최신가 카드에 아이콘을 표시한다.
-- [ ] **ICON-05**: Event Impact 품목 카드에 아이콘을 표시한다.
-- [ ] **ICON-06**: 융화재료/딜러각인/서포터각인 역할 그룹을 배지로 시각 구분한다(필터 컨트롤은 v2).
-- [ ] **ICON-07**: 추가 품목(융화재료·큐레이션 각인서)이 Dashboard/Timeline/Event Impact에서 선택 가능하다.
+- [x] **ICON-02**: Dashboard 품목 카드에 아이콘을 표시한다.
+- [x] **ICON-03**: 품목 셀렉터(ItemSelect) 옵션에 아이콘을 표시한다.
+- [x] **ICON-04**: Item Timeline 최신가 카드에 아이콘을 표시한다.
+- [x] **ICON-05**: Event Impact 품목 카드에 아이콘을 표시한다.
+- [x] **ICON-06**: 융화재료/딜러각인/서포터각인 역할 그룹을 배지로 시각 구분한다(필터 컨트롤은 v2).
+- [x] **ICON-07**: 추가 품목(융화재료·큐레이션 각인서)이 Dashboard/Timeline/Event Impact에서 선택 가능하다.
 - [ ] **ICON-08**: frontend/README·루트 README에 데이터 출처·API 실측 결과·fallback 전략을 기록한다.
 
 ## v2 Requirements
@@ -88,12 +88,12 @@ phase 매핑은 roadmap 생성 시 채움.
 | SEED-03 | Phase 13 | Complete |
 | SEED-04 | Phase 13 | Complete |
 | ICON-01 | Phase 14 | Complete |
-| ICON-02 | Phase 14 | Pending |
-| ICON-03 | Phase 14 | Pending |
-| ICON-04 | Phase 14 | Pending |
-| ICON-05 | Phase 14 | Pending |
-| ICON-06 | Phase 14 | Pending |
-| ICON-07 | Phase 14 | Pending |
+| ICON-02 | Phase 14 | Complete |
+| ICON-03 | Phase 14 | Complete |
+| ICON-04 | Phase 14 | Complete |
+| ICON-05 | Phase 14 | Complete |
+| ICON-06 | Phase 14 | Complete |
+| ICON-07 | Phase 14 | Complete |
 | ICON-08 | Phase 14 | Pending |
 
 **Coverage:**
