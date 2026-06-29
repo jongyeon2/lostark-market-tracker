@@ -74,32 +74,32 @@ phase 매핑은 roadmap 생성 시 채움.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SPIKE-01 | TBD | Pending |
-| SPIKE-02 | TBD | Pending |
-| SPIKE-03 | TBD | Pending |
-| SPIKE-04 | TBD | Pending |
-| SPIKE-05 | TBD | Pending |
-| ITEM-01 | TBD | Pending |
-| ITEM-02 | TBD | Pending |
-| ITEM-03 | TBD | Pending |
-| ITEM-04 | TBD | Pending |
-| SEED-01 | TBD | Pending |
-| SEED-02 | TBD | Pending |
-| SEED-03 | TBD | Pending |
-| SEED-04 | TBD | Pending |
-| ICON-01 | TBD | Pending |
-| ICON-02 | TBD | Pending |
-| ICON-03 | TBD | Pending |
-| ICON-04 | TBD | Pending |
-| ICON-05 | TBD | Pending |
-| ICON-06 | TBD | Pending |
-| ICON-07 | TBD | Pending |
-| ICON-08 | TBD | Pending |
+| SPIKE-01 | Phase 12 | Pending |
+| SPIKE-02 | Phase 12 | Pending |
+| SPIKE-03 | Phase 12 | Pending |
+| SPIKE-04 | Phase 12 | Pending |
+| SPIKE-05 | Phase 12 | Pending |
+| ITEM-01 | Phase 13 | Pending |
+| ITEM-02 | Phase 13 | Pending |
+| ITEM-03 | Phase 13 | Pending |
+| ITEM-04 | Phase 13 | Pending |
+| SEED-01 | Phase 13 | Pending |
+| SEED-02 | Phase 13 | Pending |
+| SEED-03 | Phase 13 | Pending |
+| SEED-04 | Phase 13 | Pending |
+| ICON-01 | Phase 14 | Pending |
+| ICON-02 | Phase 14 | Pending |
+| ICON-03 | Phase 14 | Pending |
+| ICON-04 | Phase 14 | Pending |
+| ICON-05 | Phase 14 | Pending |
+| ICON-06 | Phase 14 | Pending |
+| ICON-07 | Phase 14 | Pending |
+| ICON-08 | Phase 14 | Pending |
 
 **Coverage:**
 - v1 requirements: 21 total
-- Mapped to phases: 0 (roadmap 대기)
-- Unmapped: 21 ⚠️ (roadmap에서 해소)
+- Mapped to phases: 21 ✓
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-06-29*

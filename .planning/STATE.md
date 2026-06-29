@@ -6,7 +6,7 @@ status: planning
 last_updated: "2026-06-29T01:12:37.742Z"
 last_activity: 2026-06-29
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-29 after v1.1 milestone)
 
 **Core value:** 레이트리밋이 걸린 외부 마켓 API에서 시세를 빠짐없이 수집해 시계열로 쌓고, 캐시로 안정적으로 서빙한다
-**Current focus:** 마일스톤 사이 — 다음 마일스톤(v1.2) 범위 정의 대기 (`/gsd-new-milestone`)
+**Current focus:** v1.2 Item Visual/Data Enrichment — requirements/roadmap 확정(21 reqs, Phase 12–14). Phase 12(API Spike) 착수 대기.
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Not started — roadmap 확정 (다음: Phase 12 API Spike + Data Lock 게이트)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-06-29 — Milestone v1.2 started
+Status: Roadmap defined (3 phases, 21 reqs 100% mapped)
+Last activity: 2026-06-29 — Milestone v1.2 roadmap 생성
 
 ## Performance Metrics
 
@@ -86,12 +86,12 @@ None
 
 ## Session Continuity
 
-Last session: 2026-06-29T00:30:00.000Z
-Stopped at: Shipped v1.1 Frontend Demo Dashboard — archived (ROADMAP/REQUIREMENTS → milestones/, MILESTONES.md·PROJECT.md 갱신, tag v1.1, RETROSPECTIVE 갱신)
+Last session: 2026-06-29 — v1.2 마일스톤 착수(research first → requirements → roadmap)
+Stopped at: v1.2 Item Visual/Data Enrichment 정의 완료 — research 5문서, REQUIREMENTS.md(21 reqs), ROADMAP.md(Phase 12–14). 코드 미작성(사용자 지시).
 Resume file: None
 
 ## Operator Next Steps
 
-- 다음 마일스톤 착수: `/clear` 후 `/gsd-new-milestone` (questioning → research → requirements → roadmap)
-- 권장 v1.2 묶음 = 관측성(OPS-V2, Micrometer 카운터+Actuator) + 라이브 배포(DEPLOY-V2) — 백엔드 포트폴리오 ROI 최대, Core Value(수집 신뢰성)를 측정·실증으로 마무리
-- 대안: event-impact 고도화(IMPACT-V2, 분석 깊이) · 소스 확장(SRC-V2) · CFG-V2는 `/gsd-quick` 곁다리
+- 다음: `/clear` 후 `/gsd-discuss-phase 12` (스파이크 접근 구체화) 또는 `/gsd-plan-phase 12` (바로 계획)
+- Phase 12는 **게이트** — 본인 JWT로 1회 실측해 iconUrl/item id/category·큐레이션 12~20개·fallback을 findings로 잠근 뒤 Phase 13(백엔드)·14(프론트) 진행
+- 불변 제약 상시 가드: 프론트 API 직접호출 금지 · 실키 미커밋 · 수집/캐시/event-impact 0줄 무변경
