@@ -8,6 +8,7 @@
 Thumbs.db
 .idea/
 .vscode/
+*.iml
 
 # Java / Gradle
 .gradle/
