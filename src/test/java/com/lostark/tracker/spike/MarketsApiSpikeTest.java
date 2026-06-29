@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * {@code ./gradlew test --tests MarketsApiSpikeTest}. Extends the shared container base so the
  * full context boots; if the key is absent the test self-skips via {@code assumeTrue}.
  */
-@Disabled("Task 0 manual API verification spike — run locally with LOSTARK_API_KEY set; never in CI")
+@Disabled("Manual API verification spike (Task 0 + Phase 12) — run locally with LOSTARK_API_KEY set; never in CI")
 @SpringBootTest
 @ActiveProfiles("spike")
 class MarketsApiSpikeTest extends PostgresRedisContainers {
@@ -87,6 +87,16 @@ class MarketsApiSpikeTest extends PostgresRedisContainers {
         printIconDistinctness("engraving", engravings.getBody());
         assertThat(engravings.getStatusCode().is2xxSuccessful()).isTrue();
 
+        // 2b) 딜러/서포터 균형 각인서 (D-02) — query each curated engraving by name within 40000 so the
+        //     유물-grade Id/Icon can be locked. ItemName is a substring filter; pick the Grade=유물 row
+        //     from each response when building the findings table.
+        for (String engraving : ENGRAVING_NAME_CANDIDATES) {
+            ResponseEntity<String> named = client.searchMarketItems(ENGRAVING_CATEGORY, engraving);
+            System.out.println("=== SPIKE engraving name='" + engraving + "' STATUS = " + named.getStatusCode());
+            printItemFields("engraving/" + engraving, named.getBody());
+            assertThat(named.getStatusCode().is2xxSuccessful()).isTrue();
+        }
+
         // 3) 융화재료 (D-01: 상급/최상급 오레하 + 아비도스 + 상급 아비도스). The leaf CategoryCode is
         //    read from the options dump above; until confirmed, query candidate names across the
         //    강화재료 leaf candidates so the developer can see which category actually returns them.
@@ -104,12 +114,18 @@ class MarketsApiSpikeTest extends PostgresRedisContainers {
     /** 유물 각인서 leaf CategoryCode (community-confirmed; re-verified from the options dump). */
     private static final int ENGRAVING_CATEGORY = 40000;
 
-    /** 융화재료 leaf CategoryCode candidates — confirm the real one from the /markets/options dump. */
-    private static final int[] MATERIAL_CATEGORY_CANDIDATES = {50010, 50020};
+    /** 융화재료 leaf CategoryCode — confirmed empirically from the /markets/options dump (재련 재료). */
+    private static final int[] MATERIAL_CATEGORY_CANDIDATES = {50010};
 
     /** D-01 융화재료 4종 candidate names queried by ItemName filter. */
     private static final java.util.List<String> MATERIAL_NAME_CANDIDATES = java.util.List.of(
             "상급 오레하 융화 재료", "최상급 오레하 융화 재료", "아비도스 융화 재료", "상급 아비도스 융화 재료");
+
+    /** D-02 딜러/서포터 균형 각인서 큐레이션 (딜러 9 + 서포터 4) queried by ItemName within 40000. */
+    private static final java.util.List<String> ENGRAVING_NAME_CANDIDATES = java.util.List.of(
+            "원한", "예리한 둔기", "저주받은 인형", "아드레날린", "정밀 단도",
+            "타격의 대가", "기습의 대가", "돌격대장", "결투의 대가",
+            "각성", "만개", "전문의", "구원");
 
     /** Print Id/Name/Grade/Icon per item (no price fields) so the findings table can be hand-built. */
     private static void printItemFields(String label, String body) {
