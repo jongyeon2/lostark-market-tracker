@@ -1,6 +1,8 @@
 import { useLatestPrice } from '@/lib/queries'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { ItemIcon } from '@/features/_shared/ItemIcon'
+import { RoleBadge } from '@/features/_shared/RoleBadge'
 import { formatKst } from '@/lib/formatKst'
 import type { TrackedItem } from '@/lib/schemas'
 
@@ -21,7 +23,12 @@ export function ItemCard({ item }: { item: TrackedItem }) {
     <Card>
       {/* Identity stays visible regardless of the price-area state (it is already loaded). */}
       <CardHeader>
-        <CardTitle className="text-xl">{item.displayName}</CardTitle>
+        {/* [icon][name][role badge] inline (ICON-02·D-04) — icon/badge come from the already-loaded item. */}
+        <CardTitle className="flex items-center gap-2 text-xl">
+          <ItemIcon iconUrl={item.iconUrl} roleGroup={item.roleGroup} size="md" />
+          <span>{item.displayName}</span>
+          <RoleBadge roleGroup={item.roleGroup} />
+        </CardTitle>
         <p className="text-muted-foreground text-sm font-semibold">{item.category}</p>
       </CardHeader>
 
