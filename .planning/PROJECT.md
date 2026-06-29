@@ -8,6 +8,18 @@
 
 **레이트리밋이 걸린 외부 마켓 API에서 시세를 빠짐없이 수집해 시계열로 쌓고, 캐시로 안정적으로 서빙한다.** 다른 모든 게 실패해도 이 수집·저장·서빙 파이프라인은 동작해야 한다. event-impact(이벤트 상관)는 그 위에 얹는 헤드라인 기능이며, 수집 신뢰성이 흔들리면 상관 분석은 나쁜 데이터 위 장식 수학이 된다.
 
+## Current Milestone: v1.2 Item Visual/Data Enrichment
+
+**Goal:** v1.1 데모 대시보드 3화면(Dashboard / Item Timeline / Event Impact)과 셀렉터에 품목 아이콘·그룹 메타데이터를 입히고, 융화재료 + 큐레이션된 딜러/서포터 유물 각인서(초기 12~20개)를 watchlist·seed 데모에 추가해 **API 키 없이 seed만으로** 시각적으로 풍부한 데모를 재현한다. enrichment는 수집·캐시·event-impact를 건드리지 않는 read-path additive 한 겹.
+
+**Target features:**
+- **API 실측 스파이크** — iconUrl/item id/category 확정 + fallback 전략 + 큐레이션 목록 잠금 (Phase 0 게이트, v1.0 Task 0 동형)
+- **백엔드 enrichment** — `tracked_item` icon_url/item_group/role_group (Flyway V4 nullable) + 4개 read DTO(list/latest/timeline/event-impact) 패스스루
+- **seed/watchlist 확장** — 신규 품목·아이콘 상수 베이크 (키 없는 재현)
+- **프론트 아이콘** — 공용 `<ItemIcon>` + onError fallback, 3화면+셀렉터, 역할 그룹 배지(필터는 v2)
+
+**불변 제약:** 프론트에서 Lostark API 직접 호출 금지 · API key는 백엔드 env에서만 · 실키를 코드/문서/로그/커밋에 미기재 · 수집/캐시/event-impact **0줄** 무변경 · 실서비스급 아이템 검색/관리 UI 제외.
+
 ## Current State
 
 **Shipped:**
@@ -16,7 +28,7 @@
 
 **현재 코드 상태:** 백엔드 Java ~5,790 LOC(main 67 + test 23 파일) · 프론트 TypeScript ~2,621 LOC(`frontend/src`). Spring Boot 3.4.1 / Java 21 / PostgreSQL 16 / Redis 7 + Vite 6 / React 19 / Tailwind v4 / Recharts / shadcn(slate·new-york) / zod / TanStack Query. 전체 Testcontainers 스위트 그린.
 
-**다음 마일스톤(v1.2):** 미정 — `/gsd-new-milestone`로 범위 정의. 후보: 관측성(OPS-V2, Micrometer) · 라이브 배포(DEPLOY-V2) · event-impact 고도화(IMPACT-V2) · 소스 확장(SRC-V2) · 매직넘버 외부화(CFG-V2). 백엔드 포트폴리오 관점 권장 묶음 = 관측성 + 라이브 배포(프로덕션 readiness 한 겹).
+**현재 마일스톤(v1.2):** Item Visual/Data Enrichment — 착수 2026-06-29. 범위는 위 "Current Milestone" 섹션·REQUIREMENTS.md 참조. v1.2에서 다루지 않는 v2 후보(여전히 보류): 관측성(OPS-V2, Micrometer) · 라이브 배포(DEPLOY-V2) · event-impact 고도화(IMPACT-V2) · 소스 확장(SRC-V2) · 매직넘버 외부화(CFG-V2).
 
 ## Requirements
 
@@ -36,17 +48,16 @@
 
 ### Active
 
-<!-- 다음 마일스톤 범위. 현재 활성 REQUIREMENTS.md 없음(마일스톤 사이) — /gsd-new-milestone에서 생성. -->
+<!-- v1.2 Item Visual/Data Enrichment 활성 범위. 상세·REQ-ID: REQUIREMENTS.md (roadmap이 Traceability 채움). -->
 
-**다음 마일스톤(v1.2) 미정.** v1.0(24/24)·v1.1(필수 20/20) 모두 배포·검증 완료(Validated 참조). `/gsd-new-milestone`로 범위를 정의한다. v2 후보(승격 가능):
+**v1.2 Item Visual/Data Enrichment 활성** (착수 2026-06-29). 카테고리:
 
-- [ ] 관측성 — Micrometer 카운터(429 / skipped tick / failed item / cache hit·miss) + Actuator (OPS-V2) ★ 권장
-- [ ] 데모 배포 — Railway/Fly/Render + 프론트 CI (DEPLOY-V2) ★ 권장
-- [ ] event-impact 고도화 — 카테고리 베이스라인 대비 초과상승률, median/스무딩 (IMPACT-V2)
-- [ ] 소스 확장 — 경매장(AUCTIONS)/보석 (SRC-V2)
-- [ ] 매직넘버 `@ConfigurationProperties` 외부화 (CFG-V2)
-- [ ] 프론트 고도화 — 관리자 쓰기 UI, 실시간 갱신 (FE-V2-01..03)
-- [ ] DEMO-03 — Spring 정적 서빙 단일 출처 패키징 (v1.1에서 슬립, FE-V2-04)
+- [ ] **SPIKE** — `/markets/options`·`/markets/items` 실측으로 iconUrl/item id/category·fallback 전략·큐레이션 목록 잠금 (게이트)
+- [ ] **ITEM** — `tracked_item` enrichment 컬럼(V4) + 4개 read DTO 패스스루(icon_url/item_group/role_group)
+- [ ] **SEED** — WatchlistSeeder/SyntheticDemoData에 융화재료 + 큐레이션 각인서(12~20개)·아이콘 상수 베이크
+- [ ] **ICON** — 공용 `<ItemIcon>` + onError fallback, Dashboard/Timeline/Event Impact·셀렉터, 역할 그룹 배지, docs(출처·실측·fallback)
+
+**v2 백로그(여전히 보류, v1.2 범위 밖):** 관측성(OPS-V2) · 데모 배포(DEPLOY-V2) · event-impact 고도화(IMPACT-V2) · 소스 확장(SRC-V2) · 매직넘버 외부화(CFG-V2) · 프론트 고도화(FE-V2-01..03) · DEMO-03 정적 서빙(FE-V2-04) · 그룹 필터(v1.2에서 배지로 대체).
 
 ### Out of Scope
 
@@ -119,4 +130,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-29 — v1.1 Frontend Demo Dashboard 마일스톤 종료 (Phases 7–11, 필수 20/20; DEMO-03 v2 강등)*
+*Last updated: 2026-06-29 — v1.2 Item Visual/Data Enrichment 마일스톤 착수 (research first; Phase 12부터 연속 번호)*

@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: Frontend Demo Dashboard
-status: milestone_complete
-stopped_at: Shipped v1.1 Frontend Demo Dashboard — archived (Phases 7–11, 19 plans, tag v1.1). 다음 마일스톤(v1.2) 미정.
-last_updated: "2026-06-29T00:30:00.000Z"
+milestone: v1.2
+milestone_name: Item Visual/Data Enrichment
+status: planning
+last_updated: "2026-06-29T01:12:37.742Z"
 last_activity: 2026-06-29
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 19
-  completed_plans: 19
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -25,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-29 after v1.1 milestone)
 
 ## Current Position
 
-Milestone: v1.1 Frontend Demo Dashboard — ✅ SHIPPED 2026-06-29 (tag v1.1, archived)
-Phases: 7–11 전부 완료 (19 plans), 필수 요구사항 20/20, DEMO-03 v2 강등
-Status: 마일스톤 종료 — 다음 마일스톤 미정
-Last activity: 2026-06-29
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-06-29 — Milestone v1.2 started
 
 ## Performance Metrics
 
