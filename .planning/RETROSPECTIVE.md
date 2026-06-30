@@ -82,6 +82,47 @@
 
 ---
 
+## Milestone: v1.2 — Item Visual/Data Enrichment
+
+**Shipped:** 2026-06-30
+**Phases:** 3 (12–14) | **Plans:** 6
+
+### What Was Built
+- **spike-then-lock 데이터 잠금(Phase 12)** — 본인 JWT로 `/markets/options`·`/markets/items` 1회 실측 → 큐레이션 15개·iconUrl CDN·각인서 11종 동일 글리프/융화재료 4종 구별·fallback 전략을 findings로 잠금(런타임 키 불필요).
+- **백엔드 enrichment(Phase 13)** — Flyway V4 nullable icon_url/item_group/role_group + 4 read DTO 평면 패스스루 + WatchlistSeeder/SyntheticDemoData 큐레이션 베이크(키 없는 재현). 수집/캐시/event-impact **0줄**.
+- **프론트 시각 레이어(Phase 14)** — 공용 `<ItemIcon>`(고정 슬롯 + null/onError 역할색 글리프 fallback, 시프트 0)·`<RoleBadge>`(solid 한글)·roleGroup(sortByRole) + enrichment 4 zod 스키마, 4화면 일관 적용. 루트/frontend README 출처·실측·fallback·자산 섹터 서사.
+- **검증** — Phase 14 UAT 8/8 PASS(Playwright seed 실측) + 보안 9위협 closed(threats_open 0).
+
+### What Worked
+- **검증된 패턴(spike-then-lock) 재사용** — v1.0 Task 0의 "실측 1회 → 상수 잠금 → 이후 상수만 소비"를 Phase 12가 그대로 재현 → 외부 API 의존을 런타임에서 제거, 데이터 모델 잠금이 매끄러웠다.
+- **read-path additive 격리가 Core Value를 코드로 보호** — enrichment를 nullable 컬럼·DTO·시더로만 추가하고 수집/캐시/event-impact를 0줄로 두니, 시각 레이어를 회귀 위험 0으로 얹었다(git file-scope·회귀로 증명).
+- **3처리 배지 택소노미** — solid(역할)/tinted(상태)/outline(이벤트)로 처리 방식을 분리해 hue가 겹쳐도 의미가 구별됨(UAT에서 한 화면 3처리 공존 확인).
+- **고정 슬롯 + onError 역할색 fallback** — CDN 차단·깨진 URL을 레이아웃 시프트 0으로 흡수, "미완성"이 아닌 의도된 디자인으로 읽힘(Playwright로 15개 강제 실패 실측).
+- **시각 phase UAT를 Playwright 자동 검증으로** — 스크린샷 실측으로 체크포인트를 자동 판정, 수동 질문을 최소화.
+
+### What Was Inefficient
+- **(3연속) traceability 체크박스 lag** — SPIKE-01..05가 또 클로즈 시점까지 `[ ]`/Pending으로 남아 일괄 정리. v1.0·v1.1에 이어 **세 번째 연속** — 의지로는 안 고쳐지는 구조적 습관 문제로 확정.
+- **audit-open false-positive** — quick task가 접두 파일명(`{id}-SUMMARY.md`)을 쓰는데 helper가 bare `SUMMARY.md`만 찾아 완료된 7개를 "missing"으로 오탐. 도구 컨벤션 불일치(클로즈를 막진 않았으나 노이즈).
+- **검증용 seed 백엔드 기동이 dev 실데이터를 재시딩** — UAT/스크린샷을 위해 seed로 띄우며 그날 dev 수집분을 덮음. 검증엔 문제없으나 환경 상태 부수효과(재수집 가능).
+
+### Patterns Established
+- **spike-then-lock 재사용** — 외부 API 의존을 1회 실측으로 상수화해 런타임 키리스 재현. v1.0 Task 0 → v1.2 Phase 12로 검증됨(재사용 가능 패턴).
+- **read-path additive 한 겹** — Core Value(핵심 경로) 0줄 가드 하에 nullable 컬럼·DTO·시더로만 기능을 얹는다.
+- **3처리 배지 택소노미** — 의미 축마다 처리(solid/tinted/outline)를 분리해 색 충돌에도 구별.
+- **고정 슬롯 + onError fallback** — 외부 자산(CDN) 장애를 시프트 0으로 흡수.
+
+### Key Lessons
+1. **검증된 패턴은 재사용이 가장 빠르다** — spike-then-lock을 v1.2가 그대로 재현해 게이트 phase가 매끄러웠다. 패턴 카탈로그(RETROSPECTIVE)가 실제로 비용을 줄인다.
+2. **Core Value 보호는 "additive 한 겹 + 0줄 가드"로 증명한다** — enrichment가 핵심 경로를 0줄로 두니 회귀 위험 없이 시각 레이어를 얹었다. "안 건드림"을 코드(diff)로 증명.
+3. **(3연속 미해결 → 절차/자동화 필요) traceability lag** — 세 마일스톤 연속 클로즈 시점 일괄 정리. 의지로 안 되니, phase transition·quick 완료 시 체크박스 전환을 **강제하는 절차나 자동화**가 다음 마일스톤의 명시 액션이어야 한다.
+
+### Cost Observations
+- Model mix: 대부분 opus (balanced 프로파일).
+- Sessions: 다회(컨텍스트 압축 수회 — 타임라인 일별 집계·README 재구성·마일스톤 마감).
+- Notable: 백그라운드 서브에이전트 권한 거부 → verify-work(UAT)·secure-phase(보안)·complete-milestone(마감) 전부 오케스트레이터 인라인 수행. Playwright-MCP로 시각 UAT 자동화.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -90,6 +131,7 @@
 |-----------|--------|-------|------------|
 | v1.0 | 6 | 15 | 초기 MVP — 하드 게이트로 수집 신뢰성 우선, 게이트 통과 후 event-impact 헤드라인 |
 | v1.1 | 5 (7–11) | 19 | read-only 프론트 데모 — 백엔드 0줄 변경(Vite 프록시), zod 계약 강제, 정직성 UI 장치 |
+| v1.2 | 3 (12–14) | 6 | read-path enrichment 한 겹 — spike-then-lock 데이터 잠금, 백엔드 핵심 0줄, 프론트 아이콘/역할 배지/fallback, UAT+보안 게이트 |
 
 ### Cumulative Quality
 
@@ -97,9 +139,11 @@
 |-----------|-------|-------|--------------------|
 | v1.0 | 86 (0 failures, 1 skipped) | ✓ green | Flyway V1–V3, build.gradle 의존성 추가 0 (Phase 6 docs/CI) |
 | v1.1 | 백엔드 스위트 그린 유지(11-04 IT 회귀 추가) | ✓ green | 백엔드 src 0줄 변경; 프론트 ~2,621 LOC TS 신규 |
+| v1.2 | 백엔드 스위트 그린 유지(V4 + enrichment 회귀) | ✓ green | 백엔드 핵심 src 0줄; Flyway V4 nullable 컬럼; 프론트 공용 컴포넌트 추가, 신규 npm 의존 0 |
 
 ### Top Lessons (Verified Across Milestones)
 
-1. (v1.0) 코어 밸류는 게이트로 지켜진다 — v1.1은 read-only 소비라 직접 재검증 없음, v1.2(관측성/배포)에서 재적용 예정.
-2. (v1.0→v1.1 재확인) 데모/시드는 라이브 계약을 준수해야 정직하다 — v1.1 UAT Test 3이 정확히 이 교훈의 변주(읽기 경로가 그릴 모든 행을 심어야 함)로 재확인됨.
-3. (v1.0→v1.1 미해결) transition마다 traceability를 전환하라 — 두 마일스톤 연속 클로즈 시점 일괄 정리. v1.2에서 습관화 필요.
+1. (v1.0→v1.2 재확인) 코어 밸류는 게이트/가드로 지켜진다 — v1.0은 하드 게이트, v1.2는 "read-path additive + 수집/캐시/event-impact 0줄" 가드로 핵심 경로를 보호하며 시각 레이어를 얹음. 우선순위는 문서가 아니라 게이트/diff로 지켜진다.
+2. (v1.0→v1.1 재확인) 데모/시드는 라이브 계약을 준수해야 정직하다 — v1.2 seed도 enrichment를 UNIQUE/멱등 계약 안에서 베이크해 키 없이 재현.
+3. (v1.0→v1.1→v1.2 **3연속 미해결**) transition마다 traceability를 전환하라 — 세 마일스톤 연속 클로즈 시점 일괄 정리(v1.2는 SPIKE-01..05). 의지로는 안 고쳐짐이 입증됨 → **다음 마일스톤은 절차/자동화로 강제**(phase SUMMARY/quick 완료 시 체크박스 전환)가 명시 액션.
+4. (v1.2 신규) 검증된 패턴 재사용이 가장 빠르다 — spike-then-lock(v1.0 Task 0)을 v1.2 Phase 12가 재현해 게이트가 매끄러웠다. RETROSPECTIVE 패턴 카탈로그가 실제 비용을 줄인다.
