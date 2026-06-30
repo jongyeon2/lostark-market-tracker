@@ -9,3 +9,12 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
+
+# Collection: delay the FIRST scheduled tick so WatchlistSeeder (an ApplicationRunner, which Spring
+# runs in callRunners — AFTER the @Scheduled scheduler is already started in finishRefresh) finishes
+# upserting the 15-item watchlist before the collector reads findByActiveTrue(). Dev's default
+# initial-delay-ms=0 otherwise fires the first tick against an empty tracked_item table
+# (items_attempted=0, mis-recorded SUCCESS, 0 snapshots → every card shows "최신가 아직 없음").
+# Only the first tick is delayed; fixedDelay stays at the 10-min default. (seed/test already use 1h.)
+collection:
+  initial-delay-ms: 10000
