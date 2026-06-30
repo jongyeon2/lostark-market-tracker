@@ -1,5 +1,5 @@
 import { useLatestPrice } from '@/lib/queries'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { AsyncBoundary } from '@/components/state/AsyncBoundary'
 import { ItemIcon } from '@/features/_shared/ItemIcon'
 import { RoleBadge } from '@/features/_shared/RoleBadge'
@@ -10,6 +10,12 @@ import { formatKst } from '@/lib/formatKst'
 // grid-unified card of different shape). Runs its OWN useLatestPrice + its OWN <AsyncBoundary>
 // (Phase-7 D-08 / Phase-8 D-07 isolation) so a latest-price failure never hides the chart and
 // vice-versa. Shared by Phase 9 & 10. Read-only: no polling, no write surface.
+//
+// Horizontal single-row layout (quick 260630-gct): identity [icon · name · badge] → 골드 → 시간 as
+// ONE flex row. The success children are a fragment (no wrapper) and AsyncBoundary returns
+// `<>{children}</>`, so 골드/시간 land as DIRECT flex children alongside the identity block — every
+// gap is the same (uniform gap-6). w-fit keeps the card snug to its content (CardContent has no
+// @container, so the intrinsic width propagates freely — unlike the old CardHeader @container).
 export function LatestPriceCard({
   itemId,
   displayName,
@@ -25,30 +31,27 @@ export function LatestPriceCard({
   const { status, data, refetch } = useLatestPrice(itemId)
 
   return (
-    <Card className="w-fit min-w-56">
-      {/* container-type:normal overrides shadcn CardHeader's @container (container-type:inline-size),
-          which otherwise contains the inline-size and stops the w-fit card from growing to the
-          nowrap title — leaving the title clipped at min-w-56 (224px). */}
-      <CardHeader className="[container-type:normal]">
+    <Card className="w-fit">
+      <CardContent className="flex items-center gap-6">
         {/* Identity (icon/name/role badge) stays visible regardless of the price-area state — the
             selected item's enrichment is passed in, already loaded (ICON-04·D-04). */}
-        <CardTitle className="flex items-center gap-2 text-base">
+        <div className="flex items-center gap-2">
           <ItemIcon iconUrl={iconUrl ?? null} roleGroup={roleGroup ?? null} size="md" />
-          <span className="whitespace-nowrap">{displayName}</span>
+          <span className="text-base font-semibold whitespace-nowrap">{displayName}</span>
           <RoleBadge roleGroup={roleGroup ?? null} />
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+        </div>
+        {/* 골드 · 시간 — fragment children land as direct flex siblings, so their gap equals the
+            identity↔price gap (one uniform gap-6 across the whole row). */}
         <AsyncBoundary status={status} onRetry={() => refetch()}>
           {data && (
-            <div className="flex flex-col gap-2">
-              <p className="text-xl font-semibold tabular-nums">
+            <>
+              <p className="text-xl font-semibold tabular-nums whitespace-nowrap">
                 {data.minPrice.toLocaleString('ko-KR')} G
               </p>
-              <p className="text-muted-foreground text-sm font-semibold">
+              <p className="text-muted-foreground text-sm font-semibold whitespace-nowrap">
                 {formatKst(data.collectedAt)} KST
               </p>
-            </div>
+            </>
           )}
         </AsyncBoundary>
       </CardContent>
