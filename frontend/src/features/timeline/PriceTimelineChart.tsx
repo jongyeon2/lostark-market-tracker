@@ -118,13 +118,16 @@ export function PriceTimelineChart({
           tick={{ fontSize: 14, fill: '#64748B' }}
         />
         <Tooltip content={<PriceTooltip downsampled={downsampled} />} />
-        {/* downsample dual signal (D-08): no dots for bucket averages; dots for raw (<=60 pts). */}
+        {/* Dots are density-based (D-08 refined for the 일별 view, quick 260630-h16): show them at
+            <=60 points even when downsampled, so a sparse daily series — down to a single day — stays
+            visible (a dot-less single point renders nothing). The badge still carries the
+            'bucket average' honesty signal, so the dual signal is preserved. */}
         <Line
           type="monotone"
           dataKey="price"
           stroke="#2563EB"
           strokeWidth={2}
-          dot={downsampled ? false : rows.length > 60 ? false : { r: 2.5 }}
+          dot={rows.length > 60 ? false : { r: 2.5 }}
           activeDot={{ r: 4 }}
           isAnimationActive={false}
         />

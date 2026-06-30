@@ -8,6 +8,7 @@ import { LatestPriceCard } from '@/features/_shared/LatestPriceCard'
 import { useTimelineParams } from '@/features/timeline/useTimelineParams'
 import { RangeControls } from '@/features/timeline/RangeControls'
 import { PriceTimelineChart } from '@/features/timeline/PriceTimelineChart'
+import { aggregateDailyAverage } from '@/features/timeline/dailyBuckets'
 import { EventMarkerLegend } from '@/features/timeline/EventMarkerLegend'
 import { DownsampleBadge } from '@/features/timeline/DownsampleBadge'
 import { ErrorState } from '@/components/state/ErrorState'
@@ -79,7 +80,7 @@ function ChartArea({
     return <ErrorState onRetry={() => timeline.refetch()} />
   }
 
-  const { snapshots, events, downsampled, bucketWidth } = timeline.data
+  const { snapshots, events } = timeline.data
 
   if (snapshots.length === 0) {
     return (
@@ -93,18 +94,24 @@ function ChartArea({
     )
   }
 
+  // The timeline always renders ONE point per KST day (일별 평균 최저가, quick 260630-h16). The
+  // backend's downsampled/bucketWidth flags are superseded here: after daily re-aggregation the
+  // series is ALWAYS a day-bucket average regardless of how much raw data exists, so the badge and
+  // tooltip are pinned to that ('버킷 평균 · 1일' + 'N개 평균'). Events keep their own instants.
+  const dailySnapshots = aggregateDailyAverage(snapshots)
+
   return (
     <div className="space-y-4">
       {/* legend left, downsample badge top-right (09-UI-SPEC Layout). */}
       <div className="flex items-start justify-between gap-4">
         <EventMarkerLegend />
-        <DownsampleBadge downsampled={downsampled} bucketWidth={bucketWidth} />
+        <DownsampleBadge downsampled bucketWidth="day" />
       </div>
       <PriceTimelineChart
-        snapshots={snapshots}
+        snapshots={dailySnapshots}
         events={events}
-        downsampled={downsampled}
-        bucketWidth={bucketWidth}
+        downsampled
+        bucketWidth="day"
       />
     </div>
   )
