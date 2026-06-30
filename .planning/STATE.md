@@ -80,7 +80,7 @@ None yet.
 
 ### Blockers/Concerns
 
-- `.env`의 `LOSTARK_API_KEY`가 무효(거래소 API 직접 호출 시 401; JWT 구조 3-seg·`iss=ludy.game.onstove.com` 정상·`exp` 없음인데도 서버 거부 → 폐기/무효화된 키). dev 실시간 수집이 전부 `AUTH_ERROR`로 실패 → `price_snapshot` 0건 → 프론트 `/latest` 404. **해결: 개발자 포털에서 키 재발급 → `.env`의 `LOSTARK_API_KEY` 교체(`bearer ` 접두사·공백 없이 JWT만) → dev 재시작.** 코드 아닌 운영(키) 이슈.
+None (2026-06-30: `.env` `LOSTARK_API_KEY` 무효(401) 이슈는 키 재발급·교체로 해소 — `collection_run` SUCCESS 15/15, 실데이터 적재 확인)
 
 ### Quick Tasks Completed
 
