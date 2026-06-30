@@ -4,8 +4,8 @@ milestone: v1.2
 milestone_name: Item Visual/Data Enrichment
 status: executing
 stopped_at: Phase 14 complete (3/3 plans, build 그린)
-last_updated: "2026-06-30T00:00:00.000Z"
-last_activity: 2026-06-30 -- Quick 260630-16d: 카드/셀렉터 비율 조정 3건
+last_updated: "2026-06-30T01:31:23.757Z"
+last_activity: 2026-06-30 -- Quick 260630-em5: dev 첫 수집 타이밍 버그 수정
 progress:
   total_phases: 3
   completed_phases: 3
@@ -80,7 +80,7 @@ None yet.
 
 ### Blockers/Concerns
 
-None
+- `.env`의 `LOSTARK_API_KEY`가 무효(거래소 API 직접 호출 시 401; JWT 구조 3-seg·`iss=ludy.game.onstove.com` 정상·`exp` 없음인데도 서버 거부 → 폐기/무효화된 키). dev 실시간 수집이 전부 `AUTH_ERROR`로 실패 → `price_snapshot` 0건 → 프론트 `/latest` 404. **해결: 개발자 포털에서 키 재발급 → `.env`의 `LOSTARK_API_KEY` 교체(`bearer ` 접두사·공백 없이 JWT만) → dev 재시작.** 코드 아닌 운영(키) 이슈.
 
 ### Quick Tasks Completed
 
@@ -88,6 +88,7 @@ None
 |---|-------------|------|--------|-----------|
 | 260630-0rh | Timeline·Impact LatestPriceCard 긴 품목명 세로 잘림 수정 (가로 한 줄 + 제목 축소) | 2026-06-30 | ec0bc97 | [260630-0rh-timeline-impact-latestpricecard](./quick/260630-0rh-timeline-impact-latestpricecard/) |
 | 260630-16d | Phase 14 카드/셀렉터 비율 조정 3건 (대시보드 카드 축소 · LatestPriceCard container-type 확장 · 셀렉터 트리거 폭) | 2026-06-30 | e18e714 | [260630-16d-phase-14-3](./quick/260630-16d-phase-14-3/) |
+| 260630-em5 | dev 첫 수집 타이밍 버그 수정 (collection.initial-delay-ms 추가 — 첫 틱 빈 워치리스트 헛돎 0→15). 별개로 .env API 키 무효(401) 발견 → Blocker | 2026-06-30 | 6fafc25 | [260630-em5-dev-collection-initial-delay](./quick/260630-em5-dev-collection-initial-delay/) |
 
 ## Deferred Items
 
