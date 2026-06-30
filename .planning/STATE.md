@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Item Visual/Data Enrichment
-status: executing
-stopped_at: Phase 14 complete (3/3 plans, build 그린)
-last_updated: "2026-06-30T07:00:00.000Z"
-last_activity: 2026-06-30 -- Quick 260630-lu5: README JSCODE 스타일 재구성(인트로 강화 + 깊이 유지)
+status: milestone_complete
+stopped_at: v1.2 shipped (Phases 12–14, 6/6 plans, 21/21 요구사항, UAT 8/8 + 보안 통과)
+last_updated: "2026-06-30T07:15:00.000Z"
+last_activity: 2026-06-30 -- v1.2 마일스톤 마감(shipped) — 아카이브 + git tag v1.2
 progress:
   total_phases: 3
   completed_phases: 3
@@ -18,17 +18,16 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-29 after v1.1 milestone)
+See: .planning/PROJECT.md (updated 2026-06-30 after v1.2 milestone)
 
 **Core value:** 레이트리밋이 걸린 외부 마켓 API에서 시세를 빠짐없이 수집해 시계열로 쌓고, 캐시로 안정적으로 서빙한다
-**Current focus:** v1.2 Item Visual/Data Enrichment — Phase 12(스파이크)·13(백엔드 enrichment/seed)·14(프론트 아이콘/fallback/docs) **3개 phase 전부 완료**. enrichment가 nullable 컬럼·엔티티·시더·4개 read DTO·프론트 4화면·README까지 관통. 다음: v1.2 마일스톤 마감(`/gsd-verify-work 14` 또는 `/gsd-complete-milestone`).
+**Current focus:** v1.0/v1.1/v1.2 전부 shipped. **다음 마일스톤 미정** — `/gsd-new-milestone`으로 정의(Phase 15부터 연속 번호). v2 후보: 그룹 필터(FILTER-V2)·등급 색상/정렬(GRADE-V2)·관측성(OPS-V2)·라이브 배포(DEPLOY-V2)·event-impact 고도화(IMPACT-V2)·소스 확장(SRC-V2)·매직넘버 외부화(CFG-V2).
 
 ## Current Position
 
-Phase: 14 Frontend Icons + Fallback + Docs — ✓ Complete + UAT 검증 통과 (3/3 plans, 8/8 UAT PASS, 백엔드 src/ 0줄)
-Plan: 14-01 ✓ (공유 기반: enrichment 4 zod 스키마 + 역할 3색 토큰 + ItemIcon/RoleBadge/roleGroup) · 14-02 ✓ (4화면 아이콘·역할 배지·sortByRole 정렬, EventImpactCards 0줄) · 14-03 ✓ (루트/frontend README 출처·실측·fallback·자산 섹터 서사)
-Status: Phase complete + UAT 통과 — ICON-01..08 전부 Complete, 14-UAT.md 8/8 PASS, D-11 스크린샷 교체 완료
-Last activity: 2026-06-30 -- Phase 14 UAT 8/8 PASS(Playwright seed 실측) + D-11 스크린샷 교체
+Milestone: **v1.2 Item Visual/Data Enrichment — ✅ SHIPPED 2026-06-30** (Phases 12–14, 6/6 plans, 21/21 요구사항). [archive](./milestones/v1.2-ROADMAP.md) · git tag v1.2
+Status: 마일스톤 마감 완료 — ROADMAP/REQUIREMENTS 아카이브, PROJECT.md 진화, RETROSPECTIVE 갱신. 다음: `/gsd-new-milestone`.
+Last activity: 2026-06-30 -- v1.2 마일스톤 마감(shipped) + git tag v1.2
 
 ## Performance Metrics
 
@@ -108,9 +107,7 @@ Resume file: None
 
 ## Operator Next Steps
 
-- ✅ Phase 14 전 게이트 통과(2026-06-30): UAT 8/8 PASS(d07d70b 스크린샷·1c9d0f3 UAT) + 보안 검토 완료(c32de26 14-SECURITY.md, 9 위협 closed·threats_open 0·verified). 백엔드 src/ 0줄·신규 npm 의존 0·README 시크릿 0건 게이트 통과.
-- 다음: `/gsd-complete-milestone`로 **v1.2(Item Visual/Data Enrichment) 마일스톤 마감** — Phase 12·13·14 전부 실행+검증+보안 완료. (마감 전 선택: `/gsd-validate-phase 14` 테스트 커버리지 검증)
-- Phase 14 결과(잠금): 프론트 `_shared`에 ItemIcon(고정 슬롯+null/onError 역할색 글리프)·RoleBadge(solid 한글 배지)·roleGroup(sortByRole) + 4 zod 스키마 enrichment(eventImpact 평면); 4화면(Dashboard 카드·셀렉터·Timeline 최신가·Impact 정체성) 아이콘·역할 배지·역할군 정렬; 루트/frontend README 출처·실측·fallback·자산 섹터 서사. 백엔드 src/ 0줄, 신규 npm 의존 0, frontend build 그린
-- ⚠️ **수동 D-11**: 아이콘·역할 배지 반영 새 3화면 스크린샷은 사용자가 직접 캡처 교체 필요(`frontend/docs/screenshots/{dashboard,item-timeline,event-impact}.png`) — seed 백엔드+`npm run dev`로 캡처
-- ⚠️ 스파이크 중 대화 노출 JWT 키 **포털 재발급 권장**(.env는 gitignored·추적 0)
-- 불변 제약 상시 가드(증명됨): 수집/캐시/event-impact 백엔드 8파일 0줄 + V1–V3 불변 + 시더/합성기 키·가격 0건 — 전체 회귀 그린
+- ✅ **v1.2 마일스톤 마감 완료(2026-06-30):** ROADMAP/REQUIREMENTS milestones/ 아카이브, MILESTONES.md·RETROSPECTIVE.md 갱신, PROJECT.md 진화(v1.2 Validated 이관·Key Decisions 추가), REQUIREMENTS.md `git rm`, **git tag v1.2**. Phases 12–14, 6/6 plans, 21/21 요구사항, UAT 8/8 + 보안 9위협 closed.
+- **다음:** `/clear` 후 `/gsd-new-milestone`로 다음 마일스톤(요구사항·로드맵) 정의 — Phase 15부터 연속 번호. v2 후보: 그룹 필터(FILTER-V2)·등급 색상/정렬(GRADE-V2)·관측성(OPS-V2)·라이브 배포(DEPLOY-V2)·event-impact 고도화(IMPACT-V2)·소스 확장(SRC-V2)·매직넘버 외부화(CFG-V2).
+- ⚠️ 스파이크 중 대화 노출 JWT 키 **포털 재발급 권장**(.env는 gitignored·추적 0).
+- 불변 제약 상시 가드(증명됨): 수집/캐시/event-impact 백엔드 8파일 0줄 + V1–V4 불변 + 시더/합성기 키·가격 0건 — 전체 회귀 그린.

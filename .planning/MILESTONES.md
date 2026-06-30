@@ -42,3 +42,23 @@
 **Deferred to v2:** DEMO-03(Spring 정적 서빙 단일 출처 패키징, 선택/stretch였고 슬립), 관리자 쓰기 UI·실시간 갱신·다크모드/i18n·실배포+프론트 CI·카테고리 베이스라인 시각화(FE-V2-01..05).
 
 ---
+
+## v1.2 Item Visual/Data Enrichment (Shipped: 2026-06-30)
+
+**Phases completed:** 3 phases (12–14), 6 plans
+
+**Delivered:** v1.1 데모 대시보드 3화면과 셀렉터에 품목 아이콘·역할 그룹 메타데이터를 입히고, 융화재료 + 큐레이션 딜러/서포터 유물 각인서(최종 15개)를 watchlist·seed에 추가 — **API 키 없이 seed만으로** 시각적으로 풍부한 데모를 재현. enrichment는 수집·캐시·event-impact를 0줄도 건드리지 않는 read-path additive 한 겹.
+
+**Key accomplishments:**
+
+- **Phase 12 (API Spike + Data Lock):** 본인 JWT로 `/markets/options`·`/markets/items` 1회 실측 → 각인서 CategoryCode=40000(leaf)·융화재료=50010, 아이콘 필드 `Icon`·CDN `efui_iconatlas/use/` 확정. 큐레이션 **15개 잠금**(딜러 9 + 서포터 2 + 융화재료 4). 유물 각인서 11종 동일 글리프(`use_9_25.png`)→라벨·배지 식별, 융화재료 4종 구별. findings·커밋 실 키/계정/가격 0건(12-SPIKE-FINDINGS.md 단일 출처).
+- **Phase 13 (Backend Enrichment + Seed):** Flyway `V4__add_item_enrichment.sql` nullable icon_url/item_group/role_group(V1–V3 불변, validate 통과) + 4개 read DTO 평면 패스스루(roleGroup ∈ {DEALER,SUPPORT,MATERIAL}|null) + WatchlistSeeder/SyntheticDemoData에 큐레이션 15개·아이콘 상수 베이크(키 없는 재현). 수집/캐시/EventImpactService **0줄**, 전체 Testcontainers 그린.
+- **Phase 14 (Frontend Icons + Fallback + Docs):** 공용 `<ItemIcon>`(고정 슬롯 + null/onError 역할색 글리프 fallback, 시프트 0, lucide-react만)·`<RoleBadge>`(solid 한글 배지)·roleGroup(sortByRole) + enrichment 4 zod 스키마. 4화면(Dashboard 카드·셀렉터 역할군 헤더·Timeline 최신가·Impact 정체성) 아이콘·역할 배지 일관 적용, 큐레이션 15개 누락 0. 역할 3색=semantic 색군(rose/emerald/amber). 루트/frontend README 출처·실측·fallback·자산 섹터 서사. 백엔드 src/ 0줄, 신규 npm 의존 0.
+- **검증:** Phase 14 UAT **8/8 PASS**(Playwright seed 실측) + 보안 검토 **9위협 closed**(threats_open 0). D-11 스크린샷 3화면 교체.
+- **요구사항:** 21/21 충족(SPIKE 5 + ITEM 4 + SEED 4 + ICON 8).
+
+**Quick tasks (7건, 마일스톤 중):** 260630-0rh/gct/g0i/16d(레이아웃 정비) · 260630-em5(dev 첫 수집 initial-delay) · 260630-h16(타임라인 일별 평균 집계) · 260630-lu5(README JSCODE 스타일 재구성).
+
+**Deferred to v2:** FILTER-V2-01(그룹 필터 토글) · GRADE-V2-01(등급별 색상·정렬) · 운명 융화재료·만개(실재/거래량 부족) · OPS-V2 · DEPLOY-V2(라이브 배포) · IMPACT-V2 · SRC-V2 · CFG-V2.
+
+---

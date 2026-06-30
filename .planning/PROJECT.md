@@ -8,27 +8,24 @@
 
 **레이트리밋이 걸린 외부 마켓 API에서 시세를 빠짐없이 수집해 시계열로 쌓고, 캐시로 안정적으로 서빙한다.** 다른 모든 게 실패해도 이 수집·저장·서빙 파이프라인은 동작해야 한다. event-impact(이벤트 상관)는 그 위에 얹는 헤드라인 기능이며, 수집 신뢰성이 흔들리면 상관 분석은 나쁜 데이터 위 장식 수학이 된다.
 
-## Current Milestone: v1.2 Item Visual/Data Enrichment
+## Next Milestone
 
-**Goal:** v1.1 데모 대시보드 3화면(Dashboard / Item Timeline / Event Impact)과 셀렉터에 품목 아이콘·그룹 메타데이터를 입히고, 융화재료 + 큐레이션된 딜러/서포터 유물 각인서(초기 12~20개)를 watchlist·seed 데모에 추가해 **API 키 없이 seed만으로** 시각적으로 풍부한 데모를 재현한다. enrichment는 수집·캐시·event-impact를 건드리지 않는 read-path additive 한 겹.
+**v1.2 Item Visual/Data Enrichment 마감(2026-06-30).** 다음 마일스톤은 아직 미정 — `/gsd-new-milestone`으로 정의한다(Phase 15부터 연속 번호).
 
-**Target features:**
-- **API 실측 스파이크** — iconUrl/item id/category 확정 + fallback 전략 + 큐레이션 목록 잠금 (Phase 0 게이트, v1.0 Task 0 동형)
-- **백엔드 enrichment** — `tracked_item` icon_url/item_group/role_group (Flyway V4 nullable) + 4개 read DTO(list/latest/timeline/event-impact) 패스스루
-- **seed/watchlist 확장** — 신규 품목·아이콘 상수 베이크 (키 없는 재현)
-- **프론트 아이콘** — 공용 `<ItemIcon>` + onError fallback, 3화면+셀렉터, 역할 그룹 배지(필터는 v2)
+**v2 후보(보류):** 그룹 필터 토글(FILTER-V2) · 등급별 색상/정렬 정교화(GRADE-V2) · 관측성(OPS-V2, Micrometer) · 라이브 배포(DEPLOY-V2) · event-impact 고도화(IMPACT-V2) · 경매장/보석 소스 확장(SRC-V2) · 매직넘버 외부화(CFG-V2) · 프론트 고도화(FE-V2: 관리자 쓰기 UI·실시간 갱신·다크모드/i18n·정적 서빙).
 
-**불변 제약:** 프론트에서 Lostark API 직접 호출 금지 · API key는 백엔드 env에서만 · 실키를 코드/문서/로그/커밋에 미기재 · 수집/캐시/event-impact **0줄** 무변경 · 실서비스급 아이템 검색/관리 UI 제외.
+**불변 제약(상시):** 프론트에서 Lostark API 직접 호출 금지 · API key는 백엔드 env에서만 · 실키를 코드/문서/로그/커밋에 미기재 · 수집/캐시/event-impact 변경은 Core Value(수집 신뢰성) 가드 하에만.
 
 ## Current State
 
 **Shipped:**
 - ✅ **v1.0 MVP** (2026-06-25) — 신뢰 가능한 10분 수집 파이프라인 + Redis 캐시 read API + event-impact + 관리자 CRUD + CI·seed·README 데모 표면 (Phases 1–6, 24/24 요구사항). [archive](milestones/v1.0-ROADMAP.md)
 - ✅ **v1.1 Frontend Demo Dashboard** (2026-06-29) — v1.0 read API를 백엔드 0줄 변경(Vite 프록시 dev 동일 출처)으로 소비하는 React + TS + Tailwind + Recharts 3화면(Dashboard / Item Timeline / Event Impact)을 seed 기준 빈 화면 없이 재현. README의 curl 데모를 클릭 가능한 데모 표면으로 전환 (Phases 7–11, 필수 20/20; DEMO-03 정적 서빙은 v2 강등). [archive](milestones/v1.1-ROADMAP.md)
+- ✅ **v1.2 Item Visual/Data Enrichment** (2026-06-30) — v1.1 3화면·셀렉터에 품목 아이콘·역할 배지(딜러/서포터/융화재료)·역할군 정렬을 입히고 큐레이션 15개를 watchlist·seed에 추가. enrichment는 수집·캐시·event-impact 0줄 변경의 read-path additive 한 겹이며 API 키 없이 seed만으로 아이콘까지 재현. 공용 `<ItemIcon>` onError 역할색 글리프 fallback(레이아웃 시프트 0) (Phases 12–14, 21/21 요구사항, UAT 8/8 + 보안 9위협 closed). [archive](milestones/v1.2-ROADMAP.md)
 
-**현재 코드 상태:** 백엔드 Java ~5,790 LOC(main 67 + test 23 파일) · 프론트 TypeScript ~2,621 LOC(`frontend/src`). Spring Boot 3.4.1 / Java 21 / PostgreSQL 16 / Redis 7 + Vite 6 / React 19 / Tailwind v4 / Recharts / shadcn(slate·new-york) / zod / TanStack Query. 전체 Testcontainers 스위트 그린.
+**현재 코드 상태:** 백엔드 Java ~5,790 LOC(main 67 + test 23 파일) — v1.2는 백엔드 핵심 src 0줄(enrichment는 nullable 컬럼·엔티티·DTO·시더만). 프론트 TypeScript ~2,800 LOC(`frontend/src`) — v1.2에서 공용 `<ItemIcon>`/`<RoleBadge>`/roleGroup + enrichment 4 zod 스키마 추가, 신규 npm 의존 0. Spring Boot 3.4 / Java 21 / PostgreSQL 16 (Flyway V1–V4) / Redis 7 + Vite 6 / React 19 / Tailwind v4 / Recharts / shadcn(slate·new-york) / zod / TanStack Query. 전체 Testcontainers 스위트 그린.
 
-**현재 마일스톤(v1.2):** Item Visual/Data Enrichment — 착수 2026-06-29. 범위는 위 "Current Milestone" 섹션·REQUIREMENTS.md 참조. v1.2에서 다루지 않는 v2 후보(여전히 보류): 관측성(OPS-V2, Micrometer) · 라이브 배포(DEPLOY-V2) · event-impact 고도화(IMPACT-V2) · 소스 확장(SRC-V2) · 매직넘버 외부화(CFG-V2).
+**현재 상태:** v1.2 마감(2026-06-30) — v1.0/v1.1/v1.2 전부 shipped. 다음 마일스톤 미정(`/gsd-new-milestone`으로 정의, Phase 15부터). 보류 중 v2 후보는 위 "Next Milestone" 참조.
 
 ## Requirements
 
@@ -45,19 +42,15 @@
 - ✓ 배포 산출물 (docker-compose, CI=Testcontainers, 격리 시드, README 데모 표면) — v1.0 (Phase 1/6, DIST-01..04)
 - ✓ 프론트 데모 대시보드 3화면 (Dashboard: collection health·활성 품목·최신가 / Item Timeline: min_price 라인차트+eventType 마커+다운샘플 / Event Impact: 전후 변화율+희소/stale 구분+"상관≠인과" 상시 배너) — v1.1 (Phase 7–11, FND/DASH/TIME/IMPCT-전체 + DEMO-01..02)
 - ✓ 백엔드 무변경 데모 표면 (Vite 프록시 dev 동일 출처, seed 기준 재현, frontend/README+루트 README+스크린샷, UTC→KST 표시 가드) — v1.1 (Phase 7/11)
+- ✓ 시각 enrichment (품목 아이콘 + 역할 배지[딜러/서포터/융화재료] + 역할군 정렬 + onError 역할색 글리프 fallback[시프트 0], 큐레이션 15개, API 키 없는 seed 재현, 백엔드 read-path additive 0줄) — v1.2 (Phase 12–14, SPIKE/ITEM/SEED/ICON 전체 21/21)
 
 ### Active
 
-<!-- v1.2 Item Visual/Data Enrichment 활성 범위. 상세·REQ-ID: REQUIREMENTS.md (roadmap이 Traceability 채움). -->
+<!-- 다음 마일스톤 미정 — /gsd-new-milestone으로 정의(Phase 15부터). -->
 
-**v1.2 Item Visual/Data Enrichment 활성** (착수 2026-06-29). 카테고리:
+**다음 마일스톤 미정.** v1.0/v1.1/v1.2 전부 shipped. 다음 활성 범위·요구사항은 `/gsd-new-milestone`에서 새 REQUIREMENTS.md로 정의한다.
 
-- [ ] **SPIKE** — `/markets/options`·`/markets/items` 실측으로 iconUrl/item id/category·fallback 전략·큐레이션 목록 잠금 (게이트)
-- [ ] **ITEM** — `tracked_item` enrichment 컬럼(V4) + 4개 read DTO 패스스루(icon_url/item_group/role_group)
-- [ ] **SEED** — WatchlistSeeder/SyntheticDemoData에 융화재료 + 큐레이션 각인서(12~20개)·아이콘 상수 베이크
-- [ ] **ICON** — 공용 `<ItemIcon>` + onError fallback, Dashboard/Timeline/Event Impact·셀렉터, 역할 그룹 배지, docs(출처·실측·fallback)
-
-**v2 백로그(여전히 보류, v1.2 범위 밖):** 관측성(OPS-V2) · 데모 배포(DEPLOY-V2) · event-impact 고도화(IMPACT-V2) · 소스 확장(SRC-V2) · 매직넘버 외부화(CFG-V2) · 프론트 고도화(FE-V2-01..03) · DEMO-03 정적 서빙(FE-V2-04) · 그룹 필터(v1.2에서 배지로 대체).
+**v2 백로그(보류):** 그룹 필터 토글(FILTER-V2-01) · 등급별 색상/정렬 정교화(GRADE-V2-01) · 관측성(OPS-V2) · 데모 배포(DEPLOY-V2) · event-impact 고도화(IMPACT-V2) · 소스 확장(SRC-V2) · 매직넘버 외부화(CFG-V2) · 프론트 고도화(FE-V2-01..03) · DEMO-03 정적 서빙(FE-V2-04).
 
 ### Out of Scope
 
@@ -111,6 +104,10 @@
 | UTC 데이터 유지 + KST 표시 (off-by-9h 가드를 UI까지 연장, v1.1) | 차트 위치는 UTC instant, 라벨만 KST → 시각 오프셋 버그 차단 | ✓ Good — 타임라인/임팩트 시각 일관(human-verified) |
 | seed 데모에 합성 SUCCESS collection_run 멱등 적재 (11-04 gap closure) | seed가 snapshot/event만 심어 헬스 카드가 영속 볼륨의 과거 키리스 AUTH_ERROR run을 표시 — UAT Test 3 gap | ✓ Good — startedAt=gridNow가 stale run 덮음, 읽기 경로·DTO·프론트 0줄 변경, Testcontainers 회귀 고정 |
 | DEMO-03(정적 서빙) 슬립 → v2 | 단일 출처 패키징은 명시적 stretch였고 Vite 프록시로 데모 충분 | — Pending — v2(FE-V2-04)에서 재평가 |
+| spike-then-lock 재사용 + 아이콘 출처=API Icon URL→DB 적재 (v1.2) | 실 API 1회 실측으로 데이터 잠금(런타임 키 불필요, v1.0 Task 0 동형); 번들 대신 DB 적재로 에셋 수급·번들 부담 회피 | ✓ Good — 큐레이션 15개·iconUrl CDN 잠금, seed만으로 아이콘 재현 |
+| enrichment = read-path additive only, 수집/캐시/event-impact 0줄 (v1.2) | Core Value(수집 신뢰성) 보호 — 시각 한 겹이 핵심 경로를 오염하지 않게 | ✓ Good — Phase 13/14 백엔드 핵심 0줄, 회귀 그린 |
+| 역할색=semantic 색군(rose/emerald/amber) + 역할 배지 solid 처리 (v1.2) | accent(blue-600)와 분리; solid/tinted/outline 3처리로 역할·상태·이벤트 배지 구별 | ✓ Good — Phase 14 UAT에서 한 화면 3처리 구별 확인 |
+| 각인서 11종 동일 글리프 → 라벨·배지 식별(fallback 미대체), 그룹 필터 v2 강등 (v1.2) | 아이콘만으론 각인서 구분 불가; 15개 규모엔 필터 과함 | ✓ Good — 실아이콘+한글 라벨+역할 배지로 식별, 셀렉터 그룹 헤더로 대체 |
 
 ## Evolution
 
@@ -130,4 +127,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-29 — v1.2 Item Visual/Data Enrichment 마일스톤 착수 (research first; Phase 12부터 연속 번호)*
+*Last updated: 2026-06-30 — v1.2 Item Visual/Data Enrichment 마일스톤 마감(shipped). 다음 마일스톤 미정 (`/gsd-new-milestone`, Phase 15부터).*
