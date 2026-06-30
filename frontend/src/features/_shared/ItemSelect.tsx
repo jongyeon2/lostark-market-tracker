@@ -30,14 +30,14 @@ export function ItemSelect({
   // A selector failure must NOT blank the page — pending/error are handled inline here, never the
   // screen-level ErrorState.
   if (status === 'pending') {
-    return <Skeleton className="h-9 w-56" />
+    return <Skeleton className="h-9 w-40" />
   }
 
   if (status === 'error') {
     return (
       <div className="flex flex-col gap-1">
         <Select disabled>
-          <SelectTrigger className="w-72" aria-label="품목 선택">
+          <SelectTrigger className="w-40" aria-label="품목 선택">
             <SelectValue placeholder="품목 선택" />
           </SelectTrigger>
         </Select>
@@ -49,6 +49,11 @@ export function ItemSelect({
   // D-07: role-group then name (sortByRole, non-mutating). Sections render in this fixed order;
   // null roleGroup is included as a '기타' section so NO curated item is ever dropped (ICON-07).
   const sorted = sortByRole(data)
+  // The trigger shows ONLY the selected item's role-group label (딜러/서포터/융화재료/기타) — a long
+  // engraving name otherwise overflows the compact trigger. The full item name is never lost: it is
+  // shown right below in the page's LatestPriceCard (icon + name + badge).
+  const selected = data.find((item) => item.id === value)
+  const triggerLabel = selected ? (selected.roleGroup ? ROLE_LABEL[selected.roleGroup] : '기타') : null
   const SECTIONS: { role: RoleGroup | null; label: string }[] = [
     { role: 'DEALER', label: ROLE_LABEL.DEALER },
     { role: 'SUPPORT', label: ROLE_LABEL.SUPPORT },
@@ -61,8 +66,10 @@ export function ItemSelect({
       value={value != null ? String(value) : undefined}
       onValueChange={(v) => onChange(Number(v))}
     >
-      <SelectTrigger className="w-72" aria-label="품목 선택">
-        <SelectValue placeholder="품목 선택" />
+      {/* Trigger shows the role-group label only (not the long name) — SelectValue's default echoes
+          the selected option's full content, so we render the short label directly instead. */}
+      <SelectTrigger className="w-40" aria-label="품목 선택">
+        {triggerLabel ?? <span className="text-muted-foreground">품목 선택</span>}
       </SelectTrigger>
       <SelectContent>
         {/* Static role-group headers (D-08, NOT a filter control). Empty sections are skipped; each
