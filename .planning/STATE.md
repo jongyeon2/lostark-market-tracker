@@ -4,8 +4,8 @@ milestone: v1.2
 milestone_name: Item Visual/Data Enrichment
 status: executing
 stopped_at: Phase 14 complete (3/3 plans, build 그린)
-last_updated: "2026-06-30T06:45:00.000Z"
-last_activity: 2026-06-30 -- Phase 14 보안 검토 완료(9 위협 closed, threats_open 0, verified)
+last_updated: "2026-06-30T07:00:00.000Z"
+last_activity: 2026-06-30 -- Quick 260630-lu5: README JSCODE 스타일 재구성(인트로 강화 + 깊이 유지)
 progress:
   total_phases: 3
   completed_phases: 3
@@ -92,6 +92,7 @@ None (2026-06-30: `.env` `LOSTARK_API_KEY` 무효(401) 이슈는 키 재발급·
 | 260630-g0i | ItemSelect 트리거 카테고리 라벨만 표기 (긴 품목명 잘림 해소, w-40, 목록·LatestPriceCard 품목명 유지) | 2026-06-30 | 6dcb7ce | [260630-g0i-itemselect](./quick/260630-g0i-itemselect/) |
 | 260630-gct | LatestPriceCard 가로 한 줄 레이아웃 (아이콘+이름+배지·골드·시간 균등 gap 24px, w-fit) | 2026-06-30 | c5e1373 | [260630-gct-latestpricecard](./quick/260630-gct-latestpricecard/) |
 | 260630-h16 | 품목 타임라인 일별 평균 최저가 집계 표기 (프론트 KST 일별 가중평균, '버킷 평균·1일' 배지 재사용, dot 밀도 기준화로 희소 일별 가시화, 백엔드 무변경) | 2026-06-30 | 137ed0a | [260630-h16-timeline-daily-buckets](./quick/260630-h16-timeline-daily-buckets/) |
+| 260630-lu5 | README JSCODE 스타일 재구성 (친근 인트로 상단 + 엔지니어링 깊이 하단 보존, 프로젝트 구조·Developer 섹션 추가, curl/JSON·스크린샷·설계결정 무손실, 코드 0줄) | 2026-06-30 | 68dc55b | [260630-lu5-readme-jscode](./quick/260630-lu5-readme-jscode/) |
 
 ## Deferred Items
 
