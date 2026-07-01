@@ -4,9 +4,9 @@ milestone: v1.3
 milestone_name: 관리자 콘솔 + 실데이터 라이브 배포
 status: planning
 last_updated: "2026-07-01T06:39:25.095Z"
-last_activity: 2026-07-01
+last_activity: 2026-07-01 -- v1.3 roadmap 생성 (Phases 15–18, 15/15 요구사항 매핑)
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-07-01 for v1.3 milestone)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Not started (로드맵 완료 — Phase 15 다음)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-07-01 — Milestone v1.3 started
+Status: Roadmap complete — ready to plan Phase 15 (관리자 콘솔 UI)
+Last activity: 2026-07-01 — v1.3 로드맵 생성 (Phases 15–18: 관리자 콘솔 → 카드 개선 → 실데이터 전환 → 배포+보안, 15/15 요구사항 매핑)
 
 ## Performance Metrics
 

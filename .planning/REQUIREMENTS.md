@@ -83,15 +83,15 @@ v1.0에서 v2로 연기했던 `DEPLOY-V2-01`(무료 호스팅 데모 배포)을 
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ADMINUI-01..06 | Phase [TBD] | Pending |
-| CARD-01..02 | Phase [TBD] | Pending |
-| REALDATA-01..03 | Phase [TBD] | Pending |
-| DEPLOY-01..04 | Phase [TBD] | Pending |
+| ADMINUI-01..06 | Phase 15 | Pending |
+| CARD-01..02 | Phase 16 | Pending |
+| REALDATA-01..03 | Phase 17 | Pending |
+| DEPLOY-01..04 | Phase 18 | Pending |
 
 **Coverage:**
 - v1.3 requirements: 15 total
-- Mapped to phases: 0 (로드맵 생성 대기)
-- Unmapped: 15 ⚠️ (로드맵에서 채움)
+- Mapped to phases: 15
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-07-01*
