@@ -1,33 +1,33 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.2
-milestone_name: Item Visual/Data Enrichment
-status: milestone_complete
-stopped_at: v1.2 shipped (Phases 12–14, 6/6 plans, 21/21 요구사항, UAT 8/8 + 보안 통과)
-last_updated: "2026-06-30T07:15:00.000Z"
-last_activity: 2026-06-30 -- v1.2 마일스톤 마감(shipped) — 아카이브 + git tag v1.2
+milestone: v1.3
+milestone_name: 관리자 콘솔 + 실데이터 라이브 배포
+status: planning
+last_updated: "2026-07-01T06:39:25.095Z"
+last_activity: 2026-07-01
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 6
-  completed_plans: 6
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-30 after v1.2 milestone)
+See: .planning/PROJECT.md (updated 2026-07-01 for v1.3 milestone)
 
 **Core value:** 레이트리밋이 걸린 외부 마켓 API에서 시세를 빠짐없이 수집해 시계열로 쌓고, 캐시로 안정적으로 서빙한다
-**Current focus:** v1.0/v1.1/v1.2 전부 shipped. **다음 마일스톤 미정** — `/gsd-new-milestone`으로 정의(Phase 15부터 연속 번호). v2 후보: 그룹 필터(FILTER-V2)·등급 색상/정렬(GRADE-V2)·관측성(OPS-V2)·라이브 배포(DEPLOY-V2)·event-impact 고도화(IMPACT-V2)·소스 확장(SRC-V2)·매직넘버 외부화(CFG-V2).
+**Current focus:** **v1.3 관리자 콘솔 + 실데이터 라이브 배포** (진행 중, Phase 15부터). ① 관리자 콘솔 UI(시크릿 로그인 + 이벤트/워치리스트/수집 모니터링) ② 대시보드 카드 개선(고유번호 제거 + 타임라인 딥링크) ③ 실데이터 전환(seed→실수집, 조기 배포 후 축적) ④ 무료 라이브 배포 + 사전 보안 검증. 요구사항·로드맵 정의 진행 중.
 
 ## Current Position
 
-Milestone: **v1.2 Item Visual/Data Enrichment — ✅ SHIPPED 2026-06-30** (Phases 12–14, 6/6 plans, 21/21 요구사항). [archive](./milestones/v1.2-ROADMAP.md) · git tag v1.2
-Status: 마일스톤 마감 완료 — ROADMAP/REQUIREMENTS 아카이브, PROJECT.md 진화, RETROSPECTIVE 갱신. 다음: `/gsd-new-milestone`.
-Last activity: 2026-06-30 -- v1.2 마일스톤 마감(shipped) + git tag v1.2
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-07-01 — Milestone v1.3 started
 
 ## Performance Metrics
 

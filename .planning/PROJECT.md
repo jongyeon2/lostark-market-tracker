@@ -8,11 +8,19 @@
 
 **레이트리밋이 걸린 외부 마켓 API에서 시세를 빠짐없이 수집해 시계열로 쌓고, 캐시로 안정적으로 서빙한다.** 다른 모든 게 실패해도 이 수집·저장·서빙 파이프라인은 동작해야 한다. event-impact(이벤트 상관)는 그 위에 얹는 헤드라인 기능이며, 수집 신뢰성이 흔들리면 상관 분석은 나쁜 데이터 위 장식 수학이 된다.
 
-## Next Milestone
+## Current Milestone: v1.3 관리자 콘솔 + 실데이터 라이브 배포
 
-**v1.2 Item Visual/Data Enrichment 마감(2026-06-30).** 다음 마일스톤은 아직 미정 — `/gsd-new-milestone`으로 정의한다(Phase 15부터 연속 번호).
+**Goal:** 읽기전용 seed 데모를 → 실데이터로 수집·서빙되고, 관리자가 이벤트·워치리스트를 직접 관리하며, 무료로 라이브 배포된 데모로 승격한다(배포 직전 보안 검증 게이트 통과). Phase 15부터 연속 번호.
 
-**v2 후보(보류):** 그룹 필터 토글(FILTER-V2) · 등급별 색상/정렬 정교화(GRADE-V2) · 관측성(OPS-V2, Micrometer) · 라이브 배포(DEPLOY-V2) · event-impact 고도화(IMPACT-V2) · 경매장/보석 소스 확장(SRC-V2) · 매직넘버 외부화(CFG-V2) · 프론트 고도화(FE-V2: 관리자 쓰기 UI·실시간 갱신·다크모드/i18n·정적 서빙).
+**Target features:**
+- **관리자 콘솔 UI** (먼저) — 시크릿 입력 로그인 게이트 + 이벤트 CRUD + 워치리스트 품목 관리 + 수집 상태 모니터링. 기존 `/api/admin/*` 소비, 백엔드 인증 무변경.
+- **대시보드 카드 개선** — 물품 고유 번호 제거(아이콘·이름·골드 가격·수집 시각 유지) + 카드 클릭 시 해당 품목 타임라인으로 딥링크 이동(품목 pre-select).
+- **실데이터 전환** — 프론트 데모를 seed→실수집 데이터 기준으로(seed 프로파일은 로컬/테스트 전용 유지). 조기 배포로 시계열·event-impact를 시간에 걸쳐 축적.
+- **무료 라이브 배포 + 보안 검증** (마지막) — 무료 타깃 리서치 결정 + 프론트 서빙 방식(정적/단일 출처, 보류됐던 DEMO-03 재활성 후보) + 배포 직전 보안 게이트(공개 URL 관리자 쓰기·API 키 노출·CORS·DB/Redis 포트·HTTPS).
+
+**핵심 결정 (new-milestone):** 관리자 인증 = 기존 X-Admin-Secret 재사용(시크릿 입력 로그인, 백엔드 인증 무변경) · 데모 = 실데이터만(조기 배포 후 축적, seed는 로컬/테스트 전용) · 무료 배포 타깃 = 배포 phase 착수 시 리서치로 결정.
+
+**v2 후보(잔여 보류):** 그룹 필터 토글(FILTER-V2) · 등급별 색상/정렬 정교화(GRADE-V2) · 관측성(OPS-V2, Micrometer) · event-impact 고도화(IMPACT-V2) · 경매장/보석 소스 확장(SRC-V2) · 매직넘버 외부화(CFG-V2) · 프론트 잔여 고도화(FE-V2: 실시간 갱신·다크모드/i18n).
 
 **불변 제약(상시):** 프론트에서 Lostark API 직접 호출 금지 · API key는 백엔드 env에서만 · 실키를 코드/문서/로그/커밋에 미기재 · 수집/캐시/event-impact 변경은 Core Value(수집 신뢰성) 가드 하에만.
 
@@ -46,11 +54,15 @@
 
 ### Active
 
-<!-- 다음 마일스톤 미정 — /gsd-new-milestone으로 정의(Phase 15부터). -->
+<!-- v1.3 관리자 콘솔 + 실데이터 라이브 배포 — REQUIREMENTS.md에서 REQ-ID로 정의(Phase 15부터). -->
 
-**다음 마일스톤 미정.** v1.0/v1.1/v1.2 전부 shipped. 다음 활성 범위·요구사항은 `/gsd-new-milestone`에서 새 REQUIREMENTS.md로 정의한다.
+**v1.3 관리자 콘솔 + 실데이터 라이브 배포** (진행 중). 요구사항은 이 마일스톤의 `REQUIREMENTS.md`에 REQ-ID로 정의된다:
+- 관리자 콘솔 UI — 시크릿 입력 로그인 + 이벤트 CRUD + 워치리스트 품목 관리 + 수집 상태 모니터링
+- 대시보드 카드 개선 — 물품 고유 번호 제거 + 카드 클릭 시 품목 타임라인 딥링크
+- 실데이터 전환 — 프론트 데모를 seed→실수집 데이터 기준으로(조기 배포 후 축적)
+- 무료 라이브 배포 + 사전 보안 검증 게이트
 
-**v2 백로그(보류):** 그룹 필터 토글(FILTER-V2-01) · 등급별 색상/정렬 정교화(GRADE-V2-01) · 관측성(OPS-V2) · 데모 배포(DEPLOY-V2) · event-impact 고도화(IMPACT-V2) · 소스 확장(SRC-V2) · 매직넘버 외부화(CFG-V2) · 프론트 고도화(FE-V2-01..03) · DEMO-03 정적 서빙(FE-V2-04).
+**v2 백로그(보류):** 그룹 필터 토글(FILTER-V2-01) · 등급별 색상/정렬 정교화(GRADE-V2-01) · 관측성(OPS-V2) · event-impact 고도화(IMPACT-V2) · 소스 확장(SRC-V2) · 매직넘버 외부화(CFG-V2) · 프론트 잔여 고도화(FE-V2: 실시간 갱신·다크모드/i18n).
 
 ### Out of Scope
 
@@ -127,4 +139,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-30 — v1.2 Item Visual/Data Enrichment 마일스톤 마감(shipped). 다음 마일스톤 미정 (`/gsd-new-milestone`, Phase 15부터).*
+*Last updated: 2026-07-01 — v1.3 관리자 콘솔 + 실데이터 라이브 배포 마일스톤 착수 (`/gsd-new-milestone`). Current Milestone/Active 갱신; 요구사항·로드맵 정의 진행 (Phase 15부터).*
