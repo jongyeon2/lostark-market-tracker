@@ -1,17 +1,22 @@
 # Lostark Tracker — 프론트 데모 (브라우저)
 
-백엔드 read API를 소비하는 **데스크톱 우선 React 데모**입니다. 3화면(Dashboard / Item Timeline / Event Impact)을 **seed 백엔드 + `npm run dev`만으로** 비어있지 않게 재현할 수 있습니다. 백엔드는 **0줄도 바뀌지 않습니다** — 브라우저가 보는 `/api/*`는 Vite dev 프록시가 같은 출처처럼 백엔드로 넘깁니다.
+백엔드 read API를 소비하는 **데스크톱 우선 React 데모**입니다. 3화면(Dashboard / Item Timeline / Event Impact)을 **`seed` 백엔드 + `npm run dev`만으로** 비어있지 않게 재현할 수 있습니다. 백엔드는 **0줄도 바뀌지 않습니다** — 브라우저가 보는 `/api/*`는 Vite dev 프록시가 같은 출처처럼 백엔드로 넘깁니다.
 
-> 데이터는 **seed 합성 데이터**입니다(실데이터 아님). 변화율은 **시점 상관**이며 인과가 아닙니다.
+> **데이터 출처는 백엔드 프로파일이 정합니다** — `seed`는 **로컬/테스트 전용 합성 데이터**(API 키 없이 즉시 재현), `dev`는 **실수집 실데이터**(라이브 데모의 실체)입니다. 프론트는 어느 쪽이든 **같은 read API/DTO만** 소비하므로 화면 코드는 동일합니다. 변화율은 **시점 상관**이며 인과가 아닙니다.
 
-## 사전조건 — seed 백엔드 기동
+## 사전조건 — 백엔드 기동 (`seed` 즉시 재현 / `dev` 실수집)
 
-루트 [`README.md`](../README.md)의 "로컬 실행"대로 인프라(Postgres 16 + Redis 7)를 띄우고 **seed 프로파일**로 백엔드를 실행합니다. seed = 합성 8일치 시세 + 데모 이벤트라 **API 키가 필요 없습니다**.
+루트 [`README.md`](../README.md)의 "실행 방법"대로 인프라(Postgres 16 + Redis 7)를 띄우고 백엔드를 실행합니다. **즉시 재현**은 `seed` 프로파일(합성 8일치 시세 + 데모 이벤트, **API 키 불필요** — 로컬/테스트 전용), **라이브 실체**는 `dev` 프로파일(`.env`의 `LOSTARK_API_KEY`로 실수집)입니다. 프론트는 어느 쪽이든 같은 read API를 봅니다.
 
 ```bash
 # 레포 루트에서
 docker compose up -d
+
+# 즉시 재현 — seed(로컬/테스트 전용 합성)
 ./gradlew bootRun --args='--spring.profiles.active=seed'
+
+# 또는 라이브 실체 — dev(실키 실수집; .env 의 LOSTARK_API_KEY 로드)
+./gradlew bootRun --args='--spring.profiles.active=dev'
 ```
 
 ## 실행
@@ -38,7 +43,7 @@ npm run dev          # Vite dev 서버 → http://localhost:5173
 
 ![Event Impact 화면 — 이벤트 전후 변화율 결과 표와 상관≠인과 안내](docs/screenshots/event-impact.png)
 
-> 스크린샷은 레포에 커밋된 상대경로 PNG입니다([캡처 프로토콜](docs/screenshots/README.md)). seed 화면이라 실데이터가 아닙니다.
+> 스크린샷은 레포에 커밋된 상대경로 PNG입니다([캡처 프로토콜](docs/screenshots/README.md)). 캡처는 `seed`(합성) 화면 기준이며, `dev` 실수집에서도 같은 화면 구조로 실데이터가 표시됩니다.
 
 ## 아이콘 + 역할 배지
 
@@ -74,6 +79,6 @@ VITE_API_TARGET=http://localhost:9090 npm run dev   # 백엔드를 다른 포트
 ## 정직성 노트
 
 - **시각:** 화면 표시는 **KST**, 정렬·계산은 **UTC** 인스턴트 기준입니다(off-by-9h 가드, Phase 7).
-- **데이터:** seed는 **합성 데이터**이며 실데이터가 아닙니다.
+- **데이터:** `seed`는 **합성 데이터**(로컬/테스트 전용, 실데이터 아님)이고, `dev`는 **실수집 실데이터**(라이브 데모의 실체)입니다 — 프론트는 출처와 무관하게 같은 백엔드 DTO만 소비합니다. seed가 '합성'임을 숨기지 않습니다.
 - **변화율:** event-impact의 변화율은 **상관**이지 인과가 아닙니다(이벤트가 가격을 올렸다고 단정하지 않음). 앵커가 희소/stale하면 `insufficient_data`로 정직하게 표시합니다.
 - **정적 서빙(단일 출처 패키징):** Spring `resources/static`으로 묶는 단일 출처 정적 서빙은 **v2 후보**입니다(범위 결정 — 못 해서가 아님). v1 데모 재현은 "seed 백엔드 + `npm run dev`"로 충분합니다.
