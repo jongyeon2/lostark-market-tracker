@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: 관리자 콘솔 + 실데이터 라이브 배포
-status: executing
-stopped_at: Phase 16 context gathered
-last_updated: "2026-07-03T07:27:37.044Z"
-last_activity: 2026-07-03 -- Phase 16 planning complete
+status: ready_to_plan
+stopped_at: Phase 16 complete (1/1) — ready to discuss Phase 17
+last_updated: 2026-07-03T07:36:48.508Z
+last_activity: 2026-07-03 -- Phase 16 complete (1/1 plans, verified PASS)
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 5
-  completed_plans: 4
-  percent: 25
+  completed_plans: 5
+  percent: 50
 ---
 
 # Project State
@@ -21,20 +21,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-01 for v1.3 milestone)
 
 **Core value:** 레이트리밋이 걸린 외부 마켓 API에서 시세를 빠짐없이 수집해 시계열로 쌓고, 캐시로 안정적으로 서빙한다
-**Current focus:** Phase 16 — 대시보드 카드 개선
+**Current focus:** Phase 17 — 실데이터 전환
 
 ## Current Position
 
-Phase: 16
+Phase: 17
 Plan: Not started
-Status: Ready to execute
-Last activity: 2026-07-03 -- Phase 16 planning complete
+Status: Ready to plan
+Last activity: 2026-07-03
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 23
+- Total plans completed: 24
 - Average duration: —
 - Total execution time: 0 hours
 
@@ -49,6 +49,7 @@ Last activity: 2026-07-03 -- Phase 16 planning complete
 | 09 | 5 | - | - |
 | 10 | 4 | - | - |
 | 15 | 4 | - | - |
+| 16 | 1 | - | - |
 
 **Recent Trend:**
 
