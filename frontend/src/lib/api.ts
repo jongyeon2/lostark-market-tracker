@@ -1,5 +1,6 @@
 import {
   collectionHealthSchema,
+  trackedItemSchema,
   trackedItemsSchema,
   latestPriceSchema,
   timelineSchema,
@@ -7,11 +8,13 @@ import {
   gameEventResponseSchema,
   gameEventsSchema,
   type CollectionHealth,
+  type TrackedItem,
   type TrackedItems,
   type LatestPrice,
   type Timeline,
   type EventImpact,
   type AdminEventRequest,
+  type AdminItemRequest,
   type GameEventResponse,
   type GameEvents,
 } from '@/lib/schemas'
@@ -153,4 +156,23 @@ export async function replaceAdminEvent(
 export async function deleteAdminEvent(id: number): Promise<void> {
   // 204 No Content — adminRequest resolves undefined; nothing to parse.
   await adminRequest(`/api/admin/events/${id}`, { method: 'DELETE' })
+}
+
+// ---- Admin watchlist-item CRUD (Phase 15, ADMINUI-04) ----
+// Consumes the 15-01 read-only GET /api/admin/items (active+inactive, D-13). The response reuses the
+// existing trackedItemSchema boundary (no new schema). A 409 (active duplicate) surfaces as ApiError
+// so the form can special-case it.
+
+export async function getAdminItems(): Promise<TrackedItems> {
+  return trackedItemsSchema.parse(await adminRequest('/api/admin/items', { method: 'GET' }))
+}
+
+export async function addAdminItem(body: AdminItemRequest): Promise<TrackedItem> {
+  // POST doubles as create (201) and reactivate (200): the backend branches on externalItemId (D-13).
+  return trackedItemSchema.parse(await adminRequest('/api/admin/items', { method: 'POST', body }))
+}
+
+export async function deactivateAdminItem(id: number): Promise<void> {
+  // 204 soft-delete (active=false; row + price history preserved, backend D-03).
+  await adminRequest(`/api/admin/items/${id}`, { method: 'DELETE' })
 }

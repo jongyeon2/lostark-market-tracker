@@ -10,9 +10,12 @@ import {
   createAdminEvent,
   replaceAdminEvent,
   deleteAdminEvent,
+  getAdminItems,
+  addAdminItem,
+  deactivateAdminItem,
 } from '@/lib/api'
 import { queryClient } from '@/lib/queryClient'
-import type { AdminEventRequest } from '@/lib/schemas'
+import type { AdminEventRequest, AdminItemRequest, TrackedItem } from '@/lib/schemas'
 
 /*
   One typed React Query hook per endpoint (D-01). Each wraps the api.ts fn (which validates
@@ -80,5 +83,48 @@ export function useDeleteEvent() {
   return useMutation({
     mutationFn: (id: number) => deleteAdminEvent(id),
     onSuccess: invalidateAdminEvents,
+  })
+}
+
+/*
+  Admin watchlist-item query + mutations (ADMINUI-04). Consumes 15-01's GET /api/admin/items
+  (active+inactive, D-13). Reactivate has no dedicated endpoint — it re-POSTs the item's
+  externalItemId so the backend reactivates the soft-deleted row (200, D-13). Each mutation
+  invalidates ['admin-items'] on success (D-10).
+*/
+const ADMIN_ITEMS_KEY = ['admin-items'] as const
+
+export function useAdminItems() {
+  return useQuery({ queryKey: ADMIN_ITEMS_KEY, queryFn: getAdminItems })
+}
+
+function invalidateAdminItems() {
+  return queryClient.invalidateQueries({ queryKey: ADMIN_ITEMS_KEY })
+}
+
+export function useAddItem() {
+  return useMutation({
+    mutationFn: (body: AdminItemRequest) => addAdminItem(body),
+    onSuccess: invalidateAdminItems,
+  })
+}
+
+export function useDeactivateItem() {
+  return useMutation({
+    mutationFn: (id: number) => deactivateAdminItem(id),
+    onSuccess: invalidateAdminItems,
+  })
+}
+
+export function useReactivateItem() {
+  return useMutation({
+    // Reactivate = re-POST the same externalItemId → backend reactivates the soft-deleted row (D-13).
+    mutationFn: (item: TrackedItem) =>
+      addAdminItem({
+        externalItemId: item.externalItemId,
+        displayName: item.displayName,
+        category: item.category,
+      }),
+    onSuccess: invalidateAdminItems,
   })
 }

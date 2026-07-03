@@ -152,3 +152,13 @@ export type AdminEventRequest = {
   occurredAt: string
   description?: string
 }
+
+// POST /api/admin/items body (ADMINUI-04) — create OR reactivate: the backend branches on
+// externalItemId (same id → reactivate a soft-deleted row, D-13). id/active are entity-controlled
+// (bound as TrackedItemRequest, never the entity). The response reuses trackedItemSchema/
+// trackedItemsSchema — no new response schema.
+export type AdminItemRequest = {
+  externalItemId: string
+  displayName: string
+  category?: string
+}
