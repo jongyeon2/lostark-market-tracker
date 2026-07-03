@@ -13,8 +13,12 @@ interface AsyncBoundaryProps {
   isEmpty?: boolean
   /** Re-run the query — forwarded to ErrorState's '다시 불러오기' CTA (D-02 retry loop). */
   onRetry?: () => void
+  /** Optional per-screen override of the EmptyState heading line (defaults to the shared copy). */
+  emptyHeading?: string
   /** Optional per-screen override of the EmptyState body line. */
   emptyBody?: string
+  /** Optional per-screen override of the ErrorState message (defaults to the shared read-surface copy). */
+  errorMessage?: string
   /** The success view — screens write ONLY this path. */
   children: ReactNode
 }
@@ -32,11 +36,14 @@ export function AsyncBoundary({
   status,
   isEmpty = false,
   onRetry,
+  emptyHeading,
   emptyBody,
+  errorMessage,
   children,
 }: AsyncBoundaryProps) {
   if (status === 'pending') return <LoadingState />
-  if (status === 'error') return <ErrorState onRetry={onRetry ?? (() => {})} />
-  if (isEmpty) return <EmptyState body={emptyBody} />
+  // undefined heading/body/message fall through to ErrorState/EmptyState defaults (public screens unchanged).
+  if (status === 'error') return <ErrorState onRetry={onRetry ?? (() => {})} message={errorMessage} />
+  if (isEmpty) return <EmptyState heading={emptyHeading} body={emptyBody} />
   return <>{children}</>
 }
