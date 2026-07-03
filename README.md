@@ -46,7 +46,7 @@
 
 ## 🖼 데모
 
-라이브 배포는 없습니다. **API 키 없이 seed 모드로 로컬에서 그대로 재현**할 수 있고(아래 "실행 방법"), 같은 read API를 소비하는 **데스크톱 우선 React 데모(3화면)** 도 띄울 수 있습니다.
+**라이브 데모의 실체는 `dev` 프로파일 실수집입니다** — `.env`의 `LOSTARK_API_KEY`로 로스트아크 거래소 Open API를 실제 호출해 `collection_run`으로 시세를 쌓은 **실데이터**입니다. 공개 배포 URL은 아직 없습니다. 그와 별개로, **API 키 없이 `seed` 모드로 로컬/테스트에서 그대로 재현**할 수 있고(아래 "실행 방법", 합성 8일치 데이터 — 리뷰어 진입장벽 0), 어느 쪽이든 같은 read API를 소비하는 **데스크톱 우선 React 데모(3화면)** 를 띄울 수 있습니다.
 
 | Dashboard | Item Timeline | Event Impact |
 |-----------|---------------|--------------|
@@ -76,7 +76,9 @@
 
 **사전 요구:** JDK 21, Docker (Testcontainers/compose용). *(프론트 데모까지 보려면 Node.js)*
 
-### 한눈에 — 3단계 재현 (API 키 불필요)
+### 한눈에 — 3단계 재현 (`seed` · API 키 불필요)
+
+> **`seed` = 로컬/테스트 전용 · 합성 8일치 데이터.** 리뷰어가 API 키 없이 즉시 재현하는 트랙입니다 — '합성'임을 숨기지 않습니다. 라이브 데모의 실체(실수집)는 아래 `dev` 프로파일입니다.
 
 ```bash
 # 1) 인프라 기동 (Postgres 16 + Redis 7)
@@ -90,15 +92,16 @@ docker compose up -d
 curl "http://localhost:8080/api/items/1/event-impact?window=24"
 ```
 
-### 두 가지 실행 프로파일
+### 두 가지 실행 프로파일 — `dev`(라이브 실체) vs `seed`(로컬/테스트 합성)
 
 ```bash
-# (a) dev 프로파일 — 실시간 수집. .env 의 LOSTARK_API_KEY 로 실제 API 를 호출
-#     bootRun 이 .env 를 자동 로드하므로(build.gradle), .env 에 값을 채우고 아래만 실행하면 됩니다.
+# (a) dev 프로파일 — 라이브 데모의 실체. 실시간 수집: .env 의 LOSTARK_API_KEY 로 실제 거래소 API 를
+#     호출해 collection_run 으로 실데이터를 쌓습니다. bootRun 이 .env 를 자동 로드하므로(build.gradle),
+#     .env 에 값을 채우고 아래만 실행하면 됩니다.
 ./gradlew bootRun --args='--spring.profiles.active=dev'
 #     (셸 환경변수가 .env 보다 우선 — 일회성이면 `LOSTARK_API_KEY=<jwt> ./gradlew bootRun ...` 도 가능)
 
-# (b) seed 프로파일 — 합성 8일치 시세 + 데모 이벤트를 채움. API 키 불필요 (데모/리뷰용)
+# (b) seed 프로파일 — 로컬/테스트 전용 합성 8일치 시세 + 데모 이벤트. API 키 불필요 (즉시 재현·리뷰용, 합성 데이터)
 ./gradlew bootRun --args='--spring.profiles.active=seed'
 ```
 
@@ -109,11 +112,11 @@ curl "http://localhost:8080/api/items/1/event-impact?window=24"
 
 curl이 아니라 브라우저로 보고 싶다면:
 
-1. **seed 백엔드 기동** — 위 seed 프로파일(`./gradlew bootRun --args='--spring.profiles.active=seed'`, API 키 불필요).
+1. **백엔드 기동** — 즉시 재현은 `seed` 프로파일(`--spring.profiles.active=seed`, API 키 불필요·합성), 라이브 실체를 보려면 `dev` 프로파일(`--spring.profiles.active=dev`, `.env`의 `LOSTARK_API_KEY`로 실수집).
 2. **프론트 기동** — `cd frontend && npm install && npm run dev` → http://localhost:5173
 3. **3화면** — Dashboard(`/`) · Item Timeline(`/timeline`) · Event Impact(`/impact`)
 
-자세한 실행·Vite 프록시 설명·화면별 안내는 [`frontend/README`](frontend/README.md)에 일원화돼 있습니다(단일 진실 원천). **curl로도, 브라우저로도 동일한 read API** 를 보며, 데이터는 seed 합성 데이터입니다.
+자세한 실행·Vite 프록시 설명·화면별 안내는 [`frontend/README`](frontend/README.md)에 일원화돼 있습니다(단일 진실 원천). **curl로도, 브라우저로도 동일한 read API** 를 보며, 데이터 출처는 프로파일이 정합니다 — `seed`는 합성(로컬/테스트), `dev`는 실수집 실데이터(라이브 실체)입니다.
 
 ---
 ---
