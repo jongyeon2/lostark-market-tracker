@@ -76,16 +76,17 @@ function ImpactResults({
 
   const { events } = impact.data
 
-  // D-11: 200 + empty events (admin registered 0 events) — distinct from per-row insufficient. The
-  // shared EmptyState's heading is fixed ("표시할 데이터가 아직 없어요"); the 10-UI-SPEC Copywriting
-  // Contract requires the heading "등록된 이벤트가 없어요", so we render the exact contract copy in an
-  // EmptyState-shaped block rather than double up headings.
+  // D-11 / 17-01 D-04 Impact: 200 + empty events (admin registered 0 events) — distinct from per-row
+  // insufficient_data (handled inside EventImpactTable/Cards, untouched). The 10-UI-SPEC heading
+  // "등록된 이벤트가 없어요" is kept; the body is reframed onto the honest "전후 비교엔 더 많은
+  // 데이터·이벤트가 필요" framing (Impact is empty mainly because admin events are absent, so the
+  // collection-health judgment is only a framing input here — the 400/404/network branches stay as-is).
   if (events.length === 0) {
     return (
       <div className="flex flex-col items-center gap-4 py-16 text-center">
         <h2 className="text-xl font-semibold">등록된 이벤트가 없어요</h2>
         <p className="text-muted-foreground max-w-md text-base">
-          이 품목에 연결된 게임 이벤트가 아직 없습니다. 다른 품목을 선택하거나 관리자가 이벤트를 등록하면 표시됩니다.
+          이벤트 전후 가격 비교에는 더 많은 데이터·이벤트가 필요합니다. 관리자가 게임 이벤트를 등록하고 수집이 쌓이면 여기에 전후 변화가 표시됩니다.
         </p>
       </div>
     )

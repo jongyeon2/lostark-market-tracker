@@ -1,7 +1,8 @@
 import { useEffect } from 'react'
 import { PackageSearch, TriangleAlert } from 'lucide-react'
 
-import { useItems, useTimeline } from '@/lib/queries'
+import { useCollectionHealth, useItems, useTimeline } from '@/lib/queries'
+import { deriveCollectionEmptyKind } from '@/lib/collectionEmptyState'
 import { ApiError } from '@/lib/api'
 import { ItemSelect } from '@/features/_shared/ItemSelect'
 import { LatestPriceCard } from '@/features/_shared/LatestPriceCard'
@@ -41,6 +42,10 @@ function ChartArea({
   onResetRange: () => void
 }) {
   const timeline = useTimeline(itemId, from, to)
+  // 17-01 (D-04 Timeline): shared health hook (queryKey dedupe → no extra network) drives whether the
+  // 200-empty range reads as '이 품목 시계열 수집 중'(pipeline alive) vs no-data. The range recovery
+  // CTA and the 400/404/network branches below are untouched (we only reframe the snapshots-empty copy).
+  const { data: health } = useCollectionHealth()
 
   if (timeline.status === 'pending') {
     return (
@@ -83,11 +88,18 @@ function ChartArea({
   const { snapshots, events } = timeline.data
 
   if (snapshots.length === 0) {
+    // 17-01 D-04 Timeline: reframe the 200-empty range with collection state, keeping the '최근 30일'
+    // recovery CTA. 'collecting' → the collector is alive and this item's series is still filling up.
+    const collecting = deriveCollectionEmptyKind(health) === 'collecting'
     return (
       <div className="flex flex-col items-center gap-4 py-16 text-center">
-        <h2 className="text-xl font-semibold">이 기간에는 시세 데이터가 없어요</h2>
+        <h2 className="text-xl font-semibold">
+          {collecting ? '이 품목 시계열 수집 중' : '이 기간에는 표시할 시세가 없어요'}
+        </h2>
         <p className="text-muted-foreground max-w-md text-base">
-          선택한 기간에 수집된 가격이 없습니다. 기간을 넓히거나 아래 "최근 30일"을 눌러보세요.
+          {collecting
+            ? '수집기가 이 품목의 시세를 모으는 중입니다. 잠시 후 다시 확인하거나, 아래 "최근 30일"로 기간을 넓혀보세요.'
+            : '선택한 기간에 수집된 가격이 없습니다. 기간을 넓히거나 아래 "최근 30일"을 눌러보세요.'}
         </p>
         <Button onClick={onResetRange}>최근 30일 보기</Button>
       </div>
