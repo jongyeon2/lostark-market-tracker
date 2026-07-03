@@ -33,7 +33,7 @@
 
 **현재 코드 상태:** 백엔드 Java ~5,790 LOC(main 67 + test 23 파일) — v1.2는 백엔드 핵심 src 0줄(enrichment는 nullable 컬럼·엔티티·DTO·시더만). 프론트 TypeScript ~2,800 LOC(`frontend/src`) — v1.2에서 공용 `<ItemIcon>`/`<RoleBadge>`/roleGroup + enrichment 4 zod 스키마 추가, 신규 npm 의존 0. Spring Boot 3.4 / Java 21 / PostgreSQL 16 (Flyway V1–V4) / Redis 7 + Vite 6 / React 19 / Tailwind v4 / Recharts / shadcn(slate·new-york) / zod / TanStack Query. 전체 Testcontainers 스위트 그린.
 
-**현재 상태:** v1.2 마감(2026-06-30) — v1.0/v1.1/v1.2 전부 shipped. 다음 마일스톤 미정(`/gsd-new-milestone`으로 정의, Phase 15부터). 보류 중 v2 후보는 위 "Next Milestone" 참조.
+**현재 상태:** v1.3 진행 중 — Phase 15(관리자 콘솔 UI)·Phase 16(대시보드 카드 개선) 완료(각 검증 PASS), 남은 Phase 17(실데이터 전환)·18(무료 배포+보안). v1.0/v1.1/v1.2는 shipped. 보류 중 v2 후보는 위 "Next Milestone" 참조.
 
 ## Requirements
 
@@ -139,4 +139,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-01 — v1.3 관리자 콘솔 + 실데이터 라이브 배포 마일스톤 착수 (`/gsd-new-milestone`). Current Milestone/Active 갱신; 요구사항·로드맵 정의 진행 (Phase 15부터).*
+*Last updated: 2026-07-03 — Phase 16(대시보드 카드 개선) 완료 후 진화. Current State에 v1.3 진행 상황(Phase 15·16 완료) 반영.*
