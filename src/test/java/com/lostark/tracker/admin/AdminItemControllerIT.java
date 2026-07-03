@@ -137,6 +137,37 @@ class AdminItemControllerIT extends PostgresRedisContainers {
         assertContract(resp, HttpStatus.BAD_REQUEST);
     }
 
+    @Test
+    void getItemsWithSecretReturnsActiveAndInactive() {
+        // Seed one active item...
+        post(new TrackedItemRequest("66102201", "활성 품목", "50010"));
+        // ...and one soft-deleted (inactive) item — the public GET /api/items would hide this one (D-12).
+        Long inactiveId = post(new TrackedItemRequest("66102202", "비활성 품목", "50010")).getBody().id();
+        delete(inactiveId);
+
+        ResponseEntity<TrackedItemResponse[]> resp = rest.exchange(
+                "/api/admin/items", HttpMethod.GET, AdminAuth.entity(adminSecret), TrackedItemResponse[].class);
+
+        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getBody()).isNotNull();
+        // The admin list is the reactivation source of truth: it carries BOTH the active and the
+        // soft-deleted row, each with its correct `active` flag (D-13, ADMINUI-04).
+        java.util.Map<String, Boolean> activeByExternalId = java.util.Arrays.stream(resp.getBody())
+                .collect(java.util.stream.Collectors.toMap(
+                        TrackedItemResponse::externalItemId, TrackedItemResponse::active));
+        assertThat(activeByExternalId).containsEntry("66102201", true);
+        assertThat(activeByExternalId).containsEntry("66102202", false);
+    }
+
+    @Test
+    void getItemsWithoutSecretReturns401Contract() {
+        // No X-Admin-Secret header — the /api/admin/** gate 401s before any item leaks.
+        ResponseEntity<ApiErrorResponse> resp =
+                rest.getForEntity("/api/admin/items", ApiErrorResponse.class);
+
+        assertContract(resp, HttpStatus.UNAUTHORIZED);
+    }
+
     private ResponseEntity<TrackedItemResponse> post(TrackedItemRequest request) {
         return rest.exchange(
                 "/api/admin/items", HttpMethod.POST, AdminAuth.entity(request, adminSecret), TrackedItemResponse.class);
