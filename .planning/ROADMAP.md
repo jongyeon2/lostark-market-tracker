@@ -104,7 +104,7 @@
 | 1–6 (Foundation → Distribution) | v1.0 | 15/15 | Complete | 2026-06-25 |
 | 7–11 (Frontend Foundation → Demo Surface) | v1.1 | 19/19 | Complete | 2026-06-29 |
 | 12–14 (API Spike → Frontend Icons) | v1.2 | 6/6 | Complete | 2026-06-30 |
-| 15. 관리자 콘솔 UI | v1.3 | 0/? | Planned | — |
+| 15. 관리자 콘솔 UI | v1.3 | 4/4 | Complete    | 2026-07-03 |
 | 16. 대시보드 카드 개선 | v1.3 | 0/? | Planned | — |
 | 17. 실데이터 전환 | v1.3 | 0/? | Planned | — |
 | 18. 무료 라이브 배포 + 보안 검증 | v1.3 | 0/? | Planned | — |
