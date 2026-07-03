@@ -7,6 +7,9 @@ import com.lostark.tracker.web.error.DuplicateResourceException;
 import com.lostark.tracker.web.error.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
+import java.util.List;
+
 /**
  * Admin write service for watchlist items (ADMIN-02). {@code create} branches on
  * {@code findByExternalItemId} (D-05): active duplicate -> 409, soft-deleted -> reactivate (200),
@@ -25,6 +28,21 @@ public class AdminItemService {
 
     /** Outcome of an item create: the persisted item plus whether it was a fresh insert (201) or a reactivation (200). */
     public record UpsertResult(TrackedItem item, boolean created) {
+    }
+
+    /**
+     * Read-only source of truth for the admin console watchlist (ADMINUI-04, D-13): EVERY tracked item,
+     * active AND soft-deleted (inactive), unlike the public {@code findByActiveTrue} (active-only, D-12).
+     * Returned in a deterministic order — active items first, then by {@code displayName} ascending — so
+     * the console renders a stable list across refreshes rather than JPA's incidental insertion order.
+     * Reuses the inherited {@code findAll()} + an in-memory sort: no write, no new query, no cache/
+     * collection/event-impact touch (Core Value guard, D-14).
+     */
+    public List<TrackedItem> listAll() {
+        return trackedItemRepository.findAll().stream()
+                .sorted(Comparator.comparing(TrackedItem::isActive).reversed()
+                        .thenComparing(TrackedItem::getDisplayName, String.CASE_INSENSITIVE_ORDER))
+                .toList();
     }
 
     public UpsertResult create(TrackedItemRequest request) {

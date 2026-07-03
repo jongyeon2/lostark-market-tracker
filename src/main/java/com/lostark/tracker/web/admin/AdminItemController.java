@@ -8,11 +8,14 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * Admin write surface for watchlist items behind the (04-02) shared-secret gate (ADMIN-02, D-04):
@@ -28,6 +31,11 @@ public class AdminItemController {
 
     public AdminItemController(AdminItemService adminItemService) {
         this.adminItemService = adminItemService;
+    }
+
+    @GetMapping
+    public List<TrackedItemResponse> list() {
+        return adminItemService.listAll().stream().map(TrackedItemResponse::from).toList();
     }
 
     @PostMapping
