@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 
 import {
   getCollectionHealth,
@@ -6,7 +6,13 @@ import {
   getLatestPrice,
   getTimeline,
   getEventImpact,
+  getAdminEvents,
+  createAdminEvent,
+  replaceAdminEvent,
+  deleteAdminEvent,
 } from '@/lib/api'
+import { queryClient } from '@/lib/queryClient'
+import type { AdminEventRequest } from '@/lib/schemas'
 
 /*
   One typed React Query hook per endpoint (D-01). Each wraps the api.ts fn (which validates
@@ -38,5 +44,41 @@ export function useEventImpact(id: number, window: number) {
   return useQuery({
     queryKey: ['event-impact', id, window],
     queryFn: () => getEventImpact(id, window),
+  })
+}
+
+/*
+  Admin game-event query + the project's FIRST TanStack MUTATIONS (D-10). Each mutation's onSuccess
+  invalidates the ['admin-events'] key → refetch, keeping server state the single source of truth
+  (no optimistic update). EventSection reads isPending/isError/isSuccess for its inline feedback.
+*/
+const ADMIN_EVENTS_KEY = ['admin-events'] as const
+
+export function useAdminEvents() {
+  return useQuery({ queryKey: ADMIN_EVENTS_KEY, queryFn: getAdminEvents })
+}
+
+function invalidateAdminEvents() {
+  return queryClient.invalidateQueries({ queryKey: ADMIN_EVENTS_KEY })
+}
+
+export function useCreateEvent() {
+  return useMutation({
+    mutationFn: (body: AdminEventRequest) => createAdminEvent(body),
+    onSuccess: invalidateAdminEvents,
+  })
+}
+
+export function useReplaceEvent() {
+  return useMutation({
+    mutationFn: ({ id, body }: { id: number; body: AdminEventRequest }) => replaceAdminEvent(id, body),
+    onSuccess: invalidateAdminEvents,
+  })
+}
+
+export function useDeleteEvent() {
+  return useMutation({
+    mutationFn: (id: number) => deleteAdminEvent(id),
+    onSuccess: invalidateAdminEvents,
   })
 }

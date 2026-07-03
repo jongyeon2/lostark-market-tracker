@@ -125,3 +125,30 @@ export const eventImpactSchema = z.object({
   events: z.array(eventImpactItemSchema),
 })
 export type EventImpact = z.infer<typeof eventImpactSchema>
+
+// ---- Admin WRITE DTOs (Phase 15) ----
+// The zod boundary (D-05/06) extended to the admin write path: a GameEventResponse element of
+// GET /api/admin/events (and the POST/PUT return). All instants are UTC ISO '...Z' strings —
+// formatKst renders them for display; description is nullable. reuses eventTypeSchema.
+export const gameEventResponseSchema = z.object({
+  id: z.number(),
+  eventType: eventTypeSchema,
+  title: z.string(),
+  occurredAt: z.string(),
+  description: z.string().nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+})
+export type GameEventResponse = z.infer<typeof gameEventResponseSchema>
+
+export const gameEventsSchema = z.array(gameEventResponseSchema)
+export type GameEvents = z.infer<typeof gameEventsSchema>
+
+// POST/PUT body — only the 4 client-settable fields. id/createdAt/updatedAt are entity-stamped by
+// the backend (bound as GameEventRequest, never the entity), so they are not sendable from the client.
+export type AdminEventRequest = {
+  eventType: EventType
+  title: string
+  occurredAt: string
+  description?: string
+}

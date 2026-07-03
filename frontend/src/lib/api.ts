@@ -4,11 +4,16 @@ import {
   latestPriceSchema,
   timelineSchema,
   eventImpactSchema,
+  gameEventResponseSchema,
+  gameEventsSchema,
   type CollectionHealth,
   type TrackedItems,
   type LatestPrice,
   type Timeline,
   type EventImpact,
+  type AdminEventRequest,
+  type GameEventResponse,
+  type GameEvents,
 } from '@/lib/schemas'
 import { getAdminSecret } from '@/features/admin/auth/adminSecret'
 
@@ -120,4 +125,32 @@ export async function probeAdminSecret(secret: string): Promise<boolean> {
     return false
   }
   throw new ApiError(res.status, '/api/admin/events')
+}
+
+// ---- Admin game-event CRUD (Phase 15, ADMINUI-03) ----
+// Each fn wraps adminRequest and validates the response with the zod boundary schema (D-05/06 on
+// the write path). occurredAt crosses as a UTC ISO '...Z' string (converted in the form, D-08).
+
+export async function getAdminEvents(): Promise<GameEvents> {
+  return gameEventsSchema.parse(await adminRequest('/api/admin/events', { method: 'GET' }))
+}
+
+export async function createAdminEvent(body: AdminEventRequest): Promise<GameEventResponse> {
+  return gameEventResponseSchema.parse(
+    await adminRequest('/api/admin/events', { method: 'POST', body }),
+  )
+}
+
+export async function replaceAdminEvent(
+  id: number,
+  body: AdminEventRequest,
+): Promise<GameEventResponse> {
+  return gameEventResponseSchema.parse(
+    await adminRequest(`/api/admin/events/${id}`, { method: 'PUT', body }),
+  )
+}
+
+export async function deleteAdminEvent(id: number): Promise<void> {
+  // 204 No Content — adminRequest resolves undefined; nothing to parse.
+  await adminRequest(`/api/admin/events/${id}`, { method: 'DELETE' })
 }
