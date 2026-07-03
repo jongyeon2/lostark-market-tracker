@@ -10,6 +10,7 @@ import {
   type Timeline,
   type EventImpact,
 } from '@/lib/schemas'
+import { getAdminSecret } from '@/features/admin/auth/adminSecret'
 
 /*
   Single typed API client (D-12). Every response is validated at the boundary with the
@@ -59,4 +60,64 @@ export async function getTimeline(id: number, from: string, to: string): Promise
 export async function getEventImpact(id: number, window: number): Promise<EventImpact> {
   const qs = new URLSearchParams({ window: String(window) }).toString()
   return eventImpactSchema.parse(await request(`/api/items/${id}/event-impact?${qs}`))
+}
+
+/*
+  Admin WRITE surface (Phase 15). Unlike the public read `request` above, every admin call carries
+  the X-Admin-Secret header — attached HERE from sessionStorage (adminSecret.ts, D-01) so no call
+  site handles the header. A 401 anywhere AFTER login means the secret is stale/rotated → the
+  registered onAdminUnauthorized handler fires the global auto-logout (D-03) before the error
+  propagates. The secret VALUE is never logged or interpolated into a thrown message — ApiError
+  carries only status + path.
+*/
+let onAdminUnauthorized: () => void = () => {}
+
+/** Registered once by AdminAuthProvider so a 401 in adminRequest triggers the global auto-logout (D-03). */
+export function setAdminUnauthorizedHandler(handler: () => void): void {
+  onAdminUnauthorized = handler
+}
+
+type AdminMethod = 'GET' | 'POST' | 'PUT' | 'DELETE'
+
+export async function adminRequest(
+  path: string,
+  { method, body }: { method: AdminMethod; body?: unknown },
+): Promise<unknown> {
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+    'X-Admin-Secret': getAdminSecret() ?? '',
+  }
+  const init: RequestInit = { method, headers }
+  if (body !== undefined) {
+    headers['Content-Type'] = 'application/json'
+    init.body = JSON.stringify(body)
+  }
+  const res = await fetch(path, init)
+  if (!res.ok) {
+    // Stale/rotated secret: auto-logout BEFORE the error reaches the caller (D-03).
+    if (res.status === 401) {
+      onAdminUnauthorized()
+    }
+    throw new ApiError(res.status, path)
+  }
+  // 204 No Content (DELETE) has no JSON body.
+  return res.status === 204 ? undefined : res.json()
+}
+
+/*
+  Side-effect-free login probe (D-02): a GET that mutates nothing, using the PASSED secret (NOT
+  sessionStorage — the caller stores it only on success). 200 ⇒ valid, 401 ⇒ rejected, any other
+  non-2xx / network throw ⇒ a connection failure the login form distinguishes from a rejection.
+*/
+export async function probeAdminSecret(secret: string): Promise<boolean> {
+  const res = await fetch('/api/admin/events', {
+    headers: { Accept: 'application/json', 'X-Admin-Secret': secret },
+  })
+  if (res.status === 200) {
+    return true
+  }
+  if (res.status === 401) {
+    return false
+  }
+  throw new ApiError(res.status, '/api/admin/events')
 }
