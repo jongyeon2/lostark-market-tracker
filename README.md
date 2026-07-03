@@ -93,14 +93,16 @@ curl "http://localhost:8080/api/items/1/event-impact?window=24"
 ### 두 가지 실행 프로파일
 
 ```bash
-# (a) dev 프로파일 — 실시간 수집. LOSTARK_API_KEY 가 있어야 실제 API 를 호출
-LOSTARK_API_KEY=<your-jwt> ./gradlew bootRun --args='--spring.profiles.active=dev'
+# (a) dev 프로파일 — 실시간 수집. .env 의 LOSTARK_API_KEY 로 실제 API 를 호출
+#     bootRun 이 .env 를 자동 로드하므로(build.gradle), .env 에 값을 채우고 아래만 실행하면 됩니다.
+./gradlew bootRun --args='--spring.profiles.active=dev'
+#     (셸 환경변수가 .env 보다 우선 — 일회성이면 `LOSTARK_API_KEY=<jwt> ./gradlew bootRun ...` 도 가능)
 
 # (b) seed 프로파일 — 합성 8일치 시세 + 데모 이벤트를 채움. API 키 불필요 (데모/리뷰용)
 ./gradlew bootRun --args='--spring.profiles.active=seed'
 ```
 
-- `ADMIN_API_SECRET` 이 비어 있으면 `/api/admin/**` 는 **fail-closed**로 모두 `401` 입니다(공개 읽기 표면과 수집 파이프라인은 정상 동작). 관리자 호출을 쓰려면 `.env` 에 값을 채우세요.
+- 관리자 콘솔(`/admin`) 로그인·CRUD 를 쓰려면 `.env` 의 `ADMIN_API_SECRET` 에 값을 채우세요 — bootRun 이 이를 앱 JVM 으로 로드해 그 값이 로그인 시크릿이 됩니다. `ADMIN_API_SECRET` 이 비어 있으면 `/api/admin/**` 는 **fail-closed**로 모두 `401` 입니다(공개 읽기 표면과 수집 파이프라인은 정상 동작).
 - 빌드 + 전체 테스트: `./gradlew build` (CI가 동일 명령 실행). 로컬 테스트는 Docker 필요, `-PdockerApiVersion=1.44` 권장.
 
 ### 프론트 데모 (브라우저)

@@ -60,3 +60,30 @@ tasks.named('test') {
         systemProperty 'api.version', apiVer.trim()
     }
 }
+
+tasks.named('bootRun') {
+    // Local DX: load the gitignored .env into the bootRun JVM so `./gradlew bootRun` receives
+    // LOSTARK_API_KEY / ADMIN_API_SECRET the same way docker-compose does — the .env.example promise.
+    // Without this, bootRun's forked JVM has neither var, so dev collection fails AUTH_ERROR and the
+    // admin gate fails closed (every /api/admin/** returns 401). Real shell env vars take precedence
+    // (CI/prod inject them directly); a missing .env is a no-op. Only bootRun is affected — never test.
+    def dotenv = rootProject.file('.env')
+    if (dotenv.exists()) {
+        dotenv.readLines('UTF-8').each { rawLine ->
+            def line = rawLine.trim()
+            if (line.isEmpty() || line.startsWith('#') || !line.contains('=')) {
+                return
+            }
+            def idx = line.indexOf('=')
+            def key = line.substring(0, idx).trim()
+            def value = line.substring(idx + 1).trim()
+            if ((value.startsWith('"') && value.endsWith('"'))
+                    || (value.startsWith("'") && value.endsWith("'"))) {
+                value = value.substring(1, value.length() - 1)
+            }
+            if (!key.isEmpty() && System.getenv(key) == null) {
+                environment key, value
+            }
+        }
+    }
+}
