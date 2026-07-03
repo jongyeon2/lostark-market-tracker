@@ -9,6 +9,7 @@ import { RootErrorBoundary } from '@/components/RootErrorBoundary'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { TimelinePage } from '@/features/timeline/TimelinePage'
 import { ImpactPage } from '@/features/impact/ImpactPage'
+import { AdminRoute } from '@/features/admin/AdminRoute'
 import './index.css'
 
 /*
@@ -29,6 +30,9 @@ const router = createBrowserRouter([
       { path: 'impact', element: <ImpactPage /> },
     ],
   },
+  // Admin console (D-04): a SIBLING top-level route — a separate shell with NO public TopNav, reached
+  // by direct URL only. The public /dashboard·/timeline·/impact branch above is untouched.
+  { path: '/admin', element: <AdminRoute /> },
 ])
 
 createRoot(document.getElementById('root')!).render(
