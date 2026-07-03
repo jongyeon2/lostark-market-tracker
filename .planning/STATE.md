@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: 관리자 콘솔 + 실데이터 라이브 배포
-status: ready_to_plan
-stopped_at: Phase 16 complete (1/1) — ready to discuss Phase 17
-last_updated: 2026-07-03T07:36:48.508Z
-last_activity: 2026-07-03 -- Phase 16 complete (1/1 plans, verified PASS)
+status: planning
+stopped_at: Phase 17 context gathered
+last_updated: "2026-07-03T07:56:12.588Z"
+last_activity: 2026-07-03
 progress:
   total_phases: 4
   completed_phases: 2
@@ -104,9 +104,9 @@ None (2026-06-30: `.env` `LOSTARK_API_KEY` 무효(401) 이슈는 키 재발급·
 
 ## Session Continuity
 
-Last session: 2026-07-03T03:29:14.505Z
-Stopped at: Phase 16 context gathered
-Resume file: .planning/phases/16-dashboard-cards/16-CONTEXT.md
+Last session: 2026-07-03T07:56:12.583Z
+Stopped at: Phase 17 context gathered
+Resume file: .planning/phases/17-real-data-transition/17-CONTEXT.md
 
 ## Operator Next Steps
 
