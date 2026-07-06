@@ -6,6 +6,7 @@ import {
   getLatestPrice,
   getTimeline,
   getEventImpact,
+  getNews,
   getAdminEvents,
   createAdminEvent,
   replaceAdminEvent,
@@ -48,6 +49,16 @@ export function useEventImpact(id: number, window: number) {
     queryKey: ['event-impact', id, window],
     queryFn: () => getEventImpact(id, window),
   })
+}
+
+/*
+  News panel (17.2) — one low-churn read for the dashboard's right column. staleTime 5min so the
+  panel doesn't refetch aggressively (the backend already serves a 6h-polled Redis cache); no
+  polling. getNews validates GET /api/news at the zod boundary — the frontend never calls Lostark
+  directly (D-06).
+*/
+export function useNews() {
+  return useQuery({ queryKey: ['news'], queryFn: getNews, staleTime: 5 * 60 * 1000 })
 }
 
 /*

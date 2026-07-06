@@ -7,6 +7,7 @@ import {
   eventImpactSchema,
   gameEventResponseSchema,
   gameEventsSchema,
+  newsResponseSchema,
   type CollectionHealth,
   type TrackedItem,
   type TrackedItems,
@@ -17,6 +18,7 @@ import {
   type AdminItemRequest,
   type GameEventResponse,
   type GameEvents,
+  type NewsResponse,
 } from '@/lib/schemas'
 import { getAdminSecret } from '@/features/admin/auth/adminSecret'
 
@@ -68,6 +70,12 @@ export async function getTimeline(id: number, from: string, to: string): Promise
 export async function getEventImpact(id: number, window: number): Promise<EventImpact> {
   const qs = new URLSearchParams({ window: String(window) }).toString()
   return eventImpactSchema.parse(await request(`/api/items/${id}/event-impact?${qs}`))
+}
+
+// GET /api/news (17.2) — public read; the frontend never calls Lostark directly (D-06). Same zod
+// boundary as the other reads: a non-2xx or schema mismatch throws → the panel's ErrorState.
+export async function getNews(): Promise<NewsResponse> {
+  return newsResponseSchema.parse(await request('/api/news'))
 }
 
 /*

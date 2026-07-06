@@ -162,3 +162,36 @@ export type AdminItemRequest = {
   displayName: string
   category?: string
 }
+
+// ---- News panel read DTO (Phase 17.2) ----
+// GET /api/news — Lostark official events + notices, served from the backend Redis cache. The
+// frontend consumes ONLY this backend contract, never Lostark directly (D-06). Fields transcribe
+// the live-locked schema (17.2-NEWS-SPIKE-FINDINGS): events carry title/link/기간/thumbnail, notices
+// carry title/link/date/type. UNLIKE every other DTO here, these dates are the source's ISO-8601
+// LOCAL (KST) strings WITHOUT a 'Z' offset — they are displayed as-is (string slice), NOT via
+// formatKst (which assumes UTC and would add 9h). updatedAt is null on a cold/never-filled cache
+// so the panel shows an honest empty/loading state (D-07). type is an opaque Korean category string
+// (공지/점검/…) rendered as a neutral badge — deliberately NOT a z.enum (the value set is not locked).
+export const newsEventSchema = z.object({
+  title: z.string(),
+  link: z.string(),
+  startDate: z.string(),
+  endDate: z.string(),
+  thumbnail: z.string().nullable().optional(), // display-only; 1차 텍스트 표 미사용
+})
+export type NewsEvent = z.infer<typeof newsEventSchema>
+
+export const newsNoticeSchema = z.object({
+  title: z.string(),
+  link: z.string(),
+  date: z.string(),
+  type: z.string(),
+})
+export type NewsNotice = z.infer<typeof newsNoticeSchema>
+
+export const newsResponseSchema = z.object({
+  events: z.array(newsEventSchema),
+  notices: z.array(newsNoticeSchema),
+  updatedAt: z.string().nullable(),
+})
+export type NewsResponse = z.infer<typeof newsResponseSchema>
