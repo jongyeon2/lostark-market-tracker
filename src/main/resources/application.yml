@@ -34,6 +34,13 @@ lostark:
     base-url: ${LOSTARK_API_BASE_URL:https://developer-lostark.game.onstove.com}
     key: ${LOSTARK_API_KEY:}
 
+# Lostark official news (events + notices) — independent low-frequency poller feeding the dashboard
+# panel (D-01/D-06). Its own schedule + Redis key (news:latest, TTL fixed at 12h in NewsService);
+# ~2 requests / 6h, so it never competes with the market collection rate-limit budget.
+news:
+  poll-interval-ms: ${NEWS_POLL_INTERVAL_MS:21600000}   # 6h between refreshes (fixedDelay)
+  initial-delay-ms: ${NEWS_INITIAL_DELAY_MS:0}          # boot-time refresh; tests push this out
+
 # Shared secret guarding /api/admin/** (X-Admin-Secret header). From env only, never committed
 # (mirrors lostark.api.key). Blank/unset => the admin gate fails CLOSED (every /api/admin/** is 401)
 # while the public read surface and the collection pipeline keep running.
