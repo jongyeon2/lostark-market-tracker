@@ -42,9 +42,9 @@ export function ItemCard({ item }: { item: TrackedItem }) {
       to={`/timeline?item=${item.id}`}
       className="group block rounded-xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
     >
-      <Card className="cursor-pointer transition-shadow hover:border-foreground/20 hover:shadow-md">
-        {/* D-12: full-width horizontal row — identity left, latest-price right. */}
-        <CardContent className="flex items-center justify-between gap-4 py-4">
+      <Card className="cursor-pointer py-3 transition-shadow hover:border-foreground/20 hover:shadow-md">
+        {/* D-12: compact horizontal row — identity left, latest-price right (py-3, gold 🪙). */}
+        <CardContent className="flex items-center justify-between gap-4">
           {/* Identity (left) — always visible, from the already-loaded item. */}
           <div className="flex min-w-0 items-center gap-2">
             <ItemIcon iconUrl={item.iconUrl} roleGroup={item.roleGroup} size="sm" />
@@ -56,16 +56,19 @@ export function ItemCard({ item }: { item: TrackedItem }) {
               screen ErrorState. pending→skeleton, error/404→collection-aware '최신가 수집 중'(alive) or
               '데이터 없음'(NO_RUNS/실패), success→price+KST. */}
           <div className="shrink-0 text-right">
-            {status === 'pending' && <Skeleton className="ml-auto h-7 w-32" />}
+            {status === 'pending' && <Skeleton className="ml-auto h-6 w-28" />}
             {status === 'error' && (
               <p className="text-muted-foreground text-sm">
                 {emptyKind === 'collecting' ? '최신가 수집 중' : '데이터 없음'}
               </p>
             )}
             {status === 'success' && data && (
-              <div className="space-y-1">
-                <p className="text-base tabular-nums">{data.minPrice.toLocaleString('ko-KR')}</p>
-                <p className="text-muted-foreground text-sm font-semibold">
+              <div className="space-y-0.5">
+                <p className="flex items-center justify-end gap-1 text-base font-medium tabular-nums">
+                  <span aria-hidden="true">🪙</span>
+                  {data.minPrice.toLocaleString('ko-KR')}
+                </p>
+                <p className="text-muted-foreground text-xs font-semibold">
                   수집 시각 {formatKst(data.collectedAt)}
                 </p>
               </div>

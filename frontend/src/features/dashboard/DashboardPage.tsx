@@ -29,7 +29,8 @@ export function DashboardPage() {
       <h1 className="text-[28px] leading-tight font-semibold">대시보드</h1>
 
       <AsyncBoundary status={status} isEmpty={(data?.length ?? 0) === 0} onRetry={() => refetch()}>
-        <div className="space-y-8">
+        {/* max-w-3xl keeps each row a comfortable reading width so 이름(좌)↔가격(우) stay close. */}
+        <div className="max-w-3xl space-y-8">
           {/* 섹션 순서: 각인 → 재료 (D-10). RoleBadge on each card distinguishes 딜러/서포터 (D-11). */}
           <ItemSection title="각인" items={engravings} />
           <ItemSection title="재료" items={materials} />
