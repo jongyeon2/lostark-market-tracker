@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: 관리자 콘솔 + 실데이터 라이브 배포
 status: executing
-stopped_at: Phase 17.1 실행 완료 (VERIFICATION PASS) — Phase 18 (배포) 착수 대기
-last_updated: "2026-07-06T09:11:26.434Z"
-last_activity: 2026-07-06 -- Phase 17.2 execution started
+stopped_at: Phase 17.2 실행 완료 (뉴스 패널 — build+tests green) — Phase 18 (배포) 착수 대기
+last_updated: "2026-07-06T13:00:00.000Z"
+last_activity: 2026-07-06 -- Phase 17.2 execution complete (3/3 plans)
 progress:
   total_phases: 6
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 15
-  completed_plans: 12
-  percent: 67
+  completed_plans: 15
+  percent: 83
 ---
 
 # Project State
@@ -21,20 +21,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-01 for v1.3 milestone)
 
 **Core value:** 레이트리밋이 걸린 외부 마켓 API에서 시세를 빠짐없이 수집해 시계열로 쌓고, 캐시로 안정적으로 서빙한다
-**Current focus:** Phase 17.2 — news-panel
+**Current focus:** Phase 17.2 완료 → Phase 18 (무료 라이브 배포) 착수 대기
 
 ## Current Position
 
-Phase: 17.2 (news-panel) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 17.2
-Last activity: 2026-07-06 -- Phase 17.2 execution started
+Phase: 17.2 (news-panel) — COMPLETE
+Plan: 3 of 3
+Status: Phase 17.2 complete (뉴스 파이프라인 + 대시보드 패널) — Phase 18 (배포) 착수 대기
+Last activity: 2026-07-06 -- Phase 17.2 execution complete (3/3 plans, build+tests green)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 24
+- Total plans completed: 27
 - Average duration: —
 - Total execution time: 0 hours
 
