@@ -5,7 +5,7 @@
 - ✅ **v1.0 MVP** — Phases 1–6 (shipped 2026-06-25) — [archive](milestones/v1.0-ROADMAP.md)
 - ✅ **v1.1 Frontend Demo Dashboard** — Phases 7–11 (shipped 2026-06-29) — [archive](milestones/v1.1-ROADMAP.md)
 - ✅ **v1.2 Item Visual/Data Enrichment** — Phases 12–14 (shipped 2026-06-30) — [archive](milestones/v1.2-ROADMAP.md)
-- 🚧 **v1.3 관리자 콘솔 + 실데이터 라이브 배포** — Phases 15–18 (진행 중, 착수 2026-07-01)
+- 🚧 **v1.3 관리자 콘솔 + 실데이터 라이브 배포** — Phases 15–18 (+17.1 삽입, 진행 중, 착수 2026-07-01)
 
 ## Phases
 
@@ -47,7 +47,7 @@
 
 </details>
 
-### 🚧 v1.3 관리자 콘솔 + 실데이터 라이브 배포 (Phases 15–18) — IN PROGRESS
+### 🚧 v1.3 관리자 콘솔 + 실데이터 라이브 배포 (Phases 15–18, +17.1 삽입) — IN PROGRESS
 
 **Goal:** 읽기전용 seed 데모를 → 실데이터로 수집·서빙되고, 관리자가 이벤트·워치리스트를 직접 관리하며, 무료로 라이브 배포된 데모로 승격(배포 직전 보안 검증 게이트 통과). 순서: 관리자 콘솔(15) → 대시보드 카드 개선(16) → 실데이터 전환(17) → 무료 배포+보안(18, 마지막). 15개 요구사항 100% 매핑.
 
@@ -86,6 +86,19 @@
 3. 데이터 미축적 초기 상태에서도 빈 화면 없이 '수집 중/데이터 없음'을 정직히 표시한다
 4. 수집/캐시/event-impact 핵심 경로가 회귀 없이 그린(Core Value 가드)
 
+#### Phase 17.1: 데모 최종 폴리시 — 큐레이션 갱신 + 대시보드 재구성 (INSERTED)
+
+**Goal**: 라이브 배포 전 데모 품질을 다듬는다 — 대시보드 정보 배치를 클라이언트/관리자 관점으로 정리하고(수집 헬스 카드 관리자 이관), 각인·재료 큐레이션을 현행 로아 티어4 메타로 갱신하며, 대시보드를 카테고리별 세로 섹션으로 재구성하고, event-impact 주의 문구를 이해하기 쉽게 개선한다. 큐레이션 변경은 Phase 12 spike-then-lock 패턴으로 API 데이터를 재검증하며 수집/캐시/event-impact 핵심 경로는 0줄(Core Value 가드).
+**Depends on**: Phase 15(관리자 콘솔 — 헬스 카드 이관 대상), 16(대시보드 카드), 17(실데이터 — watchlist/seed 큐레이션 기반); Phase 12 spike-then-lock 패턴 재사용
+**Requirements**: POLISH-01, POLISH-02, POLISH-03, POLISH-04, POLISH-05
+**Success criteria**:
+1. 대시보드(클라이언트 화면)에서 수집 헬스 카드가 제거되고, 수집 파이프라인 상태는 관리자 콘솔에서 'API 상태'로만 확인된다
+2. 각인 큐레이션이 현행 유효각인(딜러 11 + 서포터 7)으로 갱신되고, 각 각인이 실 API Id/Icon으로 아이콘·라벨 표시된다
+3. 재료 큐레이션이 티어4 기준으로 갱신된다 — 운명의 파괴석/수호석 결정 노출, 융화재료는 아비도스 계열만, 상급·최상급 오레하 융화재료 미노출
+4. 대시보드가 바둑판 그리드에서 카테고리별 세로 섹션(각인 → 재료, 섹션 내 위→아래)으로 재구성된다
+5. event-impact의 상관≠인과 주의 문구가 번역투 없이 이해하기 쉬운 주의사항 표현으로 개선된다
+6. (Core Value 가드) 수집/캐시/event-impact 핵심 경로 회귀 없음 — 큐레이션 변경은 watchlist/seed 데이터 층에 한정
+
 #### Phase 18: 무료 라이브 배포 + 보안 검증 (마지막)
 
 **Goal**: 무료 호스팅에 배포해 공개 URL로 데모 3화면 + 관리자 콘솔을 서빙한다. 프론트는 정적/단일 출처로 서빙하고, 실 키·시크릿은 서버 env only, 배포 직전 보안 검증 게이트를 통과한다. 무료 타깃(항상무료 VM vs 무료 PaaS)은 착수 시 리서치로 결정.
@@ -107,10 +120,11 @@
 | 15. 관리자 콘솔 UI | v1.3 | 4/4 | Complete    | 2026-07-03 |
 | 16. 대시보드 카드 개선 | v1.3 | 1/1 | Complete    | 2026-07-03 |
 | 17. 실데이터 전환 | v1.3 | 3/3 | Complete   | 2026-07-03 |
+| 17.1 데모 최종 폴리시 (INSERTED) | v1.3 | 0/? | Planned | — |
 | 18. 무료 라이브 배포 + 보안 검증 | v1.3 | 0/? | Planned | — |
 
-**v1.3 Coverage:** v1.3 requirements 15 total · 매핑 **15/15 ✓** (ADMINUI 6 + CARD 2 + REALDATA 3 + DEPLOY 4)
+**v1.3 Coverage:** v1.3 requirements 20 total · 매핑 **20/20 ✓** (ADMINUI 6 + CARD 2 + REALDATA 3 + POLISH 5 + DEPLOY 4)
 
 ---
 
-_v1.0/v1.1/v1.2 상세는 milestones/ 아카이브. 현재 활성: v1.3 (Phases 15–18). 다음: `/gsd:discuss-phase 15` 또는 `/gsd:plan-phase 15`._
+_v1.0/v1.1/v1.2 상세는 milestones/ 아카이브. 현재 활성: v1.3 (Phases 15–18, +17.1 삽입). 다음: `/gsd:discuss-phase 17.1` 또는 `/gsd:plan-phase 17.1`._

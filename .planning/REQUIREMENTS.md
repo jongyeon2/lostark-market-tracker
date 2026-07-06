@@ -34,6 +34,16 @@
 - [ ] **REALDATA-02**: 프론트 데모 3화면이 실수집(collection_run 기반) 데이터를 표시하며, seed 프로파일은 로컬/테스트 전용으로만 남는다
 - [ ] **REALDATA-03**: 데이터가 아직 축적되지 않은 초기 상태에서도 3화면이 빈 화면 없이 '수집 중/데이터 없음'을 정직히 표시한다 (조기 배포 후 축적 전제)
 
+### 데모 최종 폴리시 (POLISH)
+
+라이브 배포 전 데모 품질 폴리시. 큐레이션 변경은 Phase 12 spike-then-lock 패턴으로 API `Id`/`Icon`/`CategoryCode`를 재검증하며, 수집/캐시/event-impact 핵심 경로는 0줄(Core Value 가드) — watchlist/seed 데이터 층에 한정한다.
+
+- [ ] **POLISH-01**: 대시보드(클라이언트 화면)에서 수집 헬스 카드가 제거되고, 수집 파이프라인 상태는 관리자 콘솔에서 'API 상태'로만 확인된다 (라벨 '수집 헬스'→'API 상태')
+- [ ] **POLISH-02**: 대시보드 각인 큐레이션이 현행 유효각인으로 갱신된다 — 딜러 11종(기습의 대가·돌격대장·아드레날린·원한·질량 증가·저주받은 인형·예리한 둔기·결투의 대가·슈퍼 차지·바리케이드·타격의 대가)·서포터 7종(각성·구슬동자·전문의·마나의 흐름·폭발물 전문가·분쇄의 주먹·중갑착용), 각 항목이 실 API Id/Icon으로 아이콘·라벨 표시
+- [ ] **POLISH-03**: 대시보드 재료 큐레이션이 티어4 기준으로 갱신된다 — 운명의 파괴석 결정·운명의 수호석 결정 추가, 융화재료는 아비도스 계열만 노출, 상급·최상급 오레하 융화재료 제거
+- [ ] **POLISH-04**: 대시보드가 바둑판 그리드에서 카테고리별 세로 섹션 레이아웃(각인 → 재료, 섹션 내 위→아래)으로 재구성된다
+- [ ] **POLISH-05**: event-impact의 상관≠인과 주의 카드 문구가 번역투 없이 이해하기 쉬운 주의사항 표현으로 개선된다
+
 ### 라이브 배포 + 보안 (DEPLOY)
 
 v1.0에서 v2로 연기했던 `DEPLOY-V2-01`(무료 호스팅 데모 배포)을 이번 마일스톤에서 실현. 무료 타깃(항상무료 VM vs 무료 PaaS)은 배포 phase 착수 시 리서치로 결정.
@@ -84,15 +94,16 @@ v1.0에서 v2로 연기했던 `DEPLOY-V2-01`(무료 호스팅 데모 배포)을 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | ADMINUI-01..06 | Phase 15 | Complete |
-| CARD-01..02 | Phase 16 | Pending |
-| REALDATA-01..03 | Phase 17 | Pending |
+| CARD-01..02 | Phase 16 | Complete |
+| REALDATA-01..03 | Phase 17 | Complete |
+| POLISH-01..05 | Phase 17.1 | Pending |
 | DEPLOY-01..04 | Phase 18 | Pending |
 
 **Coverage:**
-- v1.3 requirements: 15 total
-- Mapped to phases: 15
+- v1.3 requirements: 20 total
+- Mapped to phases: 20
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-07-01*
-*Last updated: 2026-07-01 — v1.3 마일스톤 요구사항 초기 정의*
+*Last updated: 2026-07-06 — Phase 17.1(데모 최종 폴리시) 삽입에 따라 POLISH-01..05 추가(15→20), CARD/REALDATA 트레이스 상태 Complete로 정합*
