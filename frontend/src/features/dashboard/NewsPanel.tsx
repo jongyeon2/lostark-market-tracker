@@ -114,9 +114,9 @@ function NoticeSection({ notices }: { notices: NewsNotice[] }) {
                 rel="noopener noreferrer"
                 className="hover:bg-muted/60 flex flex-col gap-0.5 rounded-md px-2 py-1.5 transition-colors"
               >
-                <span className="flex items-start gap-2">
+                <span className="flex items-center gap-2">
                   <TypeBadge type={notice.type} />
-                  <span className="line-clamp-2 min-w-0 flex-1 text-sm leading-snug font-medium">
+                  <span className="line-clamp-1 min-w-0 flex-1 text-sm font-medium">
                     {notice.title}
                   </span>
                 </span>
@@ -142,7 +142,7 @@ function EmptyLine({ children }: { children: ReactNode }) {
 
 function TypeBadge({ type }: { type: string }) {
   return (
-    <span className="border-border text-muted-foreground mt-0.5 shrink-0 rounded border px-1.5 py-0.5 text-[11px] font-semibold">
+    <span className="border-border text-muted-foreground shrink-0 rounded border px-1.5 py-0.5 text-[11px] font-semibold">
       {type}
     </span>
   )
