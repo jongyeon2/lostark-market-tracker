@@ -102,7 +102,7 @@
 
 Plans:
 - [x] 17.1-01-PLAN.md — 신규 큐레이션 10개 실 API 스파이크 (POLISH-02/03)
-- [ ] 17.1-02-PLAN.md — 큐레이션 22개 재잠금: WatchlistSeeder + roleGroup 라벨 (POLISH-02/03)
+- [x] 17.1-02-PLAN.md — 큐레이션 22개 재잠금: WatchlistSeeder + roleGroup 라벨 (POLISH-02/03)
 - [x] 17.1-03-PLAN.md — 대시보드 정보 재배치: 헬스카드 이관 + 세로 섹션 재구성 (POLISH-01/04)
 - [x] 17.1-04-PLAN.md — event-impact 주의 문구 개선 (POLISH-05)
 
@@ -127,7 +127,7 @@ Plans:
 | 15. 관리자 콘솔 UI | v1.3 | 4/4 | Complete    | 2026-07-03 |
 | 16. 대시보드 카드 개선 | v1.3 | 1/1 | Complete    | 2026-07-03 |
 | 17. 실데이터 전환 | v1.3 | 3/3 | Complete   | 2026-07-03 |
-| 17.1 데모 최종 폴리시 (INSERTED) | v1.3 | 3/4 | In Progress|  |
+| 17.1 데모 최종 폴리시 (INSERTED) | v1.3 | 4/4 | Complete   | 2026-07-06 |
 | 18. 무료 라이브 배포 + 보안 검증 | v1.3 | 0/? | Planned | — |
 
 **v1.3 Coverage:** v1.3 requirements 20 total · 매핑 **20/20 ✓** (ADMINUI 6 + CARD 2 + REALDATA 3 + POLISH 5 + DEPLOY 4)
