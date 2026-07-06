@@ -106,6 +106,18 @@ Plans:
 - [x] 17.1-03-PLAN.md — 대시보드 정보 재배치: 헬스카드 이관 + 세로 섹션 재구성 (POLISH-01/04)
 - [x] 17.1-04-PLAN.md — event-impact 주의 문구 개선 (POLISH-05)
 
+#### Phase 17.2: 대시보드 뉴스 패널 — 로아 이벤트·공지 (INSERTED)
+
+**Goal**: 대시보드 물품 카드를 좁히며 생긴 우측 여백에 로스트아크 진행중 이벤트·공지사항을 표 형식으로 노출한다. 로아 공식 `/news/events`·`/news/notices` API를 저빈도 폴러(~6h) + Redis 캐시로 서빙(`GET /api/news`)하며, 수집/가격 캐시/event-impact 핵심 경로는 0줄(Core Value 가드) — 완전 독립 read-path. 쿠폰코드는 범위 밖(공식 API 부재 → 이후 관리자 수동 입력).
+**Depends on**: Phase 15(관리자 콘솔 — 향후 쿠폰 수동 입력 확장 지점), 16·17.1(대시보드 카드·레이아웃), Phase 12 spike-then-lock 패턴(뉴스 응답 필드 실측); 로아 공식 API 키 재사용
+**Requirements**: NEWS-01, NEWS-02, NEWS-03
+**Success criteria**:
+1. 로아 공식 `/news/events`·`/news/notices`에서 진행중 이벤트·공지를 저빈도 폴러로 수집해 Redis에 캐시하고 `GET /api/news`로 서빙한다 (프론트 직접 호출 금지·키 서버 env only)
+2. 대시보드 우측 사이드바에 이벤트·공지가 표 형식으로 표시되고(모바일에서는 물품 아래 세로 스택), 항목 클릭 시 로아 공식 페이지가 새 탭으로 열린다
+3. 뉴스 소싱이 실패하거나 아직 갱신 전이어도 대시보드가 빈 화면 없이 로딩/빈/에러를 정직히 표시하고 마지막 캐시를 유지한다
+4. (Core Value 가드) 수집(`PriceCollector`)·가격 캐시·event-impact 로직 0줄 — 뉴스는 독립 패키지·독립 스케줄·독립 Redis 키
+**설계 스펙**: `docs/superpowers/specs/2026-07-06-dashboard-news-panel-design.md`
+
 #### Phase 18: 무료 라이브 배포 + 보안 검증 (마지막)
 
 **Goal**: 무료 호스팅에 배포해 공개 URL로 데모 3화면 + 관리자 콘솔을 서빙한다. 프론트는 정적/단일 출처로 서빙하고, 실 키·시크릿은 서버 env only, 배포 직전 보안 검증 게이트를 통과한다. 무료 타깃(항상무료 VM vs 무료 PaaS)은 착수 시 리서치로 결정.

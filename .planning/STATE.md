@@ -7,11 +7,11 @@ stopped_at: Phase 17.1 executed (VERIFICATION PASS) — Phase 18 (배포) 대기
 last_updated: "2026-07-06T08:10:00.000Z"
 last_activity: 2026-07-06 -- Phase 17.1 실행 완료 (4/4 plans, PASS)
 progress:
-  total_phases: 5
+  total_phases: 6
   completed_phases: 4
   total_plans: 12
   completed_plans: 12
-  percent: 80
+  percent: 67
 ---
 
 # Project State
@@ -63,6 +63,7 @@ Last activity: 2026-07-06 -- Phase 17.1 실행 완료
 ### Roadmap Evolution
 
 - Phase 17.1 inserted after Phase 17: 데모 최종 폴리시: 큐레이션 갱신·대시보드 재구성 (배포 앞) (URGENT)
+- Phase 17.2 inserted after Phase 17.1: 대시보드 뉴스 패널 (로아 공식 이벤트·공지, 배포 앞) — 설계 스펙 docs/superpowers/specs/2026-07-06-dashboard-news-panel-design.md (쿠폰은 이후 관리자 수동 입력)
 
 ### Decisions
 

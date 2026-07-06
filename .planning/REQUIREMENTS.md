@@ -44,6 +44,14 @@
 - [ ] **POLISH-04**: 대시보드가 바둑판 그리드에서 카테고리별 세로 섹션 레이아웃(각인 → 재료, 섹션 내 위→아래)으로 재구성된다
 - [ ] **POLISH-05**: event-impact의 상관≠인과 주의 카드 문구가 번역투 없이 이해하기 쉬운 주의사항 표현으로 개선된다
 
+### 대시보드 뉴스 패널 (NEWS)
+
+라이브 배포 전 대시보드 우측 여백에 로아 공식 진행중 이벤트·공지사항을 표 형식으로 노출. 로아 공식 `/news/*` API를 저빈도 폴러 + Redis 캐시로 서빙하며 수집/가격 캐시/event-impact 핵심 경로는 0줄(Core Value 가드) — 완전 독립 read-path. 쿠폰코드는 범위 밖(공식 API 부재 → 이후 관리자 수동 입력).
+
+- [ ] **NEWS-01**: 로아 공식 API(`/news/events`·`/news/notices`)에서 진행중 이벤트·공지사항을 저빈도 폴러(~6h)로 수집해 Redis에 캐시하고 `GET /api/news`로 서빙한다 (프론트 직접 호출 금지·키 서버 env only, 수집/가격 캐시/event-impact 0줄)
+- [ ] **NEWS-02**: 대시보드 우측 사이드바에 진행중 이벤트·공지사항이 표 형식으로 표시되고(모바일에서는 물품 아래 세로 스택), 각 항목 클릭 시 로아 공식 페이지가 새 탭으로 열린다
+- [ ] **NEWS-03**: 뉴스 소싱이 실패하거나 아직 갱신 전이어도 대시보드가 빈 화면 없이 로딩/빈/에러를 정직히 표시하고 마지막 캐시를 유지한다
+
 ### 라이브 배포 + 보안 (DEPLOY)
 
 v1.0에서 v2로 연기했던 `DEPLOY-V2-01`(무료 호스팅 데모 배포)을 이번 마일스톤에서 실현. 무료 타깃(항상무료 VM vs 무료 PaaS)은 배포 phase 착수 시 리서치로 결정.
@@ -96,14 +104,15 @@ v1.0에서 v2로 연기했던 `DEPLOY-V2-01`(무료 호스팅 데모 배포)을 
 | ADMINUI-01..06 | Phase 15 | Complete |
 | CARD-01..02 | Phase 16 | Complete |
 | REALDATA-01..03 | Phase 17 | Complete |
-| POLISH-01..05 | Phase 17.1 | Pending |
+| POLISH-01..05 | Phase 17.1 | Complete |
+| NEWS-01..03 | Phase 17.2 | Pending |
 | DEPLOY-01..04 | Phase 18 | Pending |
 
 **Coverage:**
-- v1.3 requirements: 20 total
-- Mapped to phases: 20
+- v1.3 requirements: 23 total
+- Mapped to phases: 23
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-07-01*
-*Last updated: 2026-07-06 — Phase 17.1(데모 최종 폴리시) 삽입에 따라 POLISH-01..05 추가(15→20), CARD/REALDATA 트레이스 상태 Complete로 정합*
+*Last updated: 2026-07-06 — Phase 17.2(대시보드 뉴스 패널) 삽입에 따라 NEWS-01..03 추가(20→23); Phase 17.1 실행 완료로 POLISH 트레이스 Complete 정합*
