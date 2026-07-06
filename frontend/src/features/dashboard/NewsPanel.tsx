@@ -9,10 +9,13 @@ import type { NewsEvent, NewsNotice } from '@/lib/schemas'
   NewsPanel — the dashboard's right-column widget (D-03/D-04/D-07). Consumes useNews() and wraps its
   OWN <AsyncBoundary> (isEmpty = events AND notices both empty) so a news failure renders an in-panel
   Loading/Empty/Error and NEVER blanks the item grid in the left column — per-widget isolation, the
-  same discipline as HealthCard. Two sections: 진행중 이벤트 (제목 · 기간) and 공지사항 (타입 뱃지 ·
-  제목 · 날짜), each ≤6 rows (the backend already caps; sliced defensively). Every row opens the
-  official Lostark link in a NEW TAB with rel="noopener noreferrer" (tabnabbing guard, T-1723-01).
-  The frontend calls only /api/news — never Lostark directly (D-06).
+  same discipline as HealthCard.
+
+  진행중 이벤트 renders loawa.com-style: the event's banner THUMBNAIL with the title (+기간) in small
+  text beneath it (vertical cards, 1-column to fit the ~320px sidebar). 공지사항 is a compact list —
+  타입 뱃지 · 제목(폭에 맞춰 2줄, 넘치면 … 말줄임) · 날짜. Each card/row opens the official Lostark
+  link in a NEW TAB with rel="noopener noreferrer" (tabnabbing guard). The frontend calls only
+  /api/news — never Lostark directly (D-06).
 */
 
 const MAX_ROWS = 6
@@ -46,8 +49,10 @@ export function NewsPanel() {
   )
 }
 
-/* 진행중 이벤트 — 제목 + 기간(startDate~endDate). Its own list can be empty while notices are not,
-   so it shows a per-section calm line rather than relying on the panel-level EmptyState. */
+/*
+  진행중 이벤트 — loawa.com 스타일: 배너 썸네일 이미지 + 그 아래 작은 제목·기간(세로 카드 스택,
+  좁은 사이드바에 맞춰 1열). 썸네일이 없으면 텍스트만. 카드 전체가 로아 공식 link 새 탭.
+*/
 function EventSection({ events }: { events: NewsEvent[] }) {
   return (
     <section className="space-y-2">
@@ -55,15 +60,31 @@ function EventSection({ events }: { events: NewsEvent[] }) {
       {events.length === 0 ? (
         <EmptyLine>진행중 이벤트가 없어요</EmptyLine>
       ) : (
-        <ul className="space-y-0.5">
+        <ul className="space-y-3">
           {events.map((event) => (
             <li key={event.link}>
-              <NewsRow href={event.link}>
-                <span className="line-clamp-2 text-sm font-medium">{event.title}</span>
-                <span className="text-muted-foreground text-xs tabular-nums">
-                  {newsDate(event.startDate)} ~ {newsDate(event.endDate)}
-                </span>
-              </NewsRow>
+              <a
+                href={event.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:bg-muted/40 block overflow-hidden rounded-lg border transition-colors"
+              >
+                {event.thumbnail ? (
+                  // 배너 이미지. alt="" — the title text directly below carries the accessible label.
+                  <img
+                    src={event.thumbnail}
+                    alt=""
+                    loading="lazy"
+                    className="bg-muted aspect-[16/9] w-full object-cover"
+                  />
+                ) : null}
+                <div className="space-y-0.5 px-2.5 py-2">
+                  <p className="line-clamp-2 text-xs leading-snug font-medium">{event.title}</p>
+                  <p className="text-muted-foreground text-[11px] tabular-nums">
+                    {newsDate(event.startDate)} ~ {newsDate(event.endDate)}
+                  </p>
+                </div>
+              </a>
             </li>
           ))}
         </ul>
@@ -72,8 +93,11 @@ function EventSection({ events }: { events: NewsEvent[] }) {
   )
 }
 
-/* 공지사항 — 타입 뱃지 + 제목 + 날짜(최신순). type is an opaque Korean category, rendered as a
-   neutral badge (no color/enum assumption). */
+/*
+  공지사항 — 타입 뱃지 + 제목 + 날짜(최신순). 제목은 컬럼 폭에 맞춰 최대 2줄, 넘치면 … 말줄임
+  (line-clamp-2). flex 안의 제목에 min-w-0/flex-1을 줘야 flex item이 컨테이너보다 좁아질 수 있어
+  clamp가 실제 폭 기준으로 동작한다(min-w-0 없으면 내용 폭만큼 넘쳐 잘리지 않음).
+*/
 function NoticeSection({ notices }: { notices: NewsNotice[] }) {
   return (
     <section className="space-y-2">
@@ -84,13 +108,22 @@ function NoticeSection({ notices }: { notices: NewsNotice[] }) {
         <ul className="space-y-0.5">
           {notices.map((notice) => (
             <li key={notice.link}>
-              <NewsRow href={notice.link}>
-                <span className="flex items-center gap-2">
+              <a
+                href={notice.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:bg-muted/60 flex flex-col gap-0.5 rounded-md px-2 py-1.5 transition-colors"
+              >
+                <span className="flex items-start gap-2">
                   <TypeBadge type={notice.type} />
-                  <span className="line-clamp-2 text-sm font-medium">{notice.title}</span>
+                  <span className="line-clamp-2 min-w-0 flex-1 text-sm leading-snug font-medium">
+                    {notice.title}
+                  </span>
                 </span>
-                <span className="text-muted-foreground text-xs tabular-nums">{newsDate(notice.date)}</span>
-              </NewsRow>
+                <span className="text-muted-foreground pl-0.5 text-xs tabular-nums">
+                  {newsDate(notice.date)}
+                </span>
+              </a>
             </li>
           ))}
         </ul>
@@ -107,24 +140,9 @@ function EmptyLine({ children }: { children: ReactNode }) {
   return <p className="text-muted-foreground text-sm">{children}</p>
 }
 
-/* Shared clickable row — opens the official Lostark page in a new tab. rel="noopener noreferrer"
-   severs window.opener so the external page can never reach back into this tab (T-1723-01). */
-function NewsRow({ href, children }: { href: string; children: ReactNode }) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="hover:bg-muted/60 flex flex-col gap-0.5 rounded-md px-2 py-1.5 transition-colors"
-    >
-      {children}
-    </a>
-  )
-}
-
 function TypeBadge({ type }: { type: string }) {
   return (
-    <span className="border-border text-muted-foreground shrink-0 rounded border px-1.5 py-0.5 text-[11px] font-semibold">
+    <span className="border-border text-muted-foreground mt-0.5 shrink-0 rounded border px-1.5 py-0.5 text-[11px] font-semibold">
       {type}
     </span>
   )
