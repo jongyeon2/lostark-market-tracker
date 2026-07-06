@@ -20,8 +20,8 @@ import java.util.stream.Collectors;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Proves the {@link WatchlistSeeder} replaces the watchlist with the Phase 12 spike-verified
- * curation of 15 (SEED-01) and that {@link SyntheticDemoData} populates synthetic history for the
+ * Proves the {@link WatchlistSeeder} replaces the watchlist with the Phase 12 + 17.1 spike-verified
+ * curation of 22 (SEED-01) and that {@link SyntheticDemoData} populates synthetic history for the
  * resulting new items WITHOUT a key or network (SEED-02) — all on Testcontainers.
  *
  * <p>Runs under the {@code test} profile, where {@code WatchlistSeeder} is inactive
@@ -58,34 +58,43 @@ class WatchlistSeederIT extends PostgresRedisContainers {
     }
 
     @Test
-    void seedsCurationOf15WithRoleDistributionAndEnrichment() {
+    void seedsCurationOf22WithRoleDistributionAndEnrichment() {
         seeder.run(null);
 
         List<TrackedItem> items = trackedItemRepository.findByActiveTrue();
-        assertThat(items).hasSize(15);
+        assertThat(items).hasSize(22);
 
         Map<String, Long> byRole = items.stream()
                 .collect(Collectors.groupingBy(TrackedItem::getRoleGroup, Collectors.counting()));
         assertThat(byRole).containsEntry("MATERIAL", 4L)
-                .containsEntry("DEALER", 9L)
-                .containsEntry("SUPPORT", 2L);
+                .containsEntry("DEALER", 11L)
+                .containsEntry("SUPPORT", 7L);
 
-        // Every entry carries CDN-prefixed enrichment from one of the two item groups.
+        // Every entry carries CDN-prefixed enrichment from one of the item groups.
         assertThat(items).allSatisfy(item -> {
             assertThat(item.getIconUrl()).startsWith(ICON_BASE);
-            assertThat(item.getItemGroup()).isIn("강화재료", "각인서");
+            assertThat(item.getItemGroup()).isIn("강화재료", "재련재료", "각인서");
         });
 
         Map<String, TrackedItem> byId = items.stream()
                 .collect(Collectors.toMap(TrackedItem::getExternalItemId, Function.identity()));
 
         // Sample fusion material: distinct icon, MATERIAL/강화재료, category 50010.
-        TrackedItem fusion = byId.get("6861009");
+        TrackedItem fusion = byId.get("6861012");
         assertThat(fusion).isNotNull();
-        assertThat(fusion.getIconUrl()).isEqualTo(ICON_BASE + "use_8_109.png");
+        assertThat(fusion.getIconUrl()).isEqualTo(ICON_BASE + "use_12_86.png");
         assertThat(fusion.getItemGroup()).isEqualTo("강화재료");
         assertThat(fusion.getRoleGroup()).isEqualTo("MATERIAL");
         assertThat(fusion.getCategory()).isEqualTo("50010");
+
+        // Sample NEW refining material (17.1): distinct icon, MATERIAL/재련재료, category 50010.
+        TrackedItem refining = byId.get("66102007");
+        assertThat(refining).isNotNull();
+        assertThat(refining.getDisplayName()).isEqualTo("운명의 파괴석 결정");
+        assertThat(refining.getIconUrl()).isEqualTo(ICON_BASE + "use_13_249.png");
+        assertThat(refining.getItemGroup()).isEqualTo("재련재료");
+        assertThat(refining.getRoleGroup()).isEqualTo("MATERIAL");
+        assertThat(refining.getCategory()).isEqualTo("50010");
 
         // Sample supporter engraving: shared engraving glyph, SUPPORT/각인서, category 40000.
         TrackedItem supporter = byId.get("65203405");
@@ -99,11 +108,11 @@ class WatchlistSeederIT extends PostgresRedisContainers {
     @Test
     void seederIsIdempotentByExternalItemId() {
         seeder.run(null);
-        assertThat(trackedItemRepository.count()).isEqualTo(15);
+        assertThat(trackedItemRepository.count()).isEqualTo(22);
 
         // A second pass upserts by external_item_id — no duplicate inserts.
         seeder.run(null);
-        assertThat(trackedItemRepository.count()).isEqualTo(15);
+        assertThat(trackedItemRepository.count()).isEqualTo(22);
     }
 
     @Test
@@ -116,8 +125,8 @@ class WatchlistSeederIT extends PostgresRedisContainers {
         long afterFirst = priceSnapshotRepository.count();
         assertThat(afterFirst).isPositive();
 
-        // A brand-new curated item (not in the old refining watchlist) has synthetic snapshots.
-        TrackedItem newItem = trackedItemRepository.findByExternalItemId("6861009").orElseThrow();
+        // A brand-new curated item (17.1 — not in the old watchlist) has synthetic snapshots.
+        TrackedItem newItem = trackedItemRepository.findByExternalItemId("66102007").orElseThrow();
         assertThat(priceSnapshotRepository.findTopByTrackedItem_IdOrderByCollectedAtDesc(newItem.getId()))
                 .isPresent();
 
