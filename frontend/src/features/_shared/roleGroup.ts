@@ -13,10 +13,10 @@ export type { RoleGroup }
 export const ROLE_LABEL: Record<RoleGroup, string> = {
   DEALER: '딜러',
   SUPPORT: '서포터',
-  MATERIAL: '융화재료',
+  MATERIAL: '재료',
 }
 
-// Display order: 딜러 → 서포터 → 융화재료, with null (unknown bucket) absorbed at the tail.
+// Display order: 딜러 → 서포터 → 재료, with null (unknown bucket) absorbed at the tail.
 const ROLE_ORDER: Record<RoleGroup, number> = {
   DEALER: 0,
   SUPPORT: 1,
