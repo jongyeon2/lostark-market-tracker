@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: 관리자 콘솔 + 실데이터 라이브 배포
-status: executing
-stopped_at: Phase 17.2 실행 완료 (뉴스 패널 — build+tests green) — Phase 18 (배포) 착수 대기
-last_updated: "2026-07-06T13:00:00.000Z"
-last_activity: 2026-07-06 -- Phase 17.2 execution complete (3/3 plans)
+status: completed
+stopped_at: Phase 17.3 context gathered
+last_updated: "2026-07-06T13:49:48.483Z"
+last_activity: 2026-07-06 -- Phase 17.2 execution complete (3/3 plans, build+tests green)
 progress:
-  total_phases: 6
+  total_phases: 7
   completed_phases: 5
   total_plans: 15
   completed_plans: 15
-  percent: 83
+  percent: 71
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-01 for v1.3 milestone)
 
 **Core value:** 레이트리밋이 걸린 외부 마켓 API에서 시세를 빠짐없이 수집해 시계열로 쌓고, 캐시로 안정적으로 서빙한다
-**Current focus:** Phase 17.2 완료 → Phase 18 (무료 라이브 배포) 착수 대기
+**Current focus:** Phase 17.3 (쿠폰 관리자 등록) — SPEC + CONTEXT 확정, /gsd-plan-phase 17.3 대기
 
 ## Current Position
 
-Phase: 17.2 (news-panel) — COMPLETE
-Plan: 3 of 3
-Status: Phase 17.2 complete (뉴스 파이프라인 + 대시보드 패널) — Phase 18 (배포) 착수 대기
-Last activity: 2026-07-06 -- Phase 17.2 execution complete (3/3 plans, build+tests green)
+Phase: 17.3 (coupon-admin) — SPEC + CONTEXT ready (planning next)
+Plan: 0 of 0 (아직 미계획)
+Status: Phase 17.3 요구사항(SPEC 4개)·구현결정(CONTEXT 4개 D) 확정 — /gsd-plan-phase 17.3 대기. Phase 17.2(뉴스) 완료, Phase 18(배포) 후속.
+Last activity: 2026-07-06 -- Phase 17.3 context gathered (discuss-phase)
 
 ## Performance Metrics
 
@@ -110,9 +110,9 @@ None (2026-06-30: `.env` `LOSTARK_API_KEY` 무효(401) 이슈는 키 재발급·
 
 ## Session Continuity
 
-Last session: 2026-07-06T08:10:00.000Z
-Stopped at: Phase 17.1 실행 완료 (VERIFICATION PASS) — Phase 18 (배포) 착수 대기
-Resume file: .planning/phases/17.1-demo-polish/17.1-VERIFICATION.md
+Last session: 2026-07-06T13:49:48.475Z
+Stopped at: Phase 17.3 context gathered
+Resume file: .planning/phases/17.3-coupon-admin/17.3-CONTEXT.md
 
 ## Operator Next Steps
 
