@@ -10,6 +10,11 @@ spring:
 collection:
   initial-delay-ms: 3600000
 
+# Same for the news poller — ITs drive NewsService.refresh() directly with a mocked client,
+# so push the boot-time news refresh far out to keep it from making a live /news call.
+news:
+  initial-delay-ms: 3600000
+
 # Fixed, non-sensitive test secret. The 04-01 admin ITs inject @Value("${admin.api.secret:test-admin-secret}")
 # and send it as X-Admin-Secret, so the gate accepts their requests with zero retrofit.
 admin:
