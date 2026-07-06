@@ -160,6 +160,36 @@ class MarketsApiSpikeTest extends PostgresRedisContainers {
         }
     }
 
+    /**
+     * Phase 17.2 spike (D-05): live-measure the real field names of {@code /news/events} and
+     * {@code /news/notices} ONCE so 17.2-NEWS-SPIKE-FINDINGS.md can lock the EventDTO/NoticeDTO
+     * mapping before 17.2-02 writes the parser. News payloads are fully public metadata — titles,
+     * links, dates, event periods — with no price or key data, so the raw body is safe to print;
+     * {@link #printTopLevelFields} additionally lists the distinct field keys of the first array
+     * element for a clean lock table. Two GET requests only (6h-poll parity, no market budget impact).
+     */
+    @Test
+    void captureNewsFields() {
+        Assumptions.assumeTrue(apiKey != null && !apiKey.isBlank(),
+                "LOSTARK_API_KEY not set — skipping live Phase 17.2 news spike");
+
+        // 1) /news/events — currently-running events. Lock EventDTO (title/link/startDate/endDate[/thumbnail]).
+        ResponseEntity<String> events = client.getNewsEvents();
+        System.out.println("=== SPIKE 17.2 /news/events STATUS = " + events.getStatusCode());
+        System.out.println("=== SPIKE 17.2 /news/events BODY   = " + events.getBody());
+        printTopLevelFields("events", events.getBody());
+        assertThat(events.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(events.getBody()).isNotBlank();
+
+        // 2) /news/notices — official notices. Lock NoticeDTO (title/link/date/type).
+        ResponseEntity<String> notices = client.getNewsNotices();
+        System.out.println("=== SPIKE 17.2 /news/notices STATUS = " + notices.getStatusCode());
+        System.out.println("=== SPIKE 17.2 /news/notices BODY   = " + notices.getBody());
+        printTopLevelFields("notices", notices.getBody());
+        assertThat(notices.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(notices.getBody()).isNotBlank();
+    }
+
     /** 유물 각인서 leaf CategoryCode (community-confirmed; re-verified from the options dump). */
     private static final int ENGRAVING_CATEGORY = 40000;
 
@@ -209,6 +239,30 @@ class MarketsApiSpikeTest extends PostgresRedisContainers {
         if (count == 0) {
             System.out.println("--- " + label + ": no Id/Name/Grade/Icon tuples matched (check category)");
         }
+    }
+
+    /**
+     * Print the distinct top-level field names of the first JSON object in a (news) array body so
+     * the 17.2 findings lock table can be hand-built. News bodies are public metadata only — this
+     * lists field KEYS (e.g. Title/Link/StartDate/EndDate), never price or key data.
+     */
+    private static void printTopLevelFields(String label, String body) {
+        if (body == null || body.isBlank()) {
+            System.out.println("--- " + label + ": <empty body>");
+            return;
+        }
+        // Grab the first {...} object (the array's first element) and list its top-level keys.
+        var obj = java.util.regex.Pattern.compile("\\{(.*?)\\}", java.util.regex.Pattern.DOTALL).matcher(body);
+        if (!obj.find()) {
+            System.out.println("--- " + label + ": no JSON object found in body");
+            return;
+        }
+        var key = java.util.regex.Pattern.compile("\"([A-Za-z0-9_]+)\"\\s*:").matcher(obj.group(1));
+        var keys = new java.util.LinkedHashSet<String>();
+        while (key.find()) {
+            keys.add(key.group(1));
+        }
+        System.out.println("--- " + label + " fields = " + keys);
     }
 
     /** Report whether the Icon URLs in a response are all distinct or contain duplicates (Pitfall 7). */

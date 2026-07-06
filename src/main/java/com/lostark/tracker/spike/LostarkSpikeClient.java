@@ -99,4 +99,31 @@ public class LostarkSpikeClient {
                 .retrieve()
                 .toEntity(String.class);
     }
+
+    /**
+     * GET {@code /news/events} — currently-running in-game events. Public metadata only
+     * (제목/링크/시작·종료일/썸네일/보상일 per portal docs); no price or key data. The Phase 17.2
+     * spike (D-05) reads this to lock the EventDTO field mapping before 17.2-02 implements the
+     * parser. Same request shape as {@link #getMarketOptions()} — read-only GET, no body.
+     * Returns status + headers + raw body; no persistence.
+     */
+    public ResponseEntity<String> getNewsEvents() {
+        return restClient.get()
+                .uri("/news/events")
+                .retrieve()
+                .toEntity(String.class);
+    }
+
+    /**
+     * GET {@code /news/notices} — official notices/announcements. Public metadata only
+     * (제목/날짜/링크/타입 per portal docs); no price or key data. The Phase 17.2 spike (D-05) reads
+     * this to lock the NoticeDTO field mapping before 17.2-02. Read-only GET, no body.
+     * Returns status + headers + raw body; no persistence.
+     */
+    public ResponseEntity<String> getNewsNotices() {
+        return restClient.get()
+                .uri("/news/notices")
+                .retrieve()
+                .toEntity(String.class);
+    }
 }
