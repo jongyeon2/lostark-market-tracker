@@ -118,6 +118,18 @@ Plans:
 4. (Core Value 가드) 수집(`PriceCollector`)·가격 캐시·event-impact 로직 0줄 — 뉴스는 독립 패키지·독립 스케줄·독립 Redis 키
 **설계 스펙**: `docs/superpowers/specs/2026-07-06-dashboard-news-panel-design.md`
 
+#### Phase 17.3: 쿠폰 관리자 등록 — 대시보드 쿠폰 섹션 (INSERTED)
+
+**Goal**: 관리자가 콘솔에서 로스트아크 쿠폰(코드·보상·만료일)을 등록·수정·삭제하면 PostgreSQL에 영속되고, 대시보드 뉴스 패널의 '쿠폰' 섹션에 미만료 쿠폰만 만료임박순(≤6)으로 표시되며(코드 원클릭 복사), 만료 쿠폰은 공개 목록에서 자동 제외된다. Phase 17.2(NEWS)에서 defer된 "관리자 수동 입력"을 실현한다. 뉴스(휘발성 Redis)와 달리 관리자 입력이라 PostgreSQL 영속. 수집/가격 캐시/event-impact 핵심 경로는 0줄(Core Value 가드) — 쿠폰은 독립 도메인.
+**Depends on**: Phase 15(관리자 콘솔·admin CRUD 패턴 — `AdminEventController`/`EventSection` 재사용), Phase 17.2(뉴스 패널 — 쿠폰 섹션 배치 대상)
+**Requirements**: COUPON-01, COUPON-02, COUPON-03
+**Success criteria**:
+1. 관리자가 쿠폰(코드·보상·만료일)을 등록·수정·삭제하고 PostgreSQL에 영속한다 (X-Admin-Secret 게이트, `/api/admin/coupons`)
+2. 대시보드 뉴스 패널에 미만료 쿠폰이 만료임박순(≤6)으로 표시되고 코드를 원클릭 복사할 수 있다
+3. 만료 쿠폰은 공개 `GET /api/coupons`에서 자동 제외되고, 없거나 로딩 실패해도 대시보드가 정직히 표시한다
+4. (Core Value 가드) 수집·가격 캐시·event-impact 로직 0줄, 프론트 로아 직접 호출 0 — 쿠폰은 독립 도메인·PostgreSQL 영속
+**스펙**: `.planning/phases/17.3-coupon-admin/17.3-SPEC.md`
+
 #### Phase 18: 무료 라이브 배포 + 보안 검증 (마지막)
 
 **Goal**: 무료 호스팅에 배포해 공개 URL로 데모 3화면 + 관리자 콘솔을 서빙한다. 프론트는 정적/단일 출처로 서빙하고, 실 키·시크릿은 서버 env only, 배포 직전 보안 검증 게이트를 통과한다. 무료 타깃(항상무료 VM vs 무료 PaaS)은 착수 시 리서치로 결정.
