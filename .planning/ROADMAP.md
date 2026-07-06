@@ -98,6 +98,13 @@
 4. 대시보드가 바둑판 그리드에서 카테고리별 세로 섹션(각인 → 재료, 섹션 내 위→아래)으로 재구성된다
 5. event-impact의 상관≠인과 주의 문구가 번역투 없이 이해하기 쉬운 주의사항 표현으로 개선된다
 6. (Core Value 가드) 수집/캐시/event-impact 핵심 경로 회귀 없음 — 큐레이션 변경은 watchlist/seed 데이터 층에 한정
+**Plans**: 4 plans
+
+Plans:
+- [ ] 17.1-01-PLAN.md — 신규 큐레이션 10개 실 API 스파이크 (POLISH-02/03)
+- [ ] 17.1-02-PLAN.md — 큐레이션 22개 재잠금: WatchlistSeeder + roleGroup 라벨 (POLISH-02/03)
+- [ ] 17.1-03-PLAN.md — 대시보드 정보 재배치: 헬스카드 이관 + 세로 섹션 재구성 (POLISH-01/04)
+- [ ] 17.1-04-PLAN.md — event-impact 주의 문구 개선 (POLISH-05)
 
 #### Phase 18: 무료 라이브 배포 + 보안 검증 (마지막)
 
