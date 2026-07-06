@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: 관리자 콘솔 + 실데이터 라이브 배포
 status: executing
-stopped_at: Phase 17.1 executed (VERIFICATION PASS) — Phase 18 (배포) 대기
-last_updated: "2026-07-06T08:10:00.000Z"
-last_activity: 2026-07-06 -- Phase 17.1 실행 완료 (4/4 plans, PASS)
+stopped_at: Phase 17.2 계획 완료 (3 plans) — 실행 대기
+last_updated: "2026-07-06T09:00:00.000Z"
+last_activity: 2026-07-06 -- Phase 17.2 계획 완료 (뉴스 패널 3 plans)
 progress:
   total_phases: 6
   completed_phases: 4
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-07-01 for v1.3 milestone)
 
 ## Current Position
 
-Phase: 17.1 — 데모 최종 폴리시 실행 완료 (4/4 plans, VERIFICATION PASS) · 다음: Phase 18 (배포)
-Plan: 17.1-01~04 완료 (스파이크 실측·큐레이션 22 재잠금·대시보드 세로 섹션·배너 문구)
-Status: Phase 17.1 executed — Phase 18 착수 대기
-Last activity: 2026-07-06 -- Phase 17.1 실행 완료
+Phase: 17.2 — 대시보드 뉴스 패널 계획 완료 (3 plans) · 실행 대기 (Phase 17.1 완료)
+Plan: 17.2-01(뉴스 필드 스파이크)·17.2-02(백엔드 파이프라인)·17.2-03(프론트 패널) — `/gsd-execute-phase 17.2`
+Status: Phase 17.2 planned — 실행 대기
+Last activity: 2026-07-06 -- Phase 17.2 계획 완료
 
 ## Performance Metrics
 
