@@ -111,6 +111,55 @@ class MarketsApiSpikeTest extends PostgresRedisContainers {
         }
     }
 
+    /**
+     * Phase 17.1 spike (D-02/D-03/D-04): live-measure the 10 NEW curation items — 8 유물 각인서
+     * (딜러 3 + 서포터 5) and 2 재련 재료 (운명의 파괴석/수호석) — so 17.1-SPIKE-FINDINGS.md can lock their real
+     * Id/Icon/CategoryCode before 17.1-02 transcribes them into WatchlistSeeder. Prints ONLY public
+     * metadata (Id/Name/Grade/Icon) — no price fields — so no 가격原文 lands in the console dump. 유물
+     * 각인서 share the use_9_25 glyph (Phase 14 D-06) → identify by label, not icon.
+     */
+    @Test
+    void captureNewCurationItems() {
+        Assumptions.assumeTrue(apiKey != null && !apiKey.isBlank(),
+                "LOSTARK_API_KEY not set — skipping live Phase 17.1 spike");
+
+        // 1) 유물 각인서 (40000): query each NEW engraving by ItemName; pick the Grade=유물 row when building
+        //    the findings table. ItemName is a substring filter.
+        for (String engraving : NEW_ENGRAVING_NAME_CANDIDATES) {
+            try {
+                ResponseEntity<String> named = client.searchMarketItems(ENGRAVING_CATEGORY, engraving);
+                System.out.println("=== SPIKE 17.1 engraving name='" + engraving + "' STATUS = " + named.getStatusCode());
+                printItemFields("engraving/" + engraving, named.getBody());
+                printIconDistinctness("engraving/" + engraving, named.getBody());
+            } catch (org.springframework.web.client.HttpClientErrorException e) {
+                System.out.println("=== SPIKE 17.1 engraving name='" + engraving + "' HTTP " + e.getStatusCode() + " (skipped)");
+            }
+        }
+
+        // 2) /markets/options — read the 재련 재료 leaf CategoryCode for 운명의 파괴석/수호석 결정 (≠ 50010
+        //    융화재료). Category tree only (no price fields).
+        ResponseEntity<String> options = client.getMarketOptions();
+        System.out.println("=== SPIKE 17.1 options STATUS = " + options.getStatusCode());
+        System.out.println("=== SPIKE 17.1 options BODY   = " + options.getBody());
+        assertThat(options.getStatusCode().is2xxSuccessful()).isTrue();
+
+        // 3) 운명의 파괴석/수호석 결정 (재련 재료): search each NEW material across candidate leaf codes so the
+        //    real CategoryCode (≠ 50010) surfaces. printItemFields shows which category returns them.
+        for (int categoryCode : NEW_MATERIAL_CATEGORY_CANDIDATES) {
+            for (String material : NEW_MATERIAL_NAME_CANDIDATES) {
+                try {
+                    ResponseEntity<String> mat = client.searchMarketItems(categoryCode, material);
+                    System.out.println("=== SPIKE 17.1 material cat=" + categoryCode + " name='" + material
+                            + "' STATUS = " + mat.getStatusCode());
+                    printItemFields("material/" + categoryCode + "/" + material, mat.getBody());
+                } catch (org.springframework.web.client.HttpClientErrorException e) {
+                    System.out.println("=== SPIKE 17.1 material cat=" + categoryCode + " name='" + material
+                            + "' HTTP " + e.getStatusCode() + " (skipped)");
+                }
+            }
+        }
+    }
+
     /** 유물 각인서 leaf CategoryCode (community-confirmed; re-verified from the options dump). */
     private static final int ENGRAVING_CATEGORY = 40000;
 
@@ -126,6 +175,21 @@ class MarketsApiSpikeTest extends PostgresRedisContainers {
             "원한", "예리한 둔기", "저주받은 인형", "아드레날린", "정밀 단도",
             "타격의 대가", "기습의 대가", "돌격대장", "결투의 대가",
             "각성", "만개", "전문의", "구원");
+
+    /**
+     * Phase 17.1 D-01/D-02 신규 각인 8종 (딜러 3 + 서포터 5) queried by ItemName within 40000.
+     * "중갑" is a substring for the "중갑 착용" 각인서 (the "중갑착용" spelling returns 0 rows).
+     */
+    private static final java.util.List<String> NEW_ENGRAVING_NAME_CANDIDATES = java.util.List.of(
+            "질량 증가", "슈퍼 차지", "바리케이드",
+            "구슬동자", "마나의 흐름", "폭발물 전문가", "분쇄의 주먹", "중갑");
+
+    /** Phase 17.1 D-01 신규 재련 재료 2종 (운명의 파괴석/수호석 결정) queried by ItemName substring. */
+    private static final java.util.List<String> NEW_MATERIAL_NAME_CANDIDATES = java.util.List.of(
+            "운명의 파괴석", "운명의 수호석");
+
+    /** 강화 재료 leaf CategoryCodes to probe: 50010 재련 재료 (운명 결정 live here) + 50020 재련 추가 재료. */
+    private static final int[] NEW_MATERIAL_CATEGORY_CANDIDATES = {50010, 50020};
 
     /** Print Id/Name/Grade/Icon per item (no price fields) so the findings table can be hand-built. */
     private static void printItemFields(String label, String body) {
