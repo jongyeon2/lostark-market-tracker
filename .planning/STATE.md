@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: 관리자 콘솔 + 실데이터 라이브 배포
-status: executing
-stopped_at: Phase 17 완료 (실데이터 전환 — 3/3 plans, 성공기준 4/4 PASS)
-last_updated: "2026-07-03T08:15:44.192Z"
-last_activity: 2026-07-03 -- Phase 17 완료 검증 PASS (실키 수집 라이브 확인, 백엔드 0줄 가드)
+status: Phase 17.1(폴리시)를 Phase 18(배포) 앞에 삽입 — 큐레이션 갱신·대시보드 재구성·주의 문구 개선. POLISH-01..05.
+stopped_at: Phase 17.1 context gathered
+last_updated: "2026-07-06T03:04:32.724Z"
+last_activity: 2026-07-06 -- Phase 17.1 ROADMAP/REQUIREMENTS 삽입 (배포 앞), 사용자 데모 확인 후 5건 폴리시 도출
 progress:
-  total_phases: 4
+  total_phases: 5
   completed_phases: 3
   total_plans: 8
   completed_plans: 8
-  percent: 75
+  percent: 60
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-01 for v1.3 milestone)
 
 **Core value:** 레이트리밋이 걸린 외부 마켓 API에서 시세를 빠짐없이 수집해 시계열로 쌓고, 캐시로 안정적으로 서빙한다
-**Current focus:** Phase 17 — 실데이터 전환
+**Current focus:** Phase 17.1 — 데모 최종 폴리시 (배포 앞 삽입)
 
 ## Current Position
 
-Phase: 17 — ✅ 완료 (실데이터 전환)
-Plan: 17-01·17-02·17-03 complete (3/3) — 성공기준 4/4 PASS
-Status: Phase 17 완료 — 다음: Phase 18 (무료 라이브 배포 + 보안 검증, 마지막)
-Last activity: 2026-07-03 -- Phase 17 완료 검증 PASS (실키 dev 수집 라이브 확인, 백엔드 src/ 0줄 가드)
+Phase: 17.1 — 삽입됨 (데모 최종 폴리시), discuss/plan 대기 · Phase 17 완료
+Plan: 없음 (0 plans) — `/gsd-plan-phase 17.1`로 분해
+Status: Phase 17.1(폴리시)를 Phase 18(배포) 앞에 삽입 — 큐레이션 갱신·대시보드 재구성·주의 문구 개선. POLISH-01..05.
+Last activity: 2026-07-06 -- Phase 17.1 ROADMAP/REQUIREMENTS 삽입 (배포 앞), 사용자 데모 확인 후 5건 폴리시 도출
 
 ## Performance Metrics
 
@@ -59,6 +59,10 @@ Last activity: 2026-07-03 -- Phase 17 완료 검증 PASS (실키 dev 수집 라�
 *Updated after each plan completion*
 
 ## Accumulated Context
+
+### Roadmap Evolution
+
+- Phase 17.1 inserted after Phase 17: 데모 최종 폴리시: 큐레이션 갱신·대시보드 재구성 (배포 앞) (URGENT)
 
 ### Decisions
 
@@ -104,9 +108,9 @@ None (2026-06-30: `.env` `LOSTARK_API_KEY` 무효(401) 이슈는 키 재발급·
 
 ## Session Continuity
 
-Last session: 2026-07-03T07:56:12.583Z
-Stopped at: Phase 17 context gathered
-Resume file: .planning/phases/17-real-data-transition/17-CONTEXT.md
+Last session: 2026-07-06T03:04:32.718Z
+Stopped at: Phase 17.1 context gathered
+Resume file: .planning/phases/17.1-demo-polish/17.1-CONTEXT.md
 
 ## Operator Next Steps
 
