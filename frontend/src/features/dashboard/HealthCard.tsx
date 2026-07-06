@@ -38,7 +38,7 @@ function HealthContent({ health }: { health: CollectionHealth }) {
     <>
       {/* Title (Heading 20/600) left, four-grade StatusBadge right. */}
       <CardHeader className="flex flex-row items-center justify-between gap-4">
-        <CardTitle className="text-xl">수집 헬스</CardTitle>
+        <CardTitle className="text-xl">API 상태</CardTitle>
         <StatusBadge status={status} />
       </CardHeader>
 

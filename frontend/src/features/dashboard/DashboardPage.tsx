@@ -1,42 +1,60 @@
 import { useItems } from '@/lib/queries'
 import { AsyncBoundary } from '@/components/state/AsyncBoundary'
 import { sortByRole } from '@/features/_shared/roleGroup'
+import type { TrackedItem } from '@/lib/schemas'
 
-import { HealthCard } from './HealthCard'
 import { ItemCard } from './ItemCard'
 
 /*
-  DashboardPage — the Phase-8 dashboard as one top-to-bottom scroll realizing the D-01 hierarchy
-  'health(파이프라인 살아있음) → 무엇을 추적 → 지금 얼마': the full-width HealthCard (08-02) on top, then the
-  active-item card grid from useItems() below it (separated by lg/24px). Replaces the Phase-7
-  temporary placeholder list. The grid wraps its OWN AsyncBoundary (pending/error/0-items) INDEPENDENTLY
-  of the HealthCard's boundary (D-07/D-08), so a grid error or empty never hides the health card and
-  vice-versa. D-07: the grid is client-sorted by role group (DEALER→SUPPORT→MATERIAL→null)→name via
-  sortByRole — the backend stays 0-line. Each card fans out its own latest request (D-03/D-04).
-  Read-only: no item selector, chart, polling, or write UI.
+  DashboardPage — the client dashboard focused on '무엇을 추적 → 지금 얼마'. Collection health is an
+  operator concern and now lives only in the admin console (17.1 D-07), so the dashboard no longer
+  renders it. useItems() is client-sorted by role group (DEALER→SUPPORT→MATERIAL→null)→name via
+  sortByRole (backend stays 0-line), then split into two vertical sections — 각인(DEALER+SUPPORT) →
+  재료(MATERIAL) (D-10). Each card is a full-width horizontal row (D-12). The list wraps its OWN
+  AsyncBoundary (pending/error/0-items); no separate honesty widget is added (D-09 — per-card pending +
+  boundary suffice). Read-only: no item selector, chart, polling, or write UI.
 */
 export function DashboardPage() {
   const { status, data, refetch } = useItems()
 
-  // D-07: role-group then name, on a NEW array (sortByRole is non-mutating). isEmpty still reads the
-  // original data?.length so an empty list is judged before sorting.
+  // D-11: sortByRole already orders DEALER→SUPPORT→MATERIAL→null, then name(ko-KR); we reuse it and
+  // split by role group. 각인 = DEALER+SUPPORT (딜러→서포터→이름 order preserved), 재료 = MATERIAL.
+  // isEmpty still reads the ORIGINAL data length so an empty list is judged before splitting.
   const sorted = data ? sortByRole(data) : []
+  const engravings = sorted.filter((i) => i.roleGroup === 'DEALER' || i.roleGroup === 'SUPPORT')
+  const materials = sorted.filter((i) => i.roleGroup === 'MATERIAL')
 
   return (
     <div className="space-y-6">
       <h1 className="text-[28px] leading-tight font-semibold">대시보드</h1>
 
-      {/* ① health (파이프라인 살아있음) — full-width, its own boundary. */}
-      <HealthCard />
-
-      {/* ② 무엇을 추적 + ③ 지금 얼마 — responsive item-card grid, its own boundary (independent of health). */}
       <AsyncBoundary status={status} isEmpty={(data?.length ?? 0) === 0} onRetry={() => refetch()}>
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {sorted.map((item) => (
-            <ItemCard key={item.id} item={item} />
-          ))}
+        <div className="space-y-8">
+          {/* 섹션 순서: 각인 → 재료 (D-10). RoleBadge on each card distinguishes 딜러/서포터 (D-11). */}
+          <ItemSection title="각인" items={engravings} />
+          <ItemSection title="재료" items={materials} />
         </div>
       </AsyncBoundary>
     </div>
+  )
+}
+
+/*
+  One category section: a lightweight heading (literal '각인'/'재료' — NOT ROLE_LABEL, since 각인 is the
+  DEALER+SUPPORT union, D-11) over a vertical stack of full-width rows. Empty categories render nothing
+  so a not-yet-populated bucket never shows a bare header.
+*/
+function ItemSection({ title, items }: { title: string; items: TrackedItem[] }) {
+  if (items.length === 0) return null
+
+  return (
+    <section className="space-y-3">
+      <h2 className="text-muted-foreground text-sm font-semibold tracking-wide">{title}</h2>
+      <div className="space-y-3">
+        {items.map((item) => (
+          <ItemCard key={item.id} item={item} />
+        ))}
+      </div>
+    </section>
   )
 }
