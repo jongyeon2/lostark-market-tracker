@@ -105,7 +105,8 @@ function NoticeSection({ notices }: { notices: NewsNotice[] }) {
       {notices.length === 0 ? (
         <EmptyLine>새 공지가 없어요</EmptyLine>
       ) : (
-        <ul className="space-y-0.5">
+        <ul className="-mx-2 space-y-0.5">
+          {/* -mx-2 aligns each row's px-2 content with the "공지사항" heading's first char. */}
           {notices.map((notice) => (
             <li key={notice.link}>
               <a
@@ -120,7 +121,7 @@ function NoticeSection({ notices }: { notices: NewsNotice[] }) {
                     {notice.title}
                   </span>
                 </span>
-                <span className="text-muted-foreground pl-0.5 text-xs tabular-nums">
+                <span className="text-muted-foreground text-xs tabular-nums">
                   {newsDate(notice.date)}
                 </span>
               </a>
