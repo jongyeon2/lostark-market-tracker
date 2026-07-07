@@ -71,7 +71,7 @@ class PriceCollectionIT extends PostgresRedisContainers {
     }
 
     private static MarketItemsResponse oneItem(long id, long price) {
-        return new MarketItemsResponse(1, 10, 1, List.of(new MarketItem(id, "item" + id, price)));
+        return new MarketItemsResponse(1, 10, 1, List.of(new MarketItem(id, "item" + id, price, null)));
     }
 
     @Test

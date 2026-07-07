@@ -61,7 +61,8 @@ public class ItemFetchService {
                 return CompletableFuture.completedFuture(ItemFetchResult.failed(trackedItemId, "NOT_FOUND"));
             }
             return CompletableFuture.completedFuture(
-                    ItemFetchResult.success(trackedItemId, match.currentMinPrice(), OffsetDateTime.now(ZoneOffset.UTC)));
+                    ItemFetchResult.success(trackedItemId, match.currentMinPrice(), match.yDayAvgPrice(),
+                            OffsetDateTime.now(ZoneOffset.UTC)));
         } catch (AuthApiException e) {
             // Fatal: stop new calls + mark the run. No key in the marker.
             fatalAuth.set(true);
