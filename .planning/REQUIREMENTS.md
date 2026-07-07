@@ -60,6 +60,15 @@ Phase 17.2(NEWS)에서 "공식 API 부재 → 이후 관리자 수동 입력"으
 - [x] **COUPON-02**: 대시보드 뉴스 패널에 유효한(미만료) 쿠폰이 만료임박순으로 표시되고(≤6), 각 쿠폰의 코드를 원클릭 복사할 수 있다 (프론트는 백엔드 `GET /api/coupons`만 소비·로아 직접 호출 금지)
 - [x] **COUPON-03**: 만료된 쿠폰은 공개 `GET /api/coupons`에서 자동 제외되며, 쿠폰이 없거나 로딩 실패해도 대시보드가 빈 화면 없이 정직히 표시한다
 
+### 타임라인 gap 백필 (BACKFILL)
+
+서버 off로 생긴 품목 타임라인의 수집 공백을, 로스트아크가 제공하는 일별 평균가로 별도 "일별 평균" 시리즈로 정직하게 백필해 어떤 기간을 봐도 시세가 연속으로 보이게 한다(Phase 17.4). 소스 2종 병행(리스트 `YDayAvgPrice` 전 품목·무료 + 상세 `Stats[]` 재료 14일). `price_snapshot` 무변경, 별도 `item_daily_stats`에 additive 적재. min(실측 호가)과 avg(백필 거래 평균)는 시각적으로 구분(혼합 금지). 스파이크: `17.4-SPIKE-FINDINGS.md`.
+
+- [ ] **BACKFILL-01**: 매 수집 시 리스트 응답의 `YDayAvgPrice`(전일 평균·각인서 포함 전 품목·추가 호출 0)를 `item_daily_stats`에 멱등 upsert해 going-forward 일별 평균 시리즈를 축적한다 (실 수집 min_price·price_snapshot 무변경)
+- [ ] **BACKFILL-02**: 서버 기동 시 + 일 1회, 상세 API `Stats[]`로 재료의 최근 14일 일별 평균을 소급 멱등 upsert해 과거 gap을 채운다 (재료만·레이트리밋 존중·품목별 fail-open, 각인서는 상세 Stats=0이라 대상 아님)
+- [ ] **BACKFILL-03**: 품목 타임라인이 백필 일별 평균을 연속 라인으로 표시하고 실측 min_price는 그 위에 시각적으로 구분해 표식한다 — min(호가)/avg(거래) 지표를 한 라인에 혼합하지 않고 정직 라벨링(항상 표시·기본 30일)
+- [ ] **BACKFILL-04**: 수집/캐시/event-impact 핵심 경로 0줄(Core Value 가드), `price_snapshot` 스키마 무변경 — additive 신규 테이블(`item_daily_stats`)·러너·read 병합만
+
 ### 라이브 배포 + 보안 (DEPLOY)
 
 v1.0에서 v2로 연기했던 `DEPLOY-V2-01`(무료 호스팅 데모 배포)을 이번 마일스톤에서 실현. 무료 타깃(항상무료 VM vs 무료 PaaS)은 배포 phase 착수 시 리서치로 결정.
@@ -114,13 +123,16 @@ v1.0에서 v2로 연기했던 `DEPLOY-V2-01`(무료 호스팅 데모 배포)을 
 | REALDATA-01..03 | Phase 17 | Complete |
 | POLISH-01..05 | Phase 17.1 | Complete |
 | NEWS-01..03 | Phase 17.2 | Pending |
+| COUPON-01..03 | Phase 17.3 | Complete |
+| BACKFILL-01..04 | Phase 17.4 | Pending |
 | DEPLOY-01..04 | Phase 18 | Pending |
 
 **Coverage:**
-- v1.3 requirements: 23 total
-- Mapped to phases: 23
+- v1.3 requirements: 30 total
+- Mapped to phases: 30
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-07-01*
-*Last updated: 2026-07-06 — Phase 17.2(대시보드 뉴스 패널) 삽입에 따라 NEWS-01..03 추가(20→23); Phase 17.1 실행 완료로 POLISH 트레이스 Complete 정합*
+*Last updated: 2026-07-07 — Phase 17.4(타임라인 gap 백필) 계획에 따라 BACKFILL-01..04 추가(26→30); 트레이스 매트릭스에 COUPON-01..03(Phase 17.3 Complete) 누락 행 정합*
+*Prev: 2026-07-06 — Phase 17.2(대시보드 뉴스 패널) 삽입에 따라 NEWS-01..03 추가(20→23); Phase 17.1 실행 완료로 POLISH 트레이스 Complete 정합*

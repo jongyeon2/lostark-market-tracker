@@ -134,7 +134,7 @@ Plans:
 
 **Goal**: 서버 off로 생긴 품목 타임라인의 수집 공백을, 로스트아크가 제공하는 **일별 평균가**로 별도 "일별 평균" 시리즈로 정직하게 백필해 어떤 기간을 봐도 시세가 연속으로 보이게 한다. 소스 2종 병행: (1) 매 수집 시 리스트 응답의 `YDayAvgPrice`(전일 평균, **각인서 포함 전 품목**, 추가 호출 0·무료)를 저장해 going-forward 일별 평균을 쌓고, (2) 상세 API `Stats[].AvgPrice`(최근 **14일**, 재료만 채워짐)로 재료의 과거 gap을 소급 채운다. `price_snapshot`(Core Value 가드)은 무변경, 별도 `item_daily_stats` 테이블에 additive 적재하며, 타임라인은 실측 min_price(실시간 최저 호가)와 백필 일평균(거래 평균가)을 시각적으로 구분한다(한 라인 혼합 금지). 14일 초과 다일 gap은 API에도 없어 복구 불가 → Phase 18 상시 배포(연속 수집)가 근본 해결이고 백필은 그 보완이다.
 **Depends on**: Phase 2(수집 파이프라인·LostarkApiClient·레이트리밋), Phase 3(타임라인 read/차트), Phase 12(상세 API 스파이크 패턴)
-**Requirements**: 신규 BACKFILL-* (SPEC 단계에서 정의)
+**Requirements**: BACKFILL-01, BACKFILL-02, BACKFILL-03, BACKFILL-04
 **Success criteria**:
 1. 매 수집 시 리스트 응답의 `YDayAvgPrice`(전 품목·무료)를 `item_daily_stats`에 멱등 upsert해 일별 평균 시리즈를 going-forward로 축적한다 (실 수집 min_price·price_snapshot 무변경)
 2. 서버 기동 시 + 일 1회, 상세 API `Stats[]`로 재료의 최근 14일 일별 평균을 소급 upsert해 과거 gap을 채운다

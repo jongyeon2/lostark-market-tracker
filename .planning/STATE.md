@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: 관리자 콘솔 + 실데이터 라이브 배포
-status: "Ready to discuss/plan — 17.4(타임라인 gap 백필: 상세 API 일별 Stats로 수집 공백 백필) 삽입, 그다음 Phase 18(배포). 스파이크 findings: 17.4-SPIKE-FINDINGS.md"
-stopped_at: Phase 17.4 context gathered (discuss)
-last_updated: "2026-07-07T03:27:42.572Z"
-last_activity: 2026-07-07 -- Phase 17.4 삽입 (스파이크 후)
+status: "Ready to execute — Phase 17.4(타임라인 gap 백필) 계획 완료: 4 plans / 3 waves. 그다음 Phase 18(배포)"
+stopped_at: Phase 17.4 planned (4 plans, 3 waves)
+last_updated: "2026-07-07T06:34:16.751Z"
+last_activity: 2026-07-07 -- Phase 17.4 planning complete
 progress:
   total_phases: 8
   completed_phases: 6
-  total_plans: 18
+  total_plans: 22
   completed_plans: 18
   percent: 75
 ---
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-01 for v1.3 milestone)
 
 **Core value:** 레이트리밋이 걸린 외부 마켓 API에서 시세를 빠짐없이 수집해 시계열로 쌓고, 캐시로 안정적으로 서빙한다
-**Current focus:** Phase 17.4 (타임라인 gap 백필) — context gathered(discuss), ready to plan. 그다음 Phase 18(배포)
+**Current focus:** Phase 17.4 (타임라인 gap 백필) — 계획 완료(4 plans / 3 waves), 실행 대기. 그다음 Phase 18(배포)
 
 ## Current Position
 
-Phase: 17.4 (timeline-gap-backfill) — inserted, 미계획 (스파이크 PASS)
-Plan: Not started
-Status: Ready to discuss/plan — 17.4(타임라인 gap 백필: 상세 API 일별 Stats로 수집 공백 백필) 삽입, 그다음 Phase 18(배포). 스파이크 findings: 17.4-SPIKE-FINDINGS.md
-Last activity: 2026-07-07 -- Phase 17.4 삽입 (스파이크 후)
+Phase: 17.4 (timeline-gap-backfill) — 계획 완료 (스파이크 PASS · discuss · plan)
+Plan: 4 plans / 3 waves — W1: 01(item_daily_stats 저장), W2: 02(YDayAvgPrice 캡처)·03(상세 Stats 소급), W3: 04(read 병합+차트). 결정 커버리지 5/5, 요구사항 BACKFILL-01..04 형식화
+Status: Ready to execute — `/gsd-execute-phase 17.4`. 그다음 Phase 18(배포)
+Last activity: 2026-07-07 -- Phase 17.4 planning complete
 
 ## Performance Metrics
 
