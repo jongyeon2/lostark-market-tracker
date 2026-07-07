@@ -134,8 +134,6 @@ export function ImpactPage() {
       {/* 상관 ≠ 인과 — content-top, full width, always visible (D-10). */}
       <CorrelationBanner />
 
-      <h1 className="text-[28px] leading-tight font-semibold">이벤트 영향</h1>
-
       {/* Control bar: selector + window controls (wraps on narrow widths). */}
       <div className="flex flex-wrap items-end gap-4">
         <ItemSelect value={itemId} onChange={setItem} />

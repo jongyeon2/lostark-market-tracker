@@ -33,8 +33,6 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-[28px] leading-tight font-semibold">대시보드</h1>
-
       {/* D-03: max-w-6xl content; lg 2-column (좌 물품 minmax(0,1fr) / 우 뉴스 20rem≈320px), single
           column below lg (items above, news below). The grid (not a standalone narrow wrapper) controls width. */}
       <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">

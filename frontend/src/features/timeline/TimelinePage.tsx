@@ -157,8 +157,6 @@ export function TimelinePage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-[28px] leading-tight font-semibold">품목 타임라인</h1>
-
       {/* Control bar: selector + presets + date inputs (wraps on narrow widths). */}
       <div className="flex flex-wrap items-end gap-4">
         <ItemSelect value={itemId} onChange={setItem} />
