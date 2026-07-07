@@ -132,15 +132,15 @@ Plans:
 
 #### Phase 17.4: 타임라인 gap 백필 — 일별 Stats (INSERTED)
 
-**Goal**: 서버 off로 생긴 품목 타임라인의 수집 공백을, 로스트아크 상세 API(`GET /markets/items/{id}`)가 보관하는 **일별 평균가(`Stats[].AvgPrice`, 최근 14일)**로 별도 "일별 평균" 시리즈로 정직하게 백필한다. 유동 품목(재료)만 대상 — 각인서는 거래가 없어 AvgPrice=0이라 제외. `price_snapshot`(Core Value 가드)은 무변경, 별도 `item_daily_stats` 테이블에 additive 적재하고, 타임라인은 실측 min_price(실시간 최저 호가)와 백필 일평균(거래 평균가)을 시각적으로 구분한다. 14일 초과 gap은 API에도 없어 복구 불가 → Phase 18 상시 배포(연속 수집)가 근본 해결이고 백필은 그 보완이다.
+**Goal**: 서버 off로 생긴 품목 타임라인의 수집 공백을, 로스트아크가 제공하는 **일별 평균가**로 별도 "일별 평균" 시리즈로 정직하게 백필해 어떤 기간을 봐도 시세가 연속으로 보이게 한다. 소스 2종 병행: (1) 매 수집 시 리스트 응답의 `YDayAvgPrice`(전일 평균, **각인서 포함 전 품목**, 추가 호출 0·무료)를 저장해 going-forward 일별 평균을 쌓고, (2) 상세 API `Stats[].AvgPrice`(최근 **14일**, 재료만 채워짐)로 재료의 과거 gap을 소급 채운다. `price_snapshot`(Core Value 가드)은 무변경, 별도 `item_daily_stats` 테이블에 additive 적재하며, 타임라인은 실측 min_price(실시간 최저 호가)와 백필 일평균(거래 평균가)을 시각적으로 구분한다(한 라인 혼합 금지). 14일 초과 다일 gap은 API에도 없어 복구 불가 → Phase 18 상시 배포(연속 수집)가 근본 해결이고 백필은 그 보완이다.
 **Depends on**: Phase 2(수집 파이프라인·LostarkApiClient·레이트리밋), Phase 3(타임라인 read/차트), Phase 12(상세 API 스파이크 패턴)
 **Requirements**: 신규 BACKFILL-* (SPEC 단계에서 정의)
 **Success criteria**:
-1. 서버 재기동/일 1회 시 유동 품목의 최근 14일 일별 평균가를 상세 API에서 가져와 `item_daily_stats`에 멱등 upsert한다 (실 수집 min_price·price_snapshot 무변경)
-2. 품목 타임라인이 수집 공백 구간을 백필 일별 평균으로 채워 표시하되, 실측 min_price와 시각적으로 구분한다(정직성)
-3. 각인서 등 거래 없는(AvgPrice=0) 품목/날은 백필하지 않고 정직히 gap으로 둔다
+1. 매 수집 시 리스트 응답의 `YDayAvgPrice`(전 품목·무료)를 `item_daily_stats`에 멱등 upsert해 일별 평균 시리즈를 going-forward로 축적한다 (실 수집 min_price·price_snapshot 무변경)
+2. 서버 기동 시 + 일 1회, 상세 API `Stats[]`로 재료의 최근 14일 일별 평균을 소급 upsert해 과거 gap을 채운다
+3. 품목 타임라인이 백필 일별 평균을 연속 라인으로 표시하고 실측 min_price는 그 위에 시각적으로 구분해 표식한다(정직성)
 4. 수집/캐시/event-impact 핵심 경로 0줄(Core Value 가드), price_snapshot 스키마 무변경(additive 신규 테이블만)
-**스파이크**: `.planning/phases/17.4-timeline-gap-backfill/17.4-SPIKE-FINDINGS.md` (실 API 검증: Stats 14일 연속·유동 품목만 AvgPrice>0·레이트리밋 100/분 여유)
+**스파이크**: `.planning/phases/17.4-timeline-gap-backfill/17.4-SPIKE-FINDINGS.md` (실 API 검증: 상세 Stats 14일·재료만 / 리스트 YDayAvgPrice 전 품목·무료 / 각인서도 거래 활발)
 
 #### Phase 18: 무료 라이브 배포 + 보안 검증 (마지막)
 
