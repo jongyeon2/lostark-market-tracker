@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: 관리자 콘솔 + 실데이터 라이브 배포
-status: ready_to_plan
-stopped_at: Phase 17.4 inserted (타임라인 gap 백필, 스파이크 PASS) — ready to plan 17.4
-last_updated: 2026-07-07T00:59:28.735Z
-last_activity: 2026-07-07 -- Phase 17.3 execution started
+status: "Ready to discuss/plan — 17.4(타임라인 gap 백필: 상세 API 일별 Stats로 수집 공백 백필) 삽입, 그다음 Phase 18(배포). 스파이크 findings: 17.4-SPIKE-FINDINGS.md"
+stopped_at: Phase 17.4 context gathered (discuss)
+last_updated: "2026-07-07T03:27:42.572Z"
+last_activity: 2026-07-07 -- Phase 17.4 삽입 (스파이크 후)
 progress:
-  total_phases: 7
-  completed_phases: 5
+  total_phases: 8
+  completed_phases: 6
   total_plans: 18
-  completed_plans: 58
-  percent: 71
+  completed_plans: 18
+  percent: 75
 ---
 
 # Project State
@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-01 for v1.3 milestone)
 
 **Core value:** 레이트리밋이 걸린 외부 마켓 API에서 시세를 빠짐없이 수집해 시계열로 쌓고, 캐시로 안정적으로 서빙한다
-**Current focus:** Phase 18 — 무료 라이브 배포 + 보안 검증 (마지막)
+**Current focus:** Phase 17.4 (타임라인 gap 백필) — context gathered(discuss), ready to plan. 그다음 Phase 18(배포)
 
 ## Current Position
 
@@ -65,7 +65,7 @@ Last activity: 2026-07-07 -- Phase 17.4 삽입 (스파이크 후)
 
 - Phase 17.1 inserted after Phase 17: 데모 최종 폴리시: 큐레이션 갱신·대시보드 재구성 (배포 앞) (URGENT)
 - Phase 17.2 inserted after Phase 17.1: 대시보드 뉴스 패널 (로아 공식 이벤트·공지, 배포 앞) — 설계 스펙 docs/superpowers/specs/2026-07-06-dashboard-news-panel-design.md (쿠폰은 이후 관리자 수동 입력)
-- Phase 17.4 inserted after Phase 17.3: 타임라인 gap 백필 (일별 Stats) — 서버 off 수집 공백을 로스트아크 상세 API 일별 AvgPrice(최근 14일·유동 품목만)로 별도 시리즈 백필, 스파이크 findings 17.4-SPIKE-FINDINGS.md (URGENT)
+- Phase 17.4 inserted after Phase 17.3: 타임라인 gap 백필 (일별 Stats) — 서버 off 수집 공백을 일별 평균가로 백필. discuss 완료: 소스 2종(리스트 YDayAvgPrice 전 품목·무료 going-forward + 상세 Stats 재료 14일 소급), 백필 연속라인+실측 표식, 기동+일1회, 항상 표시. 각인서도 거래 활발(초기 "거래 없음" 결론 정정). findings/CONTEXT 17.4-* (URGENT)
 
 ### Decisions
 
@@ -113,9 +113,9 @@ None (2026-06-30: `.env` `LOSTARK_API_KEY` 무효(401) 이슈는 키 재발급·
 
 ## Session Continuity
 
-Last session: 2026-07-06T14:30:00.000Z
-Stopped at: Phase 17.3 planned (3 plans)
-Resume file: .planning/phases/17.3-coupon-admin/17.3-01-PLAN.md
+Last session: 2026-07-07T03:27:42.566Z
+Stopped at: Phase 17.4 context gathered (discuss)
+Resume file: .planning/phases/17.4-timeline-gap-backfill/17.4-CONTEXT.md
 
 ## Operator Next Steps
 
