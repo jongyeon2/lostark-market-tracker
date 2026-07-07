@@ -21,7 +21,7 @@ import type { TrackedItem } from '@/lib/schemas'
 
   The card-level uncollected line shares the SAME useCollectionHealth() the admin health card reads
   (React Query dedupes the queryKey → zero extra network) and asks collectionEmptyState.ts whether the
-  pipeline is alive: '최신가 수집 중' when the collector is running (SUCCESS/PARTIAL/…), '데이터 없음' only
+  pipeline is alive: '최저가 수집 중' when the collector is running (SUCCESS/PARTIAL/…), '데이터 없음' only
   when NO_RUNS/실패.
 
   Phase 16 (CARD-01/CARD-02): the meaningless category code line is removed (do NOT reintroduce), and the
@@ -53,18 +53,19 @@ export function ItemCard({ item }: { item: TrackedItem }) {
           </div>
 
           {/* Per-card latest-price area (right) — inline-mapped so a 404 stays a card-level empty, not the
-              screen ErrorState. pending→skeleton, error/404→collection-aware '최신가 수집 중'(alive) or
+              screen ErrorState. pending→skeleton, error/404→collection-aware '최저가 수집 중'(alive) or
               '데이터 없음'(NO_RUNS/실패), success→price+KST. */}
           <div className="shrink-0 text-right">
             {status === 'pending' && <Skeleton className="ml-auto h-6 w-28" />}
             {status === 'error' && (
               <p className="text-muted-foreground text-sm">
-                {emptyKind === 'collecting' ? '최신가 수집 중' : '데이터 없음'}
+                {emptyKind === 'collecting' ? '최저가 수집 중' : '데이터 없음'}
               </p>
             )}
             {status === 'success' && data && (
               <div className="space-y-0.5">
                 <p className="flex items-center justify-end gap-1 text-base font-medium tabular-nums">
+                  <span className="text-muted-foreground text-xs font-normal">최저가</span>
                   <span aria-hidden="true">🪙</span>
                   {data.minPrice.toLocaleString('ko-KR')}
                 </p>
