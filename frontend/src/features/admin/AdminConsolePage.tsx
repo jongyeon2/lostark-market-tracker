@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button'
 
 import { useAdminAuth } from './auth/AdminAuthContext'
 import { CollectionSection } from './CollectionSection'
+import { CouponSection } from './CouponSection'
 import { EventSection } from './EventSection'
 import { WatchlistSection } from './WatchlistSection'
 
@@ -26,6 +27,7 @@ export function AdminConsolePage() {
       </header>
       <main className="mx-auto max-w-3xl space-y-8 px-8 py-8">
         <EventSection />
+        <CouponSection />
         <WatchlistSection />
         <CollectionSection />
       </main>
