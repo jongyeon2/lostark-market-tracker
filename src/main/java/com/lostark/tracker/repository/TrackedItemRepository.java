@@ -12,4 +12,10 @@ public interface TrackedItemRepository extends JpaRepository<TrackedItem, Long> 
 
     /** Active watchlist items the collector polls each tick. */
     List<TrackedItem> findByActiveTrue();
+
+    /**
+     * Active items in one role group — the Phase 17.4 detail-Stats backfill targets materials
+     * ({@code roleGroup="MATERIAL"}) only (engraving books return 0 in detail Stats, D-01 source ②).
+     */
+    List<TrackedItem> findByActiveTrueAndRoleGroup(String roleGroup);
 }

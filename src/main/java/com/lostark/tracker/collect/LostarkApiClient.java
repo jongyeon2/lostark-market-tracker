@@ -1,5 +1,6 @@
 package com.lostark.tracker.collect;
 
+import com.lostark.tracker.collect.dto.ItemDetailResponse;
 import com.lostark.tracker.collect.dto.MarketItemsResponse;
 import com.lostark.tracker.collect.error.AuthApiException;
 import com.lostark.tracker.collect.error.NonRetryableApiException;
@@ -84,6 +85,46 @@ public class LostarkApiClient {
                                 throw new NonRetryableApiException("Lostark client error (HTTP " + res.getStatusCode().value() + ")");
                             })
                     .body(MarketItemsResponse.class);
+        } catch (ResourceAccessException e) {
+            // Connect/read timeout or other I/O — transient (D-10). No key in the message.
+            throw new TransientApiException("Lostark I/O or timeout", e);
+        }
+    }
+
+    /**
+     * Fetch one item's detail ({@code Stats[]} = last ~14 days of daily traded averages) for the
+     * Phase 17.4 backfill (D-01 source ②). A read-only GET that reuses {@link #searchMarketItems}'s
+     * exact error taxonomy — 401/403 fatal auth, 429 rate-limited (with Retry-After), 5xx / I-O
+     * transient, other 4xx non-retryable. The key is never logged or placed in a message.
+     *
+     * @throws AuthApiException 401/403 (fatal — do not retry)
+     * @throws RateLimitedApiException 429 (carries Retry-After when present)
+     * @throws TransientApiException 5xx or an I/O / read timeout (retryable)
+     * @throws NonRetryableApiException any other 4xx (skip-light)
+     */
+    public ItemDetailResponse getItemDetail(long itemId) {
+        try {
+            return restClient.get()
+                    .uri("/markets/items/{id}", itemId)
+                    .retrieve()
+                    .onStatus(s -> s.value() == 401 || s.value() == 403,
+                            (req, res) -> {
+                                throw new AuthApiException("Lostark auth failed (HTTP " + res.getStatusCode().value() + ")");
+                            })
+                    .onStatus(s -> s.value() == 429,
+                            (req, res) -> {
+                                Integer retryAfter = parseRetryAfter(res.getHeaders().getFirst("Retry-After"));
+                                throw new RateLimitedApiException("Lostark rate limited (HTTP 429)", retryAfter);
+                            })
+                    .onStatus(HttpStatusCode::is5xxServerError,
+                            (req, res) -> {
+                                throw new TransientApiException("Lostark server error (HTTP " + res.getStatusCode().value() + ")");
+                            })
+                    .onStatus(HttpStatusCode::is4xxClientError,
+                            (req, res) -> {
+                                throw new NonRetryableApiException("Lostark client error (HTTP " + res.getStatusCode().value() + ")");
+                            })
+                    .body(ItemDetailResponse.class);
         } catch (ResourceAccessException e) {
             // Connect/read timeout or other I/O — transient (D-10). No key in the message.
             throw new TransientApiException("Lostark I/O or timeout", e);
