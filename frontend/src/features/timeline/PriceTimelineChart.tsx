@@ -71,13 +71,13 @@ function PriceTooltip({ active, payload }: PriceTooltipProps) {
       <p className="text-muted-foreground">{formatKst(row.t)} KST</p>
       {row.price != null && (
         <p className="font-semibold tabular-nums">
-          <span className="text-muted-foreground font-normal">최저호가 </span>
+          <span className="text-muted-foreground font-normal">최저가 </span>
           {row.price.toLocaleString('ko-KR')} G{row.sampleCount != null ? ` (${row.sampleCount}개 평균)` : ''}
         </p>
       )}
       {row.avg != null && (
         <p className="font-semibold tabular-nums">
-          <span className="text-muted-foreground font-normal">일평균 거래가 </span>
+          <span className="text-muted-foreground font-normal">평균 거래가 </span>
           {Math.round(row.avg).toLocaleString('ko-KR')} G
         </p>
       )}
@@ -172,7 +172,7 @@ export function PriceTimelineChart({
         <Line
           type="monotone"
           dataKey="avg"
-          name="백필·일평균(거래가)"
+          name="평균 거래가"
           stroke={BACKFILL_COLOR}
           strokeWidth={2}
           dot={backfill.length > 60 ? false : { r: 2.5, fill: BACKFILL_COLOR }}
@@ -186,7 +186,7 @@ export function PriceTimelineChart({
         <Line
           type="monotone"
           dataKey="price"
-          name="실측 최저호가(일별)"
+          name="최저가"
           stroke={MIN_COLOR}
           strokeWidth={1.5}
           dot={rows.length > 60 ? false : { r: 2.5 }}
