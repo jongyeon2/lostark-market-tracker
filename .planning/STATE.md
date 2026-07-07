@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: 관리자 콘솔 + 실데이터 라이브 배포
-status: "Ready to execute — Phase 17.4(타임라인 gap 백필) 계획 완료: 4 plans / 3 waves. 그다음 Phase 18(배포)"
-stopped_at: Phase 17.4 planned (4 plans, 3 waves)
+status: "Phase 17.4(타임라인 gap 백필) 완료 — 4/4 plans, BACKFILL-01..04 충족, 그린. 다음: Phase 18(배포)"
+stopped_at: Phase 17.4 complete (4/4 plans, verification PASS)
 last_updated: "2026-07-07T06:34:16.751Z"
-last_activity: 2026-07-07 -- Phase 17.4 planning complete
+last_activity: 2026-07-07 -- Phase 17.4 execution complete (4/4 plans, 127 tests green)
 progress:
   total_phases: 8
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 22
-  completed_plans: 18
-  percent: 75
+  completed_plans: 22
+  percent: 88
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-01 for v1.3 milestone)
 
 **Core value:** 레이트리밋이 걸린 외부 마켓 API에서 시세를 빠짐없이 수집해 시계열로 쌓고, 캐시로 안정적으로 서빙한다
-**Current focus:** Phase 17.4 (타임라인 gap 백필) — 계획 완료(4 plans / 3 waves), 실행 대기. 그다음 Phase 18(배포)
+**Current focus:** Phase 17.4 (타임라인 gap 백필) — **완료**(4/4 plans, 그린). 그다음 Phase 18(배포)
 
 ## Current Position
 
-Phase: 17.4 (timeline-gap-backfill) — 계획 완료 (스파이크 PASS · discuss · plan)
-Plan: 4 plans / 3 waves — W1: 01(item_daily_stats 저장), W2: 02(YDayAvgPrice 캡처)·03(상세 Stats 소급), W3: 04(read 병합+차트). 결정 커버리지 5/5, 요구사항 BACKFILL-01..04 형식화
-Status: Ready to execute — `/gsd-execute-phase 17.4`. 그다음 Phase 18(배포)
-Last activity: 2026-07-07 -- Phase 17.4 planning complete
+Phase: 17.4 (timeline-gap-backfill) — ✅ 완료 (인라인 오케스트레이터 실행·검증)
+Plan: 4/4 완료 — 01(item_daily_stats V6 저장)·02(YDayAvgPrice going-forward 캡처)·03(상세 Stats 재료 14일 소급)·04(read 병합+차트). BACKFILL-01..04 충족, Core Value 가드(금지경로 0줄) 증명, 백엔드 127 tests·프론트 tsc/vite 그린
+Status: Complete — VERIFICATION PASS. 다음: Phase 18(배포)
+Last activity: 2026-07-07 -- Phase 17.4 execution complete (4/4 plans)
 
 ## Performance Metrics
 
@@ -113,13 +113,14 @@ None (2026-06-30: `.env` `LOSTARK_API_KEY` 무효(401) 이슈는 키 재발급·
 
 ## Session Continuity
 
-Last session: 2026-07-07T03:27:42.566Z
-Stopped at: Phase 17.4 context gathered (discuss)
-Resume file: .planning/phases/17.4-timeline-gap-backfill/17.4-CONTEXT.md
+Last session: 2026-07-07 -- Phase 17.4 executed inline (4/4 plans)
+Stopped at: Phase 17.4 complete + verified (VERIFICATION.md PASS)
+Resume file: .planning/phases/17.4-timeline-gap-backfill/17.4-VERIFICATION.md
 
 ## Operator Next Steps
 
-- ✅ **v1.2 마일스톤 마감 완료(2026-06-30):** ROADMAP/REQUIREMENTS milestones/ 아카이브, MILESTONES.md·RETROSPECTIVE.md 갱신, PROJECT.md 진화(v1.2 Validated 이관·Key Decisions 추가), REQUIREMENTS.md `git rm`, **git tag v1.2**. Phases 12–14, 6/6 plans, 21/21 요구사항, UAT 8/8 + 보안 9위협 closed.
-- **다음:** `/clear` 후 `/gsd-new-milestone`로 다음 마일스톤(요구사항·로드맵) 정의 — Phase 15부터 연속 번호. v2 후보: 그룹 필터(FILTER-V2)·등급 색상/정렬(GRADE-V2)·관측성(OPS-V2)·라이브 배포(DEPLOY-V2)·event-impact 고도화(IMPACT-V2)·소스 확장(SRC-V2)·매직넘버 외부화(CFG-V2).
+- ✅ **Phase 17.4(타임라인 gap 백필) 완료(2026-07-07):** 4/4 plans 인라인 실행. `item_daily_stats`(V6) 독립 저장 + 소스 2종(YDayAvgPrice going-forward 전 품목·상세 Stats 재료 14일 소급) + read 병합/차트(백필 연속선+실측 min 마커). BACKFILL-01..04 충족, Core Value 가드 0줄, 백엔드 127 tests·프론트 그린. 커밋 a21bc62..78f0551.
+- **다음:** Phase 18(라이브 배포) — 상시 운영으로 going-forward 백필 시리즈 축적(14일/각인서 과거 gap 한계의 근본 보완). 필요 시 `/gsd-code-review 17.4` 또는 `/gsd-ship`로 PR.
+- ⚠️ **수집기 재기동 시 백필 자동 활성**: `DetailStatsBackfillRunner`가 기동+일1회(cron `0 30 4 * * *`) 재료 소급 실행 — dev/prod 프로파일에서 유효 API 키 필요(test 제외). YDayAvgPrice 캡처는 매 수집 자동.
 - ⚠️ 스파이크 중 대화 노출 JWT 키 **포털 재발급 권장**(.env는 gitignored·추적 0).
-- 불변 제약 상시 가드(증명됨): 수집/캐시/event-impact 백엔드 8파일 0줄 + V1–V4 불변 + 시더/합성기 키·가격 0건 — 전체 회귀 그린.
+- 불변 제약 상시 가드(증명됨): 수집/캐시/event-impact/WindowQueryService/DownsampleService 0줄 + V1–V5 불변 + price_snapshot 스키마 무변경 — 백필은 순수 additive.
