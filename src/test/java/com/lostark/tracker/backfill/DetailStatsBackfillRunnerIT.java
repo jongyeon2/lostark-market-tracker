@@ -22,15 +22,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Pins the detail-Stats material backfill (Phase 17.4, plan 03) on Testcontainers: only AvgPrice&gt;0
- * days upsert as DETAIL_STATS, re-running stays idempotent, and non-material items are never fetched.
- * The runner is {@code @Profile("!test")} so it is built by hand here with mocked API + rate limiter;
+ * Pins the detail-Stats backfill (Phase 17.4, plan 03; scope corrected by quick 260707-tzj) on
+ * Testcontainers: only AvgPrice&gt;0 days upsert as DETAIL_STATS, re-running stays idempotent, and
+ * engraving books are now backfilled too (their real-trade detail element carries the series). The
+ * runner is {@code @Profile("!test")} so it is built by hand here with mocked API + rate limiter;
  * no real API is called.
  */
 @SpringBootTest
@@ -65,14 +66,27 @@ class DetailStatsBackfillRunnerIT extends PostgresRedisContainers {
         when(rateLimiter.tryAcquire()).thenReturn(true);
         runner = new DetailStatsBackfillRunner(apiClient, trackedItemRepository, itemDailyStatRepository, rateLimiter);
 
-        // 14 daily stats, one of them AvgPrice=0 (the engraving-style unfilled entry -> skipped).
-        List<MarketStat> stats = new ArrayList<>();
+        // Default: any other active item left in the shared Testcontainers DB returns empty Stats
+        // (no rows, no NPE). Specific items below override this (Mockito: last matching stub wins).
+        when(apiClient.getItemDetail(anyLong())).thenReturn(new ItemDetailResponse(List.of()));
+
+        // Material: 14 daily stats, one of them AvgPrice=0 (an unfilled day -> skipped by the guard).
+        List<MarketStat> materialStats = new ArrayList<>();
         for (int i = 0; i < 14; i++) {
             double avg = (i == 0) ? 0.0 : 1000.0 + i;
-            stats.add(new MarketStat(BASE.minusDays(i).toString(), avg, 10L));
+            materialStats.add(new MarketStat(BASE.minusDays(i).toString(), avg, 10L));
         }
-        long materialId = Long.parseLong(material.getExternalItemId());
-        when(apiClient.getItemDetail(materialId)).thenReturn(new ItemDetailResponse(stats));
+        when(apiClient.getItemDetail(Long.parseLong(material.getExternalItemId())))
+                .thenReturn(new ItemDetailResponse(materialStats));
+
+        // Engraving: getItemDetail already collapsed to the real-trade element, so all 14 days are
+        // positive here — the runner must now backfill them (previously engravings were excluded).
+        List<MarketStat> engravingStats = new ArrayList<>();
+        for (int i = 0; i < 14; i++) {
+            engravingStats.add(new MarketStat(BASE.minusDays(i).toString(), 145000.0 + i, 900L));
+        }
+        when(apiClient.getItemDetail(Long.parseLong(engraving.getExternalItemId())))
+                .thenReturn(new ItemDetailResponse(engravingStats));
     }
 
     @AfterEach
@@ -104,14 +118,15 @@ class DetailStatsBackfillRunnerIT extends PostgresRedisContainers {
     }
 
     @Test
-    void nonMaterialItemsAreNeverFetched() {
+    void engravingItemsAreAlsoBackfilled() {
         runner.backfill();
 
-        long engravingId = Long.parseLong(engraving.getExternalItemId());
-        verify(apiClient, never()).getItemDetail(engravingId);
-        // The engraving never contributes rows.
-        assertThat(itemDailyStatRepository
-                .findByTrackedItemIdAndStatDateBetweenOrderByStatDateAsc(engraving.getId(), BASE.minusDays(13), BASE))
-                .isEmpty();
+        // The engraving IS fetched (scope now includes all active items, quick 260707-tzj) and its
+        // real-trade series (all 14 days positive) is upserted as DETAIL_STATS.
+        verify(apiClient).getItemDetail(Long.parseLong(engraving.getExternalItemId()));
+        List<ItemDailyStat> rows = itemDailyStatRepository
+                .findByTrackedItemIdAndStatDateBetweenOrderByStatDateAsc(engraving.getId(), BASE.minusDays(13), BASE);
+        assertThat(rows).hasSize(14);
+        assertThat(rows).allMatch(r -> r.getSource() == DailyStatSource.DETAIL_STATS);
     }
 }

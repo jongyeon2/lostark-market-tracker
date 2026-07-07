@@ -10,12 +10,10 @@ public interface TrackedItemRepository extends JpaRepository<TrackedItem, Long> 
 
     Optional<TrackedItem> findByExternalItemId(String externalItemId);
 
-    /** Active watchlist items the collector polls each tick. */
-    List<TrackedItem> findByActiveTrue();
-
     /**
-     * Active items in one role group — the Phase 17.4 detail-Stats backfill targets materials
-     * ({@code roleGroup="MATERIAL"}) only (engraving books return 0 in detail Stats, D-01 source ②).
+     * Active watchlist items the collector polls each tick — also the Phase 17.4 detail-Stats backfill
+     * target set (all items, materials and engraving books alike; {@code quick 260707-tzj} corrected the
+     * earlier material-only scope once engravings' real detail element was found).
      */
-    List<TrackedItem> findByActiveTrueAndRoleGroup(String roleGroup);
+    List<TrackedItem> findByActiveTrue();
 }

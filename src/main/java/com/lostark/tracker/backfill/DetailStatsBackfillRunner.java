@@ -21,11 +21,13 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
- * Backfills materials' past daily-average gaps from the detail API {@code Stats[]} (Phase 17.4,
- * D-01 source ②, BACKFILL-02). Runs on startup ({@link ApplicationRunner}) AND once a day
+ * Backfills every active item's past daily-average gaps from the detail API {@code Stats[]} (Phase
+ * 17.4, D-01 source ②, BACKFILL-02). Runs on startup ({@link ApplicationRunner}) AND once a day
  * ({@link Scheduled} cron) so a restart re-fills the last ~14 days and long-running servers refresh
- * daily — both idempotent (D-03). Materials only ({@code roleGroup=MATERIAL}); engraving books return
- * 0 in detail Stats so they are excluded (their backfill is 17.4-02's going-forward YDayAvgPrice).
+ * daily — both idempotent (D-03). Covers materials AND engraving books: {@code getItemDetail} selects
+ * each item's real-trade detail element (an engraving's bound trade-once variant has all-zero Stats;
+ * the freely traded variant carries the real series), and the {@code AvgPrice > 0} guard below drops
+ * any residual empty day. YDayAvgPrice (17.4-02) still supplies the going-forward series in parallel.
  *
  * <p>Respects the shared {@link RedisTokenBucket} budget ({@code tryAcquire} — skip on exhaustion) and
  * is per-item fail-open, with a fatal-auth short-circuit. Only the item id is logged (never the key).
@@ -37,7 +39,6 @@ import java.time.LocalDate;
 public class DetailStatsBackfillRunner implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DetailStatsBackfillRunner.class);
-    private static final String MATERIAL = "MATERIAL";
 
     private final LostarkApiClient apiClient;
     private final TrackedItemRepository trackedItemRepo;
@@ -67,7 +68,7 @@ public class DetailStatsBackfillRunner implements ApplicationRunner {
     }
 
     void backfill() {
-        for (TrackedItem item : trackedItemRepo.findByActiveTrueAndRoleGroup(MATERIAL)) {
+        for (TrackedItem item : trackedItemRepo.findByActiveTrue()) {
             if (!rateLimiter.tryAcquire()) {
                 log.info("detail backfill skipped item {} — rate-limit budget exhausted", item.getId());
                 continue;
@@ -75,7 +76,8 @@ public class DetailStatsBackfillRunner implements ApplicationRunner {
             try {
                 ItemDetailResponse detail = apiClient.getItemDetail(Long.parseLong(item.getExternalItemId()));
                 for (MarketStat stat : detail.stats()) {
-                    // Skip engraving/unfilled entries (AvgPrice 0) — only real material averages backfill.
+                    // Defensive skip: any unfilled day (AvgPrice 0) — getItemDetail already picks each
+                    // item's real-trade element, so only genuine daily averages remain to backfill.
                     if (stat.avgPrice() == null || stat.avgPrice() <= 0) {
                         continue;
                     }
