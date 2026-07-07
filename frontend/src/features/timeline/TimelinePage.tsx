@@ -85,9 +85,11 @@ function ChartArea({
     return <ErrorState onRetry={() => timeline.refetch()} />
   }
 
-  const { snapshots, events } = timeline.data
+  const { snapshots, events, backfill } = timeline.data
 
-  if (snapshots.length === 0) {
+  // Empty only when BOTH series are empty: a backfill-only window (server was off, no live snapshots)
+  // still renders the continuous daily-average line — the whole point of the Phase 17.4 backfill (D-04).
+  if (snapshots.length === 0 && backfill.length === 0) {
     // 17-01 D-04 Timeline: reframe the 200-empty range with collection state, keeping the '최근 30일'
     // recovery CTA. 'collecting' → the collector is alive and this item's series is still filling up.
     const collecting = deriveCollectionEmptyKind(health) === 'collecting'
@@ -124,6 +126,7 @@ function ChartArea({
         events={events}
         downsampled
         bucketWidth="day"
+        backfill={backfill}
       />
     </div>
   )

@@ -80,6 +80,19 @@ export const eventPointSchema = z.object({
 })
 export type EventPoint = z.infer<typeof eventPointSchema>
 
+// Backfill daily-average point (Phase 17.4). A DIFFERENT metric from a snapshot: statDate is a
+// calendar day "YYYY-MM-DD" (KST) and avgPrice is that day's traded AVG (not a min ask), tagged by
+// source. source is z.enum so an unknown provenance fails loudly at .parse (roleGroup precedent).
+export const dailyStatSourceSchema = z.enum(['YDAY_AVG', 'DETAIL_STATS'])
+export type DailyStatSource = z.infer<typeof dailyStatSourceSchema>
+
+export const dailyStatPointSchema = z.object({
+  statDate: z.string(), // date-only "YYYY-MM-DD" (KST) — positioned at KST midnight, not via formatKst
+  avgPrice: z.number(),
+  source: dailyStatSourceSchema,
+})
+export type DailyStatPoint = z.infer<typeof dailyStatPointSchema>
+
 export const timelineSchema = z.object({
   downsampled: z.boolean(),
   bucketWidth: z.string().nullable(), // e.g. "1h" when downsampled, null when raw
@@ -89,6 +102,9 @@ export const timelineSchema = z.object({
   iconUrl: z.string().nullable(),
   itemGroup: z.string().nullable(),
   roleGroup: roleGroupSchema.nullable(),
+  // Backfilled daily averages, a SEPARATE series from snapshots (D-02 no-mix). .default([]) keeps an
+  // older backend (no backfill field) forward-compatible instead of failing the parse.
+  backfill: z.array(dailyStatPointSchema).default([]),
 })
 export type Timeline = z.infer<typeof timelineSchema>
 
