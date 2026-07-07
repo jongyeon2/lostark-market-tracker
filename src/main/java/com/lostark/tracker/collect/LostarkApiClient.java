@@ -2,6 +2,7 @@ package com.lostark.tracker.collect;
 
 import com.lostark.tracker.collect.dto.ItemDetailResponse;
 import com.lostark.tracker.collect.dto.MarketItemsResponse;
+import com.lostark.tracker.collect.dto.MarketStat;
 import com.lostark.tracker.collect.error.AuthApiException;
 import com.lostark.tracker.collect.error.NonRetryableApiException;
 import com.lostark.tracker.collect.error.RateLimitedApiException;
@@ -100,8 +101,11 @@ public class LostarkApiClient {
      * transient, other 4xx non-retryable. The key is never logged or placed in a message.
      *
      * <p>The endpoint returns a TOP-LEVEL JSON ARRAY of item-detail objects (each with {@code Stats}),
-     * not a bare object — verified against the live API. We deserialize the array and collapse to the
-     * first element's Stats (empty when the array is empty).
+     * not a bare object — verified against the live API. It can hold MORE THAN ONE element for a single
+     * id: engraving books return a bound "trade-once" variant with all-zero {@code Stats} AND the freely
+     * traded market variant with the real ~14-day series, and {@code details[0]} is the bound one. So we
+     * do not blindly take the first element — {@link #selectTradedDetail} keeps the element whose Stats
+     * carry the most actual trade activity (materials return a single element, so it is a no-op there).
      *
      * @throws AuthApiException 401/403 (fatal — do not retry)
      * @throws RateLimitedApiException 429 (carries Retry-After when present)
@@ -131,11 +135,45 @@ public class LostarkApiClient {
                                 throw new NonRetryableApiException("Lostark client error (HTTP " + res.getStatusCode().value() + ")");
                             })
                     .body(ItemDetailResponse[].class);
-            return (details == null || details.length == 0) ? new ItemDetailResponse(List.of()) : details[0];
+            return selectTradedDetail(details);
         } catch (ResourceAccessException e) {
             // Connect/read timeout or other I/O — transient (D-10). No key in the message.
             throw new TransientApiException("Lostark I/O or timeout", e);
         }
+    }
+
+    /**
+     * Collapse the detail array to the element carrying the real market series. The endpoint can
+     * return multiple elements for one id (engraving books: a bound trade-once variant with all-zero
+     * Stats plus the freely traded variant with the real series — {@code details[0]} is the bound one).
+     * We keep the element whose Stats hold the most total {@code TradeCount}, which is order- and
+     * TradeRemainCount-independent. Materials return a single element (a no-op); an empty or all-zero
+     * array yields the first element's (empty) Stats.
+     */
+    private static ItemDetailResponse selectTradedDetail(ItemDetailResponse[] details) {
+        if (details == null || details.length == 0) {
+            return new ItemDetailResponse(List.of());
+        }
+        ItemDetailResponse best = details[0];
+        long bestTrades = totalTradeCount(best);
+        for (ItemDetailResponse candidate : details) {
+            long trades = totalTradeCount(candidate);
+            if (trades > bestTrades) {
+                best = candidate;
+                bestTrades = trades;
+            }
+        }
+        return best;
+    }
+
+    private static long totalTradeCount(ItemDetailResponse detail) {
+        long sum = 0;
+        for (MarketStat stat : detail.stats()) {
+            if (stat.tradeCount() != null) {
+                sum += stat.tradeCount();
+            }
+        }
+        return sum;
     }
 
     private static Integer parseRetryAfter(String headerValue) {

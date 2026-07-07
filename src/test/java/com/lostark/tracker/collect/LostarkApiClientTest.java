@@ -87,6 +87,33 @@ class LostarkApiClientTest {
     }
 
     @Test
+    void getItemDetailPicksMostTradedArrayElement() {
+        // Engraving detail returns TWO elements for one id: a bound "trade-once" variant (Stats all 0)
+        // AND the freely traded market variant (real 14-day series) — and element [0] is the bound one.
+        // getItemDetail must NOT take [0]; it keeps the element with real trade activity (verified live).
+        Fixture f = fixture();
+        f.server().expect(requestTo(BASE + "/markets/items/65200505"))
+                .andExpect(method(org.springframework.http.HttpMethod.GET))
+                .andRespond(withSuccess("""
+                        [{"Name":"유물 원한 각인서","TradeRemainCount":1,"BundleCount":1,
+                          "Stats":[{"Date":"2026-07-07","AvgPrice":0.0,"TradeCount":0},
+                                   {"Date":"2026-07-06","AvgPrice":0.0,"TradeCount":0}]},
+                         {"Name":"유물 원한 각인서","TradeRemainCount":0,"BundleCount":1,
+                          "Stats":[{"Date":"2026-07-07","AvgPrice":145743.1,"TradeCount":912},
+                                   {"Date":"2026-07-06","AvgPrice":147007.4,"TradeCount":1267}]}]
+                        """, MediaType.APPLICATION_JSON));
+
+        ItemDetailResponse res = f.client().getItemDetail(65200505L);
+
+        // The traded element ([1]) is selected, not the bound-variant [0].
+        assertThat(res.stats()).hasSize(2);
+        assertThat(res.stats().get(0).avgPrice()).isEqualTo(145743.1);
+        assertThat(res.stats().get(0).tradeCount()).isEqualTo(912L);
+        assertThat(res.stats().get(1).avgPrice()).isEqualTo(147007.4);
+        f.server().verify();
+    }
+
+    @Test
     void itemDetailEmptyArrayYieldsEmptyStats() {
         // A no-result detail (empty top-level array) must yield empty Stats, not blow up.
         Fixture f = fixture();
