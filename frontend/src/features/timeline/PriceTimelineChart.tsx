@@ -164,14 +164,19 @@ export function PriceTimelineChart({
           formatter={(value: string) => <span className="text-muted-foreground text-sm">{value}</span>}
         />
         {/* 백필 일평균(거래가): the continuous base line. connectNulls bridges server-off days so the
-            window reads continuously (D-04 always-on). A distinct color/metric from 실측 (D-02). */}
+            window reads continuously (D-04 always-on). A distinct color/metric from 실측 (D-02).
+            Density-based dots (like the min line, quick 260630-h16): materials backfill 14 detail-Stats
+            days → a line, but engravings only get YDayAvgPrice going-forward (detail Stats=0, API limit),
+            so early on there is a SINGLE point — a dot-less line would render nothing. Dots keep that
+            lone point (and any sparse series) visible; they turn off only for very dense windows. */}
         <Line
           type="monotone"
           dataKey="avg"
           name="백필·일평균(거래가)"
           stroke={BACKFILL_COLOR}
           strokeWidth={2}
-          dot={false}
+          dot={backfill.length > 60 ? false : { r: 2.5, fill: BACKFILL_COLOR }}
+          activeDot={{ r: 4 }}
           connectNulls
           isAnimationActive={false}
         />
