@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-07-01 for v1.3 milestone)
 Phase: 17.4 (timeline-gap-backfill) — ✅ 완료 (인라인 오케스트레이터 실행·검증)
 Plan: 4/4 완료 — 01(item_daily_stats V6 저장)·02(YDayAvgPrice going-forward 캡처)·03(상세 Stats 재료 14일 소급)·04(read 병합+차트). BACKFILL-01..04 충족, Core Value 가드(금지경로 0줄) 증명, 백엔드 127 tests·프론트 tsc/vite 그린
 Status: Complete — VERIFICATION PASS. 다음: Phase 18(배포)
-Last activity: 2026-07-07 -- Completed quick task 260707-tzj: 각인서 백필 버그 수정 (상세 배열 원소 선택 + 소급 전 품목 확대)
+Last activity: 2026-07-07 -- Completed quick task 260707-uly: 차트 라벨 순화 + 📈 파비콘 추가
 
 ## Performance Metrics
 
@@ -95,6 +95,7 @@ None (2026-06-30: `.env` `LOSTARK_API_KEY` 무효(401) 이슈는 키 재발급·
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260707-uly | 프론트 고객친화 UI — 차트 범례/툴팁 용어 순화(개발자 용어 "백필·일평균(거래가)"/"실측 최저호가"→"평균 거래가"/"최저가", 2지표 구분 유지) + 없던 파비콘 📈 SVG 추가 | 2026-07-07 | bf37c9d | [260707-uly-ui](./quick/260707-uly-ui/) |
 | 260707-tzj | 각인서 백필 버그 수정 — getItemDetail이 상세 배열 details[0](귀속 거래1회·Stats 0)만 반환하던 것을 총 TradeCount 최대 원소 선택으로, 소급 러너를 재료 한정→전 활성 품목(각인서 포함)으로 확대. 각인서도 상세 14일 소급됨. Core Value 경로 0줄 | 2026-07-07 | 9e492b3 | [260707-tzj-getitemdetail-detailstatsbackfillrunner](./quick/260707-tzj-getitemdetail-detailstatsbackfillrunner/) |
 | 260707-fkp | 데모 3화면(대시보드·품목 타임라인·이벤트 영향) 페이지 제목 h1 제거 — 진입 시 컨트롤·카드·차트 바로 렌더 | 2026-07-07 | daa7c24 | [260707-fkp-remove-page-titles](./quick/260707-fkp-remove-page-titles/) |
 | 260706-ohg | 대시보드 카드 컴팩트화(py-6→py-3 + max-w-3xl 폭 제한) + 골드 🪙 이모티콘 (웹 라이브 피드백) | 2026-07-06 | 161018d | [260706-ohg-dashboard-card-compact-gold](./quick/260706-ohg-dashboard-card-compact-gold/) |
