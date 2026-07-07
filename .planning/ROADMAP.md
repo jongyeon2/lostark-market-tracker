@@ -130,6 +130,18 @@ Plans:
 4. (Core Value 가드) 수집·가격 캐시·event-impact 로직 0줄, 프론트 로아 직접 호출 0 — 쿠폰은 독립 도메인·PostgreSQL 영속
 **스펙**: `.planning/phases/17.3-coupon-admin/17.3-SPEC.md`
 
+#### Phase 17.4: 타임라인 gap 백필 — 일별 Stats (INSERTED)
+
+**Goal**: 서버 off로 생긴 품목 타임라인의 수집 공백을, 로스트아크 상세 API(`GET /markets/items/{id}`)가 보관하는 **일별 평균가(`Stats[].AvgPrice`, 최근 14일)**로 별도 "일별 평균" 시리즈로 정직하게 백필한다. 유동 품목(재료)만 대상 — 각인서는 거래가 없어 AvgPrice=0이라 제외. `price_snapshot`(Core Value 가드)은 무변경, 별도 `item_daily_stats` 테이블에 additive 적재하고, 타임라인은 실측 min_price(실시간 최저 호가)와 백필 일평균(거래 평균가)을 시각적으로 구분한다. 14일 초과 gap은 API에도 없어 복구 불가 → Phase 18 상시 배포(연속 수집)가 근본 해결이고 백필은 그 보완이다.
+**Depends on**: Phase 2(수집 파이프라인·LostarkApiClient·레이트리밋), Phase 3(타임라인 read/차트), Phase 12(상세 API 스파이크 패턴)
+**Requirements**: 신규 BACKFILL-* (SPEC 단계에서 정의)
+**Success criteria**:
+1. 서버 재기동/일 1회 시 유동 품목의 최근 14일 일별 평균가를 상세 API에서 가져와 `item_daily_stats`에 멱등 upsert한다 (실 수집 min_price·price_snapshot 무변경)
+2. 품목 타임라인이 수집 공백 구간을 백필 일별 평균으로 채워 표시하되, 실측 min_price와 시각적으로 구분한다(정직성)
+3. 각인서 등 거래 없는(AvgPrice=0) 품목/날은 백필하지 않고 정직히 gap으로 둔다
+4. 수집/캐시/event-impact 핵심 경로 0줄(Core Value 가드), price_snapshot 스키마 무변경(additive 신규 테이블만)
+**스파이크**: `.planning/phases/17.4-timeline-gap-backfill/17.4-SPIKE-FINDINGS.md` (실 API 검증: Stats 14일 연속·유동 품목만 AvgPrice>0·레이트리밋 100/분 여유)
+
 #### Phase 18: 무료 라이브 배포 + 보안 검증 (마지막)
 
 **Goal**: 무료 호스팅에 배포해 공개 URL로 데모 3화면 + 관리자 콘솔을 서빙한다. 프론트는 정적/단일 출처로 서빙하고, 실 키·시크릿은 서버 env only, 배포 직전 보안 검증 게이트를 통과한다. 무료 타깃(항상무료 VM vs 무료 PaaS)은 착수 시 리서치로 결정.
@@ -158,4 +170,4 @@ Plans:
 
 ---
 
-_v1.0/v1.1/v1.2 상세는 milestones/ 아카이브. 현재 활성: v1.3 (Phases 15–18, +17.1 삽입). 다음: `/gsd:discuss-phase 17.1` 또는 `/gsd:plan-phase 17.1`._
+_v1.0/v1.1/v1.2 상세는 milestones/ 아카이브. 현재 활성: v1.3 (Phases 15–18, +17.1~17.4 삽입). 다음: `/gsd:discuss-phase 17.4` 또는 `/gsd:plan-phase 17.4`._

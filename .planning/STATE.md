@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: 관리자 콘솔 + 실데이터 라이브 배포
 status: ready_to_plan
-stopped_at: Phase 17.3 complete (3/3) — ready to discuss Phase 18
+stopped_at: Phase 17.4 inserted (타임라인 gap 백필, 스파이크 PASS) — ready to plan 17.4
 last_updated: 2026-07-07T00:59:28.735Z
 last_activity: 2026-07-07 -- Phase 17.3 execution started
 progress:
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-07-01 for v1.3 milestone)
 
 ## Current Position
 
-Phase: 18
+Phase: 17.4 (timeline-gap-backfill) — inserted, 미계획 (스파이크 PASS)
 Plan: Not started
-Status: Ready to plan
-Last activity: 2026-07-07
+Status: Ready to discuss/plan — 17.4(타임라인 gap 백필: 상세 API 일별 Stats로 수집 공백 백필) 삽입, 그다음 Phase 18(배포). 스파이크 findings: 17.4-SPIKE-FINDINGS.md
+Last activity: 2026-07-07 -- Phase 17.4 삽입 (스파이크 후)
 
 ## Performance Metrics
 
@@ -65,6 +65,7 @@ Last activity: 2026-07-07
 
 - Phase 17.1 inserted after Phase 17: 데모 최종 폴리시: 큐레이션 갱신·대시보드 재구성 (배포 앞) (URGENT)
 - Phase 17.2 inserted after Phase 17.1: 대시보드 뉴스 패널 (로아 공식 이벤트·공지, 배포 앞) — 설계 스펙 docs/superpowers/specs/2026-07-06-dashboard-news-panel-design.md (쿠폰은 이후 관리자 수동 입력)
+- Phase 17.4 inserted after Phase 17.3: 타임라인 gap 백필 (일별 Stats) — 서버 off 수집 공백을 로스트아크 상세 API 일별 AvgPrice(최근 14일·유동 품목만)로 별도 시리즈 백필, 스파이크 findings 17.4-SPIKE-FINDINGS.md (URGENT)
 
 ### Decisions
 
