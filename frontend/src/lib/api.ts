@@ -8,6 +8,8 @@ import {
   gameEventResponseSchema,
   gameEventsSchema,
   newsResponseSchema,
+  couponSchema,
+  couponsSchema,
   type CollectionHealth,
   type TrackedItem,
   type TrackedItems,
@@ -19,6 +21,9 @@ import {
   type GameEventResponse,
   type GameEvents,
   type NewsResponse,
+  type Coupon,
+  type Coupons,
+  type AdminCouponRequest,
 } from '@/lib/schemas'
 import { getAdminSecret } from '@/features/admin/auth/adminSecret'
 
@@ -183,4 +188,33 @@ export async function addAdminItem(body: AdminItemRequest): Promise<TrackedItem>
 export async function deactivateAdminItem(id: number): Promise<void> {
   // 204 soft-delete (active=false; row + price history preserved, backend D-03).
   await adminRequest(`/api/admin/items/${id}`, { method: 'DELETE' })
+}
+
+// ---- Coupon read + admin CRUD (Phase 17.3, COUPON-01) ----
+// Public getCoupons consumes GET /api/coupons (unexpired, soonest-first) — the dashboard (17.3-03)
+// reads it too. The admin fns mirror the game-event CRUD: adminRequest attaches X-Admin-Secret and
+// each response is validated at the zod boundary. expiresAt crosses as the raw "YYYY-MM-DD" date
+// string (no KST conversion, D-01). The frontend never calls Lostark directly.
+
+export async function getCoupons(): Promise<Coupons> {
+  return couponsSchema.parse(await request('/api/coupons'))
+}
+
+export async function getAdminCoupons(): Promise<Coupons> {
+  return couponsSchema.parse(await adminRequest('/api/admin/coupons', { method: 'GET' }))
+}
+
+export async function createAdminCoupon(body: AdminCouponRequest): Promise<Coupon> {
+  return couponSchema.parse(await adminRequest('/api/admin/coupons', { method: 'POST', body }))
+}
+
+export async function replaceAdminCoupon(id: number, body: AdminCouponRequest): Promise<Coupon> {
+  return couponSchema.parse(
+    await adminRequest(`/api/admin/coupons/${id}`, { method: 'PUT', body }),
+  )
+}
+
+export async function deleteAdminCoupon(id: number): Promise<void> {
+  // 204 No Content — adminRequest resolves undefined; nothing to parse.
+  await adminRequest(`/api/admin/coupons/${id}`, { method: 'DELETE' })
 }

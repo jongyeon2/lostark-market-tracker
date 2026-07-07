@@ -14,9 +14,19 @@ import {
   getAdminItems,
   addAdminItem,
   deactivateAdminItem,
+  getCoupons,
+  getAdminCoupons,
+  createAdminCoupon,
+  replaceAdminCoupon,
+  deleteAdminCoupon,
 } from '@/lib/api'
 import { queryClient } from '@/lib/queryClient'
-import type { AdminEventRequest, AdminItemRequest, TrackedItem } from '@/lib/schemas'
+import type {
+  AdminCouponRequest,
+  AdminEventRequest,
+  AdminItemRequest,
+  TrackedItem,
+} from '@/lib/schemas'
 
 /*
   One typed React Query hook per endpoint (D-01). Each wraps the api.ts fn (which validates
@@ -137,5 +147,54 @@ export function useReactivateItem() {
         category: item.category,
       }),
     onSuccess: invalidateAdminItems,
+  })
+}
+
+/*
+  Coupon query hooks (Phase 17.3, COUPON-01). useCoupons is the PUBLIC read the dashboard (17.3-03)
+  consumes — keyed ['coupons'], staleTime 5min (low-churn admin data, no polling). The admin query +
+  mutations mirror the game-event pattern, but each mutation invalidates BOTH ['admin-coupons'] AND
+  ['coupons'] so an admin change is reflected on the dashboard's public panel too. COUPONS_KEY is
+  defined here (not in 17.3-03) because CouponSection and NewsPanel share it.
+*/
+const COUPONS_KEY = ['coupons'] as const
+
+export function useCoupons() {
+  return useQuery({ queryKey: COUPONS_KEY, queryFn: getCoupons, staleTime: 5 * 60 * 1000 })
+}
+
+const ADMIN_COUPONS_KEY = ['admin-coupons'] as const
+
+export function useAdminCoupons() {
+  return useQuery({ queryKey: ADMIN_COUPONS_KEY, queryFn: getAdminCoupons })
+}
+
+function invalidateCoupons() {
+  // Admin changes must refresh both the admin listing AND the public dashboard panel.
+  return Promise.all([
+    queryClient.invalidateQueries({ queryKey: ADMIN_COUPONS_KEY }),
+    queryClient.invalidateQueries({ queryKey: COUPONS_KEY }),
+  ])
+}
+
+export function useCreateCoupon() {
+  return useMutation({
+    mutationFn: (body: AdminCouponRequest) => createAdminCoupon(body),
+    onSuccess: invalidateCoupons,
+  })
+}
+
+export function useReplaceCoupon() {
+  return useMutation({
+    mutationFn: ({ id, body }: { id: number; body: AdminCouponRequest }) =>
+      replaceAdminCoupon(id, body),
+    onSuccess: invalidateCoupons,
+  })
+}
+
+export function useDeleteCoupon() {
+  return useMutation({
+    mutationFn: (id: number) => deleteAdminCoupon(id),
+    onSuccess: invalidateCoupons,
   })
 }

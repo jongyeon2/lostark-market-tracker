@@ -195,3 +195,30 @@ export const newsResponseSchema = z.object({
   updatedAt: z.string().nullable(),
 })
 export type NewsResponse = z.infer<typeof newsResponseSchema>
+
+// ---- Coupon read/write DTOs (Phase 17.3) ----
+// GET /api/coupons (public, unexpired soonest-first) and GET /api/admin/coupons (admin, includes
+// expired) return CouponResponse elements. UNLIKE the UTC '...Z' instants elsewhere, expiresAt is a
+// date-only "YYYY-MM-DD" string (backend LocalDate, D-01) — it is displayed by string slice, NEVER
+// via formatKst (which assumes a UTC instant and would add 9h). createdAt/updatedAt ARE UTC '...Z'.
+export const couponSchema = z.object({
+  id: z.number(),
+  code: z.string(),
+  reward: z.string(),
+  expiresAt: z.string(), // date-only "YYYY-MM-DD" (D-01) — display via slice(0, 10), not formatKst
+  createdAt: z.string(),
+  updatedAt: z.string(),
+})
+export type Coupon = z.infer<typeof couponSchema>
+
+export const couponsSchema = z.array(couponSchema)
+export type Coupons = z.infer<typeof couponsSchema>
+
+// POST/PUT body — only the 3 client-settable fields. id/createdAt/updatedAt are entity-stamped by the
+// backend (bound as CouponRequest, never the entity). expiresAt is sent as the raw "YYYY-MM-DD" from
+// the <input type="date"> value — NO KST↔UTC conversion (D-01).
+export type AdminCouponRequest = {
+  code: string
+  reward: string
+  expiresAt: string
+}
