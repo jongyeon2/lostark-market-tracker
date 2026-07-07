@@ -11,6 +11,8 @@ import org.springframework.http.MediaType;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 
+import java.util.List;
+
 /**
  * Productized markets client (replaces the Task-0 spike for real collection). It:
  * <ul>
@@ -97,6 +99,10 @@ public class LostarkApiClient {
      * exact error taxonomy — 401/403 fatal auth, 429 rate-limited (with Retry-After), 5xx / I-O
      * transient, other 4xx non-retryable. The key is never logged or placed in a message.
      *
+     * <p>The endpoint returns a TOP-LEVEL JSON ARRAY of item-detail objects (each with {@code Stats}),
+     * not a bare object — verified against the live API. We deserialize the array and collapse to the
+     * first element's Stats (empty when the array is empty).
+     *
      * @throws AuthApiException 401/403 (fatal — do not retry)
      * @throws RateLimitedApiException 429 (carries Retry-After when present)
      * @throws TransientApiException 5xx or an I/O / read timeout (retryable)
@@ -104,7 +110,7 @@ public class LostarkApiClient {
      */
     public ItemDetailResponse getItemDetail(long itemId) {
         try {
-            return restClient.get()
+            ItemDetailResponse[] details = restClient.get()
                     .uri("/markets/items/{id}", itemId)
                     .retrieve()
                     .onStatus(s -> s.value() == 401 || s.value() == 403,
@@ -124,7 +130,8 @@ public class LostarkApiClient {
                             (req, res) -> {
                                 throw new NonRetryableApiException("Lostark client error (HTTP " + res.getStatusCode().value() + ")");
                             })
-                    .body(ItemDetailResponse.class);
+                    .body(ItemDetailResponse[].class);
+            return (details == null || details.length == 0) ? new ItemDetailResponse(List.of()) : details[0];
         } catch (ResourceAccessException e) {
             // Connect/read timeout or other I/O — transient (D-10). No key in the message.
             throw new TransientApiException("Lostark I/O or timeout", e);

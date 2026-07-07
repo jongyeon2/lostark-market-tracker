@@ -1,5 +1,6 @@
 package com.lostark.tracker.collect;
 
+import com.lostark.tracker.collect.dto.ItemDetailResponse;
 import com.lostark.tracker.collect.dto.MarketItemsResponse;
 import com.lostark.tracker.collect.error.AuthApiException;
 import com.lostark.tracker.collect.error.NonRetryableApiException;
@@ -59,6 +60,40 @@ class LostarkApiClientTest {
         assertThat(res.items().get(0).id()).isEqualTo(66102101L);
         assertThat(res.items().get(0).name()).isEqualTo("수호석 조각");
         assertThat(res.items().get(0).currentMinPrice()).isEqualTo(1L);
+        f.server().verify();
+    }
+
+    @Test
+    void parsesItemDetailTopLevelArray() {
+        // The real GET /markets/items/{id} returns a TOP-LEVEL ARRAY of item-detail objects
+        // (each with Stats[]), NOT a bare {Stats:[...]} object — verified against the live API.
+        Fixture f = fixture();
+        f.server().expect(requestTo(BASE + "/markets/items/66102007"))
+                .andExpect(method(org.springframework.http.HttpMethod.GET))
+                .andExpect(header("authorization", "bearer abcd"))
+                .andRespond(withSuccess("""
+                        [{"Name":"운명의 파괴석 결정","TradeRemainCount":null,"BundleCount":100,
+                          "Stats":[{"Date":"2026-07-07","AvgPrice":1711.4,"TradeCount":75251},
+                                   {"Date":"2026-07-06","AvgPrice":1711.8,"TradeCount":167290}]}]
+                        """, MediaType.APPLICATION_JSON));
+
+        ItemDetailResponse res = f.client().getItemDetail(66102007L);
+
+        assertThat(res.stats()).hasSize(2);
+        assertThat(res.stats().get(0).date()).isEqualTo("2026-07-07");
+        assertThat(res.stats().get(0).avgPrice()).isEqualTo(1711.4);
+        assertThat(res.stats().get(0).tradeCount()).isEqualTo(75251L);
+        f.server().verify();
+    }
+
+    @Test
+    void itemDetailEmptyArrayYieldsEmptyStats() {
+        // A no-result detail (empty top-level array) must yield empty Stats, not blow up.
+        Fixture f = fixture();
+        f.server().expect(requestTo(BASE + "/markets/items/999"))
+                .andRespond(withSuccess("[]", MediaType.APPLICATION_JSON));
+
+        assertThat(f.client().getItemDetail(999L).stats()).isEmpty();
         f.server().verify();
     }
 
