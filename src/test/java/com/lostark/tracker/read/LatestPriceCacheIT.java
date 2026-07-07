@@ -1,5 +1,6 @@
 package com.lostark.tracker.read;
 
+import com.lostark.tracker.backfill.BackfillCaptureService;
 import com.lostark.tracker.cache.LatestPriceCache;
 import com.lostark.tracker.collect.ItemFetchService;
 import com.lostark.tracker.collect.LostarkApiClient;
@@ -71,6 +72,8 @@ class LatestPriceCacheIT extends PostgresRedisContainers {
     CollectionRunRepository collectionRunRepository;
     @Autowired
     LatestPriceCache latestPriceCache;
+    @Autowired
+    BackfillCaptureService backfillCaptureService;
     @Autowired
     ItemFetchService itemFetchService;
     @Autowired
@@ -185,7 +188,8 @@ class LatestPriceCacheIT extends PostgresRedisContainers {
 
     private PriceCollector newCollectorAt(Instant instant) {
         return new PriceCollector(itemFetchService, trackedItemRepository, priceSnapshotRepository,
-                collectionRunRepository, latestPriceCache, Clock.fixed(instant, ZoneOffset.UTC), 2, 3);
+                collectionRunRepository, latestPriceCache, backfillCaptureService,
+                Clock.fixed(instant, ZoneOffset.UTC), 2, 3);
     }
 
     private static MarketItemsResponse oneItem(long id, long price) {

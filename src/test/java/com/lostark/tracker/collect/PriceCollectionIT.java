@@ -1,5 +1,6 @@
 package com.lostark.tracker.collect;
 
+import com.lostark.tracker.backfill.BackfillCaptureService;
 import com.lostark.tracker.cache.LatestPriceCache;
 import com.lostark.tracker.collect.dto.MarketItem;
 import com.lostark.tracker.collect.dto.MarketItemsResponse;
@@ -48,6 +49,8 @@ class PriceCollectionIT extends PostgresRedisContainers {
     CollectionRunRepository collectionRunRepository;
     @Autowired
     LatestPriceCache latestPriceCache;
+    @Autowired
+    BackfillCaptureService backfillCaptureService;
 
     // Pinned clock -> collected_at == 2026-06-22T09:15:00Z for every tick in this test.
     private static final Instant FIXED = Instant.parse("2026-06-22T09:15:30Z");
@@ -55,8 +58,8 @@ class PriceCollectionIT extends PostgresRedisContainers {
 
     private PriceCollector collector(long perCallSeconds, long overallSeconds) {
         return new PriceCollector(itemFetchService, trackedItemRepository, priceSnapshotRepository,
-                collectionRunRepository, latestPriceCache, Clock.fixed(FIXED, ZoneOffset.UTC),
-                perCallSeconds, overallSeconds);
+                collectionRunRepository, latestPriceCache, backfillCaptureService,
+                Clock.fixed(FIXED, ZoneOffset.UTC), perCallSeconds, overallSeconds);
     }
 
     @BeforeEach

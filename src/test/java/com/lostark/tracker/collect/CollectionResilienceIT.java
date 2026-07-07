@@ -1,5 +1,6 @@
 package com.lostark.tracker.collect;
 
+import com.lostark.tracker.backfill.BackfillCaptureService;
 import com.lostark.tracker.cache.LatestPriceCache;
 import com.lostark.tracker.collect.dto.MarketItem;
 import com.lostark.tracker.collect.dto.MarketItemsResponse;
@@ -49,6 +50,8 @@ class CollectionResilienceIT extends PostgresRedisContainers {
     CollectionRunRepository collectionRunRepository;
     @Autowired
     LatestPriceCache latestPriceCache;
+    @Autowired
+    BackfillCaptureService backfillCaptureService;
 
     private static final Instant FIXED = Instant.parse("2026-06-22T10:30:30Z");
     private static final OffsetDateTime COLLECTED_AT = OffsetDateTime.parse("2026-06-22T10:30:00Z");
@@ -56,7 +59,8 @@ class CollectionResilienceIT extends PostgresRedisContainers {
     private PriceCollector collector() {
         // perCall 5s leaves room for the bounded retry's backoff; overall 8s backstop.
         return new PriceCollector(itemFetchService, trackedItemRepository, priceSnapshotRepository,
-                collectionRunRepository, latestPriceCache, Clock.fixed(FIXED, ZoneOffset.UTC), 5, 8);
+                collectionRunRepository, latestPriceCache, backfillCaptureService,
+                Clock.fixed(FIXED, ZoneOffset.UTC), 5, 8);
     }
 
     @BeforeEach

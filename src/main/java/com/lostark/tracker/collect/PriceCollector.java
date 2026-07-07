@@ -1,5 +1,6 @@
 package com.lostark.tracker.collect;
 
+import com.lostark.tracker.backfill.BackfillCaptureService;
 import com.lostark.tracker.cache.LatestPriceCache;
 import com.lostark.tracker.domain.CollectionRun;
 import com.lostark.tracker.domain.PriceSnapshot;
@@ -45,6 +46,7 @@ public class PriceCollector {
     private final PriceSnapshotRepository priceSnapshotRepository;
     private final CollectionRunRepository collectionRunRepository;
     private final LatestPriceCache latestPriceCache;
+    private final BackfillCaptureService backfillCaptureService;
     private final Clock clock;
     private final long perCallTimeoutSeconds;
     private final long overallTimeoutSeconds;
@@ -54,6 +56,7 @@ public class PriceCollector {
                           PriceSnapshotRepository priceSnapshotRepository,
                           CollectionRunRepository collectionRunRepository,
                           LatestPriceCache latestPriceCache,
+                          BackfillCaptureService backfillCaptureService,
                           Clock clock,
                           @Value("${collection.per-call-timeout-seconds:5}") long perCallTimeoutSeconds,
                           @Value("${collection.overall-timeout-seconds:90}") long overallTimeoutSeconds) {
@@ -62,6 +65,7 @@ public class PriceCollector {
         this.priceSnapshotRepository = priceSnapshotRepository;
         this.collectionRunRepository = collectionRunRepository;
         this.latestPriceCache = latestPriceCache;
+        this.backfillCaptureService = backfillCaptureService;
         this.clock = clock;
         this.perCallTimeoutSeconds = perCallTimeoutSeconds;
         this.overallTimeoutSeconds = overallTimeoutSeconds;
@@ -107,6 +111,10 @@ public class PriceCollector {
             ItemFetchResult result = settledResult(itf.future());
             if (result != null && result.isSuccess()) {
                 persistSnapshot(itf.item(), collectedAt, result);
+                // Additive fail-open backfill hook (BACKFILL-01): ride this success to capture the
+                // free YDayAvgPrice. Runs after the snapshot is committed and never throws, so it
+                // cannot break the collection tick.
+                backfillCaptureService.captureYDayAvg(itf.item(), result);
                 succeeded++;
             } else {
                 failed++;
