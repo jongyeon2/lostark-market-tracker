@@ -13,6 +13,11 @@ import java.util.List;
  *
  * <p>{@code iconUrl}/{@code itemGroup}/{@code roleGroup} are the item's static enrichment as top-level
  * metadata (read-path additive; range reads are not cached). The controller fills them via findById.
+ *
+ * <p>{@code backfill} (Phase 17.4, BACKFILL-03) is a THIRD independent array: the window's backfilled
+ * daily traded AVERAGES ({@link DailyStatPoint}), kept separate from {@code snapshots} because they are
+ * a different metric — a daily traded avg vs. a real-time min ask — and must not be joined into one
+ * line (D-02). Empty (never null) when the window has no backfill.
  */
 public record TimelineResponse(
         boolean downsampled,
@@ -21,6 +26,7 @@ public record TimelineResponse(
         List<EventPoint> events,
         String iconUrl,
         String itemGroup,
-        String roleGroup
+        String roleGroup,
+        List<DailyStatPoint> backfill
 ) {
 }

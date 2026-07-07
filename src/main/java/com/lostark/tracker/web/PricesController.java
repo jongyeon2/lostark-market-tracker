@@ -5,7 +5,9 @@ import com.lostark.tracker.read.DownsampleService.DownsampleResult;
 import com.lostark.tracker.domain.TrackedItem;
 import com.lostark.tracker.read.WindowQueryService;
 import com.lostark.tracker.read.WindowQueryService.WindowResult;
+import com.lostark.tracker.repository.ItemDailyStatRepository;
 import com.lostark.tracker.repository.TrackedItemRepository;
+import com.lostark.tracker.web.dto.DailyStatPoint;
 import com.lostark.tracker.web.dto.EventPoint;
 import com.lostark.tracker.web.dto.TimelineResponse;
 import com.lostark.tracker.web.error.InvalidRequestException;
@@ -17,7 +19,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 /**
@@ -34,16 +38,21 @@ import java.util.List;
 @RequestMapping("/api/items")
 public class PricesController {
 
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+
     private final TrackedItemRepository trackedItemRepository;
     private final WindowQueryService windowQueryService;
     private final DownsampleService downsampleService;
+    private final ItemDailyStatRepository itemDailyStatRepository;
 
     public PricesController(TrackedItemRepository trackedItemRepository,
                             WindowQueryService windowQueryService,
-                            DownsampleService downsampleService) {
+                            DownsampleService downsampleService,
+                            ItemDailyStatRepository itemDailyStatRepository) {
         this.trackedItemRepository = trackedItemRepository;
         this.windowQueryService = windowQueryService;
         this.downsampleService = downsampleService;
+        this.itemDailyStatRepository = itemDailyStatRepository;
     }
 
     @GetMapping("/{id}/prices")
@@ -66,6 +75,16 @@ public class PricesController {
         DownsampleResult downsampled = downsampleService.downsample(id, from, to, window.snapshots());
         List<EventPoint> events = window.events().stream().map(EventPoint::from).toList();
 
+        // Additive backfill merge (BACKFILL-03): the window's daily-average rows as a SEPARATE array
+        // from the real-time snapshots (D-02 no-mix). The KST calendar-day window mirrors how the
+        // backfill sources stamp stat_date; empty when there is none (200 preserved). The price_snapshot
+        // read path (WindowQueryService/DownsampleService) is untouched.
+        LocalDate fromDate = from.atZoneSameInstant(KST).toLocalDate();
+        LocalDate toDate = to.atZoneSameInstant(KST).toLocalDate();
+        List<DailyStatPoint> backfill = itemDailyStatRepository
+                .findByTrackedItemIdAndStatDateBetweenOrderByStatDateAsc(id, fromDate, toDate)
+                .stream().map(DailyStatPoint::from).toList();
+
         return new TimelineResponse(
                 downsampled.downsampled(),
                 downsampled.bucketWidth(),
@@ -73,6 +92,7 @@ public class PricesController {
                 events,
                 item.getIconUrl(),
                 item.getItemGroup(),
-                item.getRoleGroup());
+                item.getRoleGroup(),
+                backfill);
     }
 }
