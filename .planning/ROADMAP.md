@@ -156,11 +156,13 @@ Plans:
 **Plans**: 5 plans
 
 Plans:
-- [ ] 18-01-PLAN.md — 앱 컨테이너화(비루트 Dockerfile) + prod 프로파일(actuator never) + WatchlistSeeder prod (DEPLOY-01/04)
-- [ ] 18-02-PLAN.md — Caddy 리버스 프록시 + 프론트 정적 서빙(동일 출처·자동 HTTPS·SPA fallback) (DEPLOY-02)
-- [ ] 18-03-PLAN.md — docker-compose.prod.yml(보안 네트워킹·포트 미공개·redis requirepass) + .env.prod.example (DEPLOY-03/04)
-- [ ] 18-04-PLAN.md — 배포 런북(Oracle VM·DuckDNS·방화벽 이중개방·systemd) — 수동 배포 (DEPLOY-01/03)
-- [ ] 18-05-PLAN.md — 배포 직전 보안 검증 게이트(6항목 체크리스트·go/no-go) (DEPLOY-03)
+- [x] 18-01-PLAN.md — 앱 컨테이너화(비루트 Dockerfile) + prod 프로파일(actuator never) + WatchlistSeeder prod (DEPLOY-01/04) ✅ compileJava 그린
+- [x] 18-02-PLAN.md — Caddy 리버스 프록시 + 프론트 정적 서빙(동일 출처·자동 HTTPS·SPA fallback) (DEPLOY-02) ✅ npm build 그린 (정정: web 컨텍스트=frontend/, Caddyfile→frontend/Caddyfile)
+- [x] 18-03-PLAN.md — docker-compose.prod.yml(보안 네트워킹·포트 미공개·redis requirepass) + .env.prod.example (DEPLOY-03/04) ✅ compose valid + ./gradlew build 그린
+- [x] 18-04-PLAN.md — 배포 런북(Oracle VM·DuckDNS·방화벽 이중개방·systemd) — 수동 배포 (DEPLOY-01/03) ✅ 문서 산출 (Task3 실제 VM 배포는 사용자 수동 대기)
+- [x] 18-05-PLAN.md — 배포 직전 보안 검증 게이트(6항목 체크리스트·go/no-go) (DEPLOY-03) ✅ 정적 4/4 PASS (라이브 2항목 배포 후 대기)
+
+**실행 상태**: 저장소 산출물 5/5 완료·검증 그린. **라이브 배포는 사용자 수동**(Oracle VM 계정 필요) — 런북 `docs/deploy/oracle-vm-runbook.md` + 게이트 `docs/deploy/security-checklist.md` 준비됨.
 
 ## Progress
 
@@ -173,10 +175,10 @@ Plans:
 | 16. 대시보드 카드 개선 | v1.3 | 1/1 | Complete    | 2026-07-03 |
 | 17. 실데이터 전환 | v1.3 | 3/3 | Complete   | 2026-07-03 |
 | 17.1 데모 최종 폴리시 (INSERTED) | v1.3 | 4/4 | Complete   | 2026-07-06 |
-| 18. 무료 라이브 배포 + 보안 검증 | v1.3 | 0/5 | Planned | — |
+| 18. 무료 라이브 배포 + 보안 검증 | v1.3 | 5/5 | Executed (산출물) — 라이브 배포 사용자 대기 | — |
 
 **v1.3 Coverage:** v1.3 requirements 20 total · 매핑 **20/20 ✓** (ADMINUI 6 + CARD 2 + REALDATA 3 + POLISH 5 + DEPLOY 4)
 
 ---
 
-_v1.0/v1.1/v1.2 상세는 milestones/ 아카이브. 현재 활성: v1.3 (Phases 15–18, +17.1~17.4 삽입). Phase 18 계획 완료(5 plans). 다음: `/gsd:execute-phase 18`._
+_v1.0/v1.1/v1.2 상세는 milestones/ 아카이브. 현재 활성: v1.3 (Phases 15–18, +17.1~17.4 삽입). Phase 18 산출물 5/5 실행·검증 완료. 다음: 사용자가 런북 따라 Oracle VM 배포 → 라이브 보안 게이트(18-05 라이브 항목) 통과 → go-live._

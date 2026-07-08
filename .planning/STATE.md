@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: 관리자 콘솔 + 실데이터 라이브 배포
-status: "Phase 18(무료 라이브 배포+보안) 계획 완료 — 5 plans(DEPLOY-01..04). Oracle Always Free VM·docker-compose·Caddy 자동HTTPS·DuckDNS·수동배포. 다음: /gsd:execute-phase 18"
-stopped_at: Phase 18 planned (5/5 plans authored, not executed)
-last_updated: "2026-07-08T00:00:00.000Z"
-last_activity: 2026-07-08 -- Phase 18 계획 수립(18-CONTEXT + 18-01..05 PLAN, 인라인 오케스트레이터)
+status: "Phase 18 산출물 5/5 실행·검증 완료 — 컨테이너화·Caddy·prod compose·런북·보안게이트. 저장소 검증 그린(compileJava·npm build·gradle build·compose valid·정적보안 4/4). 라이브 배포는 사용자 수동(Oracle VM) 대기"
+stopped_at: Phase 18 executed (5/5 artifacts, verified) — 라이브 VM 배포 사용자 대기
+last_updated: "2026-07-08T06:30:00.000Z"
+last_activity: 2026-07-08 -- Phase 18 실행 완료(18-01..05 산출물 + 검증, 인라인 오케스트레이터, 6 커밋)
 progress:
   total_phases: 8
   completed_phases: 7
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-01 for v1.3 milestone)
 
 **Core value:** 레이트리밋이 걸린 외부 마켓 API에서 시세를 빠짐없이 수집해 시계열로 쌓고, 캐시로 안정적으로 서빙한다
-**Current focus:** Phase 18 (무료 라이브 배포 + 보안 검증) — **계획 완료**(5 plans). 다음: `/gsd:execute-phase 18`
+**Current focus:** Phase 18 (무료 라이브 배포 + 보안 검증) — **산출물 실행·검증 완료**(5/5). 다음: 사용자가 런북 따라 Oracle VM 배포
 
 ## Current Position
 
-Phase: 18 (free-deploy-security) — 📋 계획 완료 (미실행)
-Plan: 0/5 실행 — 01(컨테이너화+prod 프로파일)·02(Caddy+프론트 정적 서빙)·03(prod compose 보안 네트워킹)·04(Oracle VM 배포 런북·수동)·05(배포 직전 보안 게이트). 배포 결정: Oracle Always Free VM·docker-compose 단일 박스·Caddy 자동 HTTPS+정적 서빙(동일 출처→CORS 소멸)·DuckDNS·수동 배포(CD는 v2). Core Value 가드: 수집/캐시/event-impact 로직 0줄
-Status: Planned — 계획 검증 완료(요구사항 커버리지 DEPLOY-01..04 4/4, 각 플랜 threat_model 포함). 다음: `/gsd:execute-phase 18` 또는 사용자 검토
-Last activity: 2026-07-08 -- Phase 18 계획 수립(18-CONTEXT + 18-01..05 PLAN)
+Phase: 18 (free-deploy-security) — 🚀 산출물 실행 완료 · 라이브 배포 사용자 대기
+Plan: 5/5 실행 — 01(Dockerfile 비루트+application-prod.yml never+WatchlistSeeder prod)·02(frontend/Caddyfile+Dockerfile 동일출처 자동HTTPS)·03(docker-compose.prod.yml 포트 미공개+redis requirepass+.env.prod.example)·04(Oracle VM 런북+systemd)·05(보안 게이트 정적 4/4 PASS). 배포 결정: Oracle Always Free VM·docker-compose 단일 박스·Caddy 자동 HTTPS+정적 서빙(동일 출처→CORS 소멸)·DuckDNS·수동 배포(CD는 v2). Core Value 가드: 수집/캐시/event-impact 로직 0줄
+Status: Executed(산출물) — 저장소 검증 전부 그린. **남은 것: 사용자가 `docs/deploy/oracle-vm-runbook.md` 따라 Oracle VM에 배포 → 18-05 라이브 보안 항목(off-box 포트·HTTPS·401) 확인 → go-live. 그 후 README 갱신(deferred)**
+Last activity: 2026-07-08 -- Phase 18 실행 완료(6 커밋: 계획 + 18-01..05)
 
 ## Performance Metrics
 
