@@ -1,0 +1,34 @@
+# Caddy(Phase 18): 유일한 공개 진입점. DuckDNS 도메인({$SITE_ADDRESS})에서 Let's Encrypt
+# 자동 HTTPS(HTTP→HTTPS 강제)를 받고, 프론트는 정적으로 직접 서빙, /api·/actuator만 앱으로 프록시.
+# 동일 출처라 CORS 불필요(frontend/src/lib/api.ts가 이미 상대 /api 사용).
+{
+	email {$ACME_EMAIL}
+}
+
+{$SITE_ADDRESS} {
+	encode gzip zstd
+
+	# API + actuator → Spring Boot 앱(내부 docker 네트워크 서비스명 app:8080)
+	handle /api/* {
+		reverse_proxy app:8080
+	}
+	handle /actuator/* {
+		reverse_proxy app:8080
+	}
+
+	# 정적 SPA + 클라이언트 라우팅 fallback(/timeline·/impact·/admin 새로고침 대응)
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+
+	# 보안 헤더
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+}
