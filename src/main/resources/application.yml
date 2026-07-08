@@ -13,6 +13,9 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
+      # prod는 requirepass redis(18-03) → REDIS_PASSWORD로 AUTH. 빈 기본값은 RedisPassword.none()이라
+      # dev/test(비밀번호 없는 Testcontainers/compose redis)는 무영향(blank => 미AUTH).
+      password: ${REDIS_PASSWORD:}
 
   jpa:
     # Flyway owns the schema (D-02); JPA only validates entity<->schema agreement, never creates/alters.

@@ -1,0 +1,85 @@
+# Prod 스택(Phase 18) — Oracle Always Free VM 단일 박스. `docker compose -f docker-compose.prod.yml
+# --env-file .env.prod up -d --build`로 기동.
+#
+# 보안 네트워킹(DEPLOY-03): app·postgres·redis는 host 포트를 열지 않고(내부 `internal` 네트워크
+# 전용), 오직 caddy만 80/443을 publish한다 → DB/Redis/app은 인터넷에서 도달 불가.
+# 시크릿(DEPLOY-04)은 .env.prod(gitignore)에서만 주입. redis는 requirepass로 심층 방어.
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      LOSTARK_API_KEY: ${LOSTARK_API_KEY}
+      ADMIN_API_SECRET: ${ADMIN_API_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks: [internal]
+    # ★ NO ports: — caddy 경유로만 도달(외부 미노출)
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks: [internal]
+    # ★ NO ports: — 내부 네트워크 전용
+
+  redis:
+    image: redis:7
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks: [internal]
+    # ★ NO ports: — 내부 네트워크 전용 + requirepass
+
+  caddy:
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS}
+      ACME_EMAIL: ${ACME_EMAIL}
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+    restart: unless-stopped
+    networks: [internal]
+    # ★ 유일한 publish(80/443) — 공개 진입점
+
+networks:
+  internal:
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:
