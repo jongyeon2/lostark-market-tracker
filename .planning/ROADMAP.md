@@ -152,6 +152,15 @@ Plans:
 2. 프론트가 배포 환경에서 서빙되고 백엔드와 동일 출처로 API·관리자 시크릿 경로가 동작한다
 3. 실 API 키·관리자 시크릿이 서버 env로만 주입되고 코드/문서/로그/커밋에 미기재된다
 4. 배포 직전 보안 게이트 통과 — 관리자 쓰기 보호·API 키 미노출·DB/Redis 포트 비공개·HTTPS·CORS 정책
+**배포 결정(대화형 디스커션 확정)**: Oracle Cloud Always Free VM 한 대 · docker-compose 단일 박스(app+postgres+redis+caddy) · Caddy 자동 HTTPS + 정적 서빙(동일 출처→CORS 소멸) · DuckDNS 도메인 · **수동 배포**(CD 자동화는 v2). 상세: `.planning/phases/18-free-deploy-security/18-CONTEXT.md`
+**Plans**: 5 plans
+
+Plans:
+- [ ] 18-01-PLAN.md — 앱 컨테이너화(비루트 Dockerfile) + prod 프로파일(actuator never) + WatchlistSeeder prod (DEPLOY-01/04)
+- [ ] 18-02-PLAN.md — Caddy 리버스 프록시 + 프론트 정적 서빙(동일 출처·자동 HTTPS·SPA fallback) (DEPLOY-02)
+- [ ] 18-03-PLAN.md — docker-compose.prod.yml(보안 네트워킹·포트 미공개·redis requirepass) + .env.prod.example (DEPLOY-03/04)
+- [ ] 18-04-PLAN.md — 배포 런북(Oracle VM·DuckDNS·방화벽 이중개방·systemd) — 수동 배포 (DEPLOY-01/03)
+- [ ] 18-05-PLAN.md — 배포 직전 보안 검증 게이트(6항목 체크리스트·go/no-go) (DEPLOY-03)
 
 ## Progress
 
@@ -164,10 +173,10 @@ Plans:
 | 16. 대시보드 카드 개선 | v1.3 | 1/1 | Complete    | 2026-07-03 |
 | 17. 실데이터 전환 | v1.3 | 3/3 | Complete   | 2026-07-03 |
 | 17.1 데모 최종 폴리시 (INSERTED) | v1.3 | 4/4 | Complete   | 2026-07-06 |
-| 18. 무료 라이브 배포 + 보안 검증 | v1.3 | 0/? | Planned | — |
+| 18. 무료 라이브 배포 + 보안 검증 | v1.3 | 0/5 | Planned | — |
 
 **v1.3 Coverage:** v1.3 requirements 20 total · 매핑 **20/20 ✓** (ADMINUI 6 + CARD 2 + REALDATA 3 + POLISH 5 + DEPLOY 4)
 
 ---
 
-_v1.0/v1.1/v1.2 상세는 milestones/ 아카이브. 현재 활성: v1.3 (Phases 15–18, +17.1~17.4 삽입). 다음: `/gsd:discuss-phase 17.4` 또는 `/gsd:plan-phase 17.4`._
+_v1.0/v1.1/v1.2 상세는 milestones/ 아카이브. 현재 활성: v1.3 (Phases 15–18, +17.1~17.4 삽입). Phase 18 계획 완료(5 plans). 다음: `/gsd:execute-phase 18`._
