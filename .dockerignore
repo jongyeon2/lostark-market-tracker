@@ -1,0 +1,13 @@
+# 빌드 컨텍스트 축소 + 시크릿 유출 방지. .env 계열은 절대 이미지에 들어가지 않는다.
+.env
+.env.*
+build
+.gradle
+.git
+.gitignore
+frontend
+node_modules
+.planning
+docs
+*.iml
+.idea

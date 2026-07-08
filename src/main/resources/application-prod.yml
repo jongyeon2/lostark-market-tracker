@@ -1,0 +1,22 @@
+# Prod 프로파일: 공개 배포용(Oracle VM · docker-compose). 실데이터 수집(WatchlistSeeder + PriceCollector)을
+# 하되 actuator를 하드닝(health만 노출 · show-details: never)하고, 시크릿은 env(.env.prod)에서만 주입한다.
+# datasource/redis/lostark/admin은 base(application.yml)의 ${...} 플레이스홀더가 그대로 유효하므로
+# 여기서는 오버라이드가 필요한 키만 둔다(SPRING_PROFILES_ACTIVE=prod로 활성화).
+collection:
+  # dev와 동일 근거(application-dev.yml): WatchlistSeeder(ApplicationRunner)가 첫 스케줄 tick 전에
+  # 22개 워치리스트를 upsert하도록 첫 tick을 지연. 안 그러면 빈 tracked_item에 첫 수집이 돌아
+  # items_attempted=0로 잘못 SUCCESS 기록됨. fixedDelay(10분)는 default 유지.
+  initial-delay-ms: 10000
+
+logging:
+  level:
+    root: INFO
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health          # health만 공개(내부 엔드포인트 비노출)
+  endpoint:
+    health:
+      show-details: never        # 공개 노출 하드닝 — base의 always를 override(DB/구성 상세 숨김)

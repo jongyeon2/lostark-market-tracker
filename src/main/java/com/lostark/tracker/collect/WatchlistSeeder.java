@@ -30,9 +30,13 @@ import java.util.List;
  *
  * <p>This seeder writes only public metadata (Id / name / CategoryCode / iconUrl / group) — never a
  * key, account identifier, or price (SEED-04).
+ *
+ * <p>{@code prod} is included (Phase 18) so the live deployment seeds the 22-item watchlist too —
+ * real collection needs targets. Unlike {@code seed}, {@code prod} does NOT run SeedDataRunner
+ * ({@code @Profile("seed")}), so production accrues real prices only, never synthetic snapshots.
  */
 @Component
-@Profile({"dev", "seed"})
+@Profile({"dev", "seed", "prod"})
 @Order(1) // Run BEFORE SeedDataRunner(@Order(2)) so active items exist when the synthetic seeder reads them.
 public class WatchlistSeeder implements ApplicationRunner {
 
