@@ -1,0 +1,24 @@
+# Lostark Price Tracker — 부팅 시 docker-compose prod 스택 기동(Phase 18).
+#
+# 설치:
+#   sudo cp deploy/lostark.service /etc/systemd/system/lostark.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now lostark
+#
+# 확인: systemctl status lostark   /   중지: sudo systemctl stop lostark
+[Unit]
+Description=Lostark Price Tracker (docker compose)
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/lostark-price-tracker
+ExecStart=/usr/bin/docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+ExecStop=/usr/bin/docker compose -f docker-compose.prod.yml --env-file .env.prod down
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target
