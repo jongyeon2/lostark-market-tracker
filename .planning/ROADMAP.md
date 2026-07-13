@@ -191,10 +191,10 @@ Plans:
 
 **분할:**
 - [x] **19-01** GHCR 이미지화 — compose `build`→`image` + CI 이미지 빌드·GHCR push job + 프론트 CI 게이트 (실행 완료 2026-07-13, `940901b`·`97d44b6`, actionlint 통과)
-- [ ] **19-02** 배포 job — Tailscale SSH → pull+재기동+스모크 + `production` environment/secrets (사용자 사전조치: Tailscale·VM 설치)
+- [x] **19-02** 배포 job — Tailscale SSH → pull+재기동+스모크 (게이트 `DEPLOY_ENABLED`, 실행 완료 2026-07-13, `c5cde94`, actionlint 통과). **라이브 활성화는 사용자 사전조치**(Tailscale·secrets·VM docker login) + `DEPLOY_ENABLED=true`
 - [ ] **19-03** 운영 문서 — 런북·README·`systemd`(--build 제거)·롤백·배지 갱신
 
-**Plans**: 1/3 (19-01 실행 완료 · 19-02/03 미작성)
+**Plans**: 2/3 (19-01·19-02 실행 완료 · 19-03 미작성)
 
 
 
@@ -208,7 +208,7 @@ Plans:
 | 17. 실데이터 전환 | v1.3 | 3/3 | Complete   | 2026-07-03 |
 | 17.1 데모 최종 폴리시 (INSERTED) | v1.3 | 4/4 | Complete   | 2026-07-06 |
 | 18. 무료 라이브 배포 + 보안 검증 | v1.3 | 5/5 | Complete — 라이브 배포 완료 | 2026-07-13 |
-| 19. 자동 CI/CD 파이프라인 | v1.4 | 1/3 | In progress — 19-01 실행 완료 | — |
+| 19. 자동 CI/CD 파이프라인 | v1.4 | 2/3 | In progress — 19-01·02 실행 완료(라이브 배포 활성화는 사용자 사전조치 대기) | — |
 
 **v1.3 Coverage:** v1.3 requirements 20 total · 매핑 **20/20 ✓** (ADMINUI 6 + CARD 2 + REALDATA 3 + POLISH 5 + DEPLOY 4)
 

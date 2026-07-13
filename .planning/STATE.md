@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: CI/CD 자동화
-status: "v1.4 CI/CD 자동화 진행 — 19-01(GHCR 이미지화·CI 게이트) 실행+라이브 검증 완료. 첫 main push(run 29232382584) 파이프라인 전체 그린, images job이 arm64 이미지 2개를 GHCR에 push 확인(lostark-app/web:sha-3764cdf+latest, linux/arm64). 별개로 CI backend flaky(WatchlistSeederIT 시점경계) 수정(a0ed5be). 다음: GHCR 패키지 public 전환 + 19-02(Tailscale SSH 배포, 사용자 사전조치)"
+status: "v1.4 CI/CD 자동화 진행(2/3) — 19-01(GHCR arm64 이미지화·CI 게이트) 실행+라이브 검증 완료(images job이 lostark-app/web을 GHCR에 push 확인). 19-02(deploy job: Tailscale SSH→VM pull+재기동+스모크, DEPLOY_ENABLED 게이트) 실행 완료(c5cde94, actionlint 통과). 결정: 패키지 private 유지 + VM docker login. backend flaky(WatchlistSeederIT)도 수정. 다음: 19-03(문서) + 사용자 사전조치(Tailscale·secrets·VM login)로 배포 활성화"
 stopped_at: 19-01 실행 완료 — 19-02/03 PLAN 미작성(19-02는 Tailscale·VM 사전조치 필요)
-last_updated: "2026-07-13T07:35:00.000Z"
-last_activity: 2026-07-13 -- Quick 260713-mur: CI backend flaky(WatchlistSeederIT 시점경계) 수정 — 테스트 고정 Clock(a0ed5be)
+last_updated: "2026-07-13T08:05:00.000Z"
+last_activity: 2026-07-13 -- 19-02 실행 완료: ci.yml deploy job(Tailscale SSH→VM pull+재기동+스모크, DEPLOY_ENABLED 게이트, private 패키지+VM docker login, c5cde94)
 progress:
   total_phases: 8
   completed_phases: 7
