@@ -4,8 +4,8 @@ milestone: v1.3
 milestone_name: 관리자 콘솔 + 실데이터 라이브 배포
 status: "Phase 18 산출물 5/5 실행·검증 완료 — 컨테이너화·Caddy·prod compose·런북·보안게이트. 저장소 검증 그린(compileJava·npm build·gradle build·compose valid·정적보안 4/4). 라이브 배포는 사용자 수동(Oracle VM) 대기"
 stopped_at: Phase 18 executed (5/5 artifacts, verified) — 라이브 VM 배포 사용자 대기
-last_updated: "2026-07-08T06:30:00.000Z"
-last_activity: 2026-07-08 -- Phase 18 실행 완료(18-01..05 산출물 + 검증, 인라인 오케스트레이터, 6 커밋)
+last_updated: "2026-07-13T01:10:00.000Z"
+last_activity: 2026-07-13 -- Quick 260713-e1o 완료: Caddy CSP + 보안 헤더 보강(라이브 실측 검증, e347b65)
 progress:
   total_phases: 8
   completed_phases: 7
@@ -95,6 +95,7 @@ None (2026-06-30: `.env` `LOSTARK_API_KEY` 무효(401) 이슈는 키 재발급·
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260713-e1o | Caddy CSP + 보안 헤더 보강(Permissions-Policy·COOP) — 18-05 게이트 밖 하드닝 후속. 라이브 실측(Playwright page.route로 후보 CSP 주입)으로 origin 매핑 검증: script-src 'self'(unsafe-eval 없음, eval은 라이브러리 무해 프로브), style-src 'unsafe-inline'(Recharts), img-src에 onstove CDN. caddy validate 통과. Core Value 0줄 | 2026-07-13 | e347b65 | [260713-e1o-caddy-csp-security-headers](./quick/260713-e1o-caddy-csp-security-headers/) |
 | 260707-usn | 대시보드 카드(ItemCard) 가격 용어를 차트와 통일 — 라벨 없던 🪙 minPrice에 "최저가" 라벨 추가 + "최신가 수집 중"→"최저가 수집 중" | 2026-07-07 | cdb1cc1 | [260707-usn-dashboard-card-price-label](./quick/260707-usn-dashboard-card-price-label/) |
 | 260707-uly | 프론트 고객친화 UI — 차트 범례/툴팁 용어 순화(개발자 용어 "백필·일평균(거래가)"/"실측 최저호가"→"평균 거래가"/"최저가", 2지표 구분 유지) + 없던 파비콘 📈 SVG 추가 | 2026-07-07 | bf37c9d | [260707-uly-ui](./quick/260707-uly-ui/) |
 | 260707-tzj | 각인서 백필 버그 수정 — getItemDetail이 상세 배열 details[0](귀속 거래1회·Stats 0)만 반환하던 것을 총 TradeCount 최대 원소 선택으로, 소급 러너를 재료 한정→전 활성 품목(각인서 포함)으로 확대. 각인서도 상세 14일 소급됨. Core Value 경로 0줄 | 2026-07-07 | 9e492b3 | [260707-tzj-getitemdetail-detailstatsbackfillrunner](./quick/260707-tzj-getitemdetail-detailstatsbackfillrunner/) |
