@@ -1,22 +1,18 @@
-
-
 name: CI
 
-# Runs on EVERY push and pull request so the README badge reflects the live test state.
-# The job runs the exact command a reviewer runs locally — ./gradlew build — which
-# compiles and executes the full JUnit5 + Testcontainers suite against the runner's Docker
-# (Postgres 16 + Redis 7). Single ubuntu-latest job only — no CD step, no repo
-# credentials, no build matrix — the MVP (shipping is v2 per design §110).
+# push/PR마다 백엔드+프론트 테스트를 게이트로 돌리고(README 배지 반영), main push가 게이트를
+# 통과하면 app·web 이미지를 GHCR에 push한다(19-02 Tailscale SSH 배포가 pull). VM이 Oracle
+# Ampere(ARM64)이므로 이미지는 linux/arm64로 빌드한다. 앱 시크릿은 CI에 주입하지 않는다.
 on:
   push:
   pull_request:
 
-# Least privilege: the build only needs to read the checked-out source.
+# 최소 권한: 기본은 소스 읽기만. 이미지 push job만 job-level에서 packages: write로 상향.
 permissions:
   contents: read
 
 jobs:
-  build:
+  backend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -28,13 +24,86 @@ jobs:
           java-version: '21'
           cache: gradle
 
-      # The repo is authored on Windows where the exec bit may be absent.
+      # 저장소가 Windows에서 작성돼 exec 비트가 없을 수 있음.
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-      # Full build: compileJava + the entire Testcontainers suite. No -PdockerApiVersion
-      # override — the build defaults api.version to 1.44, which ubuntu-latest's Docker
-      # engine accepts, so Testcontainers boots Postgres 16 + Redis 7 exactly as locally.
-      # The @Disabled Task-0 spike never runs, so no network call and no LOSTARK_API_KEY.
+      # 전체 빌드: compileJava + Testcontainers 스위트(Postgres 16 + Redis 7).
       - name: Build and test
         run: ./gradlew build --no-daemon
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install deps
+        run: npm ci
+
+      # tsc -b && vite build — 타입체크 + 프로덕션 빌드 게이트.
+      - name: Type-check and build
+        run: npm run build
+
+  # main push가 백엔드+프론트 게이트를 통과하면 app·web 이미지를 GHCR에 push.
+  # runs-on 네이티브 arm64(public repo 무료). 미가용 시 ubuntu-latest + docker/setup-qemu-action@v3
+  # + platforms 유지로 폴백(빌드는 느려짐).
+  images:
+    if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
+    needs: [backend, frontend]
+    runs-on: ubuntu-24.04-arm
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Compute short SHA
+        id: vars
+        run: echo "sha_short=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # 백엔드 런타임 이미지(Dockerfile, context .) → linux/arm64.
+      - name: Build & push app image (backend)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          platforms: linux/arm64
+          push: true
+          tags: |
+            ghcr.io/jongyeon2/lostark-app:sha-${{ steps.vars.outputs.sha_short }}
+            ghcr.io/jongyeon2/lostark-app:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # web 이미지(프론트 빌드 + Caddy, context frontend) → linux/arm64.
+      - name: Build & push web image (frontend + Caddy)
+        uses: docker/build-push-action@v6
+        with:
+          context: frontend
+          file: frontend/Dockerfile
+          platforms: linux/arm64
+          push: true
+          tags: |
+            ghcr.io/jongyeon2/lostark-web:sha-${{ steps.vars.outputs.sha_short }}
+            ghcr.io/jongyeon2/lostark-web:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
