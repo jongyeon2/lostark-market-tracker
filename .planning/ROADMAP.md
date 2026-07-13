@@ -5,7 +5,8 @@
 - ✅ **v1.0 MVP** — Phases 1–6 (shipped 2026-06-25) — [archive](milestones/v1.0-ROADMAP.md)
 - ✅ **v1.1 Frontend Demo Dashboard** — Phases 7–11 (shipped 2026-06-29) — [archive](milestones/v1.1-ROADMAP.md)
 - ✅ **v1.2 Item Visual/Data Enrichment** — Phases 12–14 (shipped 2026-06-30) — [archive](milestones/v1.2-ROADMAP.md)
-- 🚧 **v1.3 관리자 콘솔 + 실데이터 라이브 배포** — Phases 15–18 (+17.1 삽입, 진행 중, 착수 2026-07-01)
+- ✅ **v1.3 관리자 콘솔 + 실데이터 라이브 배포** — Phases 15–18 (+17.1~17.4 삽입, 라이브 배포 완료 2026-07-13)
+- 🚀 **v1.4 CI/CD 자동화** — Phase 19 (진행 중, 착수 2026-07-13)
 
 ## Phases
 
@@ -162,9 +163,40 @@ Plans:
 - [x] 18-04-PLAN.md — 배포 런북(Oracle VM·DuckDNS·방화벽 이중개방·systemd) — 수동 배포 (DEPLOY-01/03) ✅ 문서 산출 (Task3 실제 VM 배포는 사용자 수동 대기)
 - [x] 18-05-PLAN.md — 배포 직전 보안 검증 게이트(6항목 체크리스트·go/no-go) (DEPLOY-03) ✅ 정적 4/4 PASS (라이브 2항목 배포 후 대기)
 
-**실행 상태**: 저장소 산출물 5/5 완료·검증 그린. **라이브 배포는 사용자 수동**(Oracle VM 계정 필요) — 런북 `docs/deploy/oracle-vm-runbook.md` + 게이트 `docs/deploy/security-checklist.md` 준비됨.
+**실행 상태**: 저장소 산출물 5/5 완료·검증 그린. **라이브 배포는 사용자 수동**(Oracle VM 계정 필요) — 런북 `docs/deploy/oracle-vm-runbook.md` + 게이트 `docs/deploy/security-checklist.md` 준비됨. **라이브 배포 완료(2026-07-13)** — https://lostark-tracker.duckdns.org, 보안 게이트 6/6 + 게이트 밖 하드닝(CSP/헤더·SSH /32) 통과.
 
-## Progress
+### 🚀 v1.4 CI/CD 자동화 (Phase 19) — IN PROGRESS (착수 2026-07-13)
+
+**Goal:** Phase 18에서 **수동으로 남겨둔 배포를 자동화**한다 — `main` 머지 → CI(백엔드+프론트 테스트) 그린 → GHCR 이미지 빌드·푸시 → Tailscale로 VM에 SSH해 pull+재기동+스모크테스트까지 자동. VM에서 빌드하지 않고(4GB ARM 부담 제거) **불변 이미지(SHA 태그)**로 배포·롤백한다. Phase 18에서 "CD 자동화는 v2"로 미뤘던 항목의 실현.
+
+**불변 제약(상시):** 실 시크릿(`.env.prod`)은 VM에만 · CI는 앱 시크릿 미접근 · 수집/캐시/event-impact/서빙 로직 **0줄**(순수 배포 파이프라인) · **public 저장소이므로 self-hosted 러너 금지**.
+
+#### Phase 19: 자동 CI/CD 파이프라인
+
+**Goal**: `main` push 시 CI 그린이면 GHCR에 app·web 이미지를 빌드·푸시하고, Tailscale SSH로 VM에 자동 배포(pull→재기동→스모크)한다. 배포 승인=자동(CI 게이트), 접근=Tailscale(공개 SSH 개방 불필요).
+**Depends on**: Phase 18 (컨테이너화 `Dockerfile`/`frontend/Dockerfile` · `docker-compose.prod.yml` · Caddy · systemd · 런북 — 그 산출물을 자동화 대상으로)
+**Requirements**: CICD-01, CICD-02, CICD-03, CICD-04
+**Success criteria**:
+1. `main` push → 백엔드(`./gradlew build`) + 프론트(`npm ci && npm run build`, `tsc`) CI가 **게이트**로 동작하고, 실패 시 배포되지 않는다
+2. CI 그린 시 `app`·`web` 이미지가 GHCR에 `sha-<커밋>` + `latest` 태그로 푸시된다 (`GITHUB_TOKEN`, 앱 시크릿 미사용)
+3. 러너가 **Tailscale**로 VM에 접속해 새 이미지를 pull하고 재기동하며, **공개 SSH 개방 없이** 배포된다(방화벽 /32 유지 또는 SSH 완전 폐쇄)
+4. 배포 후 **스모크 테스트**(`/actuator/health`·`/api/health/collection` 200)가 통과해야 성공 처리되고, 실패 시 loud fail + 이전 SHA 태그로 롤백 가능
+5. (가드) `.env.prod`은 VM에만·CI 미노출, 수집/캐시/event-impact/서빙 로직 0줄
+
+**Requirements 정의(CICD):**
+- **CICD-01** CI 게이트 — 백엔드+프론트 테스트가 배포 전 게이트로 동작
+- **CICD-02** 이미지·레지스트리 — `app`·`web` 이미지를 GHCR에 `sha`+`latest` 태그 푸시(VM 빌드 제거)
+- **CICD-03** 자동 배포 — Tailscale SSH로 VM pull+재기동(공개 SSH 불필요), `main` 한정
+- **CICD-04** 배포 검증·롤백 — 스모크 테스트 게이트 + SHA 태그 롤백 경로
+
+**분할(계획):**
+- **19-01** GHCR 이미지화 — compose `build`→`image` + CI 이미지 빌드·GHCR push job + 프론트 CI 게이트 추가
+- **19-02** 배포 job — Tailscale SSH → pull+재기동+스모크 + `production` environment/secrets
+- **19-03** 운영 문서 — 런북·README·`systemd`(--build 제거)·롤백·배지 갱신
+
+**Plans**: 0/3 (19-01 계획 작성 중)
+
+
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -175,10 +207,9 @@ Plans:
 | 16. 대시보드 카드 개선 | v1.3 | 1/1 | Complete    | 2026-07-03 |
 | 17. 실데이터 전환 | v1.3 | 3/3 | Complete   | 2026-07-03 |
 | 17.1 데모 최종 폴리시 (INSERTED) | v1.3 | 4/4 | Complete   | 2026-07-06 |
-| 18. 무료 라이브 배포 + 보안 검증 | v1.3 | 5/5 | Executed (산출물) — 라이브 배포 사용자 대기 | — |
+| 18. 무료 라이브 배포 + 보안 검증 | v1.3 | 5/5 | Complete — 라이브 배포 완료 | 2026-07-13 |
+| 19. 자동 CI/CD 파이프라인 | v1.4 | 0/3 | Planning | — |
 
 **v1.3 Coverage:** v1.3 requirements 20 total · 매핑 **20/20 ✓** (ADMINUI 6 + CARD 2 + REALDATA 3 + POLISH 5 + DEPLOY 4)
 
----
-
-_v1.0/v1.1/v1.2 상세는 milestones/ 아카이브. 현재 활성: v1.3 (Phases 15–18, +17.1~17.4 삽입). Phase 18 산출물 5/5 실행·검증 완료. 다음: 사용자가 런북 따라 Oracle VM 배포 → 라이브 보안 게이트(18-05 라이브 항목) 통과 → go-live._
+_v1.0/v1.1/v1.2 상세는 milestones/ 아카이브. v1.3(Phases 15–18, +17.1~17.4) 라이브 배포 완료(2026-07-13, https://lostark-tracker.duckdns.org). 현재 활성: **v1.4 CI/CD 자동화 (Phase 19)** — 수동 배포를 GHCR+Tailscale 자동 배포로. 다음: 19-01 계획 → 실행._

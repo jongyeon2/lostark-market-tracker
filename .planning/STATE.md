@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.3
-milestone_name: 관리자 콘솔 + 실데이터 라이브 배포
-status: "Phase 18 산출물 5/5 실행·검증 완료 — 컨테이너화·Caddy·prod compose·런북·보안게이트. 저장소 검증 그린(compileJava·npm build·gradle build·compose valid·정적보안 4/4). 라이브 배포는 사용자 수동(Oracle VM) 대기"
-stopped_at: Phase 18 executed (5/5 artifacts, verified) — 라이브 VM 배포 사용자 대기
-last_updated: "2026-07-13T03:25:00.000Z"
-last_activity: 2026-07-13 -- Quick 260713-h3s 완료: README 클라이언트 친화 리라이트 v2(2층 구조·라이브 스크린샷·딥링크, 3e996b2)
+milestone: v1.4
+milestone_name: CI/CD 자동화
+status: "v1.3 라이브 배포 완료(https://lostark-tracker.duckdns.org, 보안 게이트 6/6 + 하드닝 CSP·SSH/32). 현재 v1.4 CI/CD 자동화 착수 — Phase 19 로드맵 추가 + 19-01(GHCR 이미지화·CI 게이트) PLAN 작성. 아직 미실행(계획 단계)"
+stopped_at: Phase 19 추가 + 19-01 PLAN 작성 완료(미실행) — 19-01 실행 대기
+last_updated: "2026-07-13T04:05:00.000Z"
+last_activity: 2026-07-13 -- Phase 19(v1.4 CI/CD) 로드맵 추가 + 19-01 PLAN 작성(GHCR arm64 이미지화 + CI 프론트 게이트)
 progress:
   total_phases: 8
   completed_phases: 7
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-01 for v1.3 milestone)
 
 **Core value:** 레이트리밋이 걸린 외부 마켓 API에서 시세를 빠짐없이 수집해 시계열로 쌓고, 캐시로 안정적으로 서빙한다
-**Current focus:** Phase 18 (무료 라이브 배포 + 보안 검증) — **산출물 실행·검증 완료**(5/5). 다음: 사용자가 런북 따라 Oracle VM 배포
+**Current focus:** Phase 19 (v1.4 CI/CD 자동화) — GHCR 이미지 빌드 + Tailscale SSH 자동 배포. 19-01 PLAN 작성 완료·**실행 대기**. (v1.3은 라이브 배포 완료)
 
 ## Current Position
 
-Phase: 18 (free-deploy-security) — 🚀 산출물 실행 완료 · 라이브 배포 사용자 대기
-Plan: 5/5 실행 — 01(Dockerfile 비루트+application-prod.yml never+WatchlistSeeder prod)·02(frontend/Caddyfile+Dockerfile 동일출처 자동HTTPS)·03(docker-compose.prod.yml 포트 미공개+redis requirepass+.env.prod.example)·04(Oracle VM 런북+systemd)·05(보안 게이트 정적 4/4 PASS). 배포 결정: Oracle Always Free VM·docker-compose 단일 박스·Caddy 자동 HTTPS+정적 서빙(동일 출처→CORS 소멸)·DuckDNS·수동 배포(CD는 v2). Core Value 가드: 수집/캐시/event-impact 로직 0줄
-Status: Executed(산출물) — 저장소 검증 전부 그린. **남은 것: 사용자가 `docs/deploy/oracle-vm-runbook.md` 따라 Oracle VM에 배포 → 18-05 라이브 보안 항목(off-box 포트·HTTPS·401) 확인 → go-live. 그 후 README 갱신(deferred)**
-Last activity: 2026-07-08 -- Phase 18 실행 완료(6 커밋: 계획 + 18-01..05)
+Phase: 19 (cicd-pipeline, v1.4) — 📋 로드맵 추가 + 19-01 PLAN 작성 완료 · 실행 대기
+Plan: 0/3 계획 — 19-01(GHCR 이미지화: compose build→image + CI 프론트 게이트 + arm64 이미지 빌드·GHCR push job) PLAN 작성 완료 · 19-02(Tailscale SSH 배포 job+스모크)·19-03(런북·README·systemd·롤백) 미작성. 결정: GHCR 이미지 빌드 + Tailscale SSH 자동배포(공개 SSH 불필요) · CI 그린 시 자동 · VM=ARM64라 이미지 linux/arm64 필수 · 앱 시크릿 CI 미주입. Core Value 가드: 수집/캐시/event-impact/서빙 0줄
+Status: Planned(19-01) — 미실행. **다음: 19-01 실행(docker-compose.prod.yml image 참조 + ci.yml 3 job). 사전조건(사용자): Tailscale 계정/키·VM 설치는 19-02 실행 전 필요.** 참고: README.md에 사용자 수동 편집 미커밋 상태
+Last activity: 2026-07-13 -- Phase 19 추가 + 19-01 PLAN 작성(GHCR arm64 이미지화 + CI 게이트)
 
 ## Performance Metrics
 
@@ -66,6 +66,7 @@ Last activity: 2026-07-08 -- Phase 18 실행 완료(6 커밋: 계획 + 18-01..05
 - Phase 17.1 inserted after Phase 17: 데모 최종 폴리시: 큐레이션 갱신·대시보드 재구성 (배포 앞) (URGENT)
 - Phase 17.2 inserted after Phase 17.1: 대시보드 뉴스 패널 (로아 공식 이벤트·공지, 배포 앞) — 설계 스펙 docs/superpowers/specs/2026-07-06-dashboard-news-panel-design.md (쿠폰은 이후 관리자 수동 입력)
 - Phase 17.4 inserted after Phase 17.3: 타임라인 gap 백필 (일별 Stats) — 서버 off 수집 공백을 일별 평균가로 백필. discuss 완료: 소스 2종(리스트 YDayAvgPrice 전 품목·무료 going-forward + 상세 Stats 재료 14일 소급), 백필 연속라인+실측 표식, 기동+일1회, 항상 표시. 각인서도 거래 활발(초기 "거래 없음" 결론 정정). findings/CONTEXT 17.4-* (URGENT)
+- Phase 19 added (v1.4 CI/CD 자동화, 2026-07-13): 자동 CI/CD 파이프라인 — Phase 18에서 v2로 미룬 CD 실현. 결정 확정(GHCR 이미지 빌드 + Tailscale SSH 자동배포 · CI 그린 시 자동). 분할 19-01(GHCR 이미지화)·19-02(배포 job)·19-03(운영 문서). slug 정정: gsd-sdk가 `ci-cd`로 truncate→dir `19-cicd-pipeline`으로 리네임
 
 ### Decisions
 
