@@ -1,6 +1,7 @@
 package com.lostark.tracker.collect;
 
 import com.lostark.tracker.domain.TrackedItem;
+import com.lostark.tracker.repository.CollectionRunRepository;
 import com.lostark.tracker.repository.GameEventRepository;
 import com.lostark.tracker.repository.PriceSnapshotRepository;
 import com.lostark.tracker.repository.TrackedItemRepository;
@@ -12,6 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -44,7 +48,13 @@ class WatchlistSeederIT extends PostgresRedisContainers {
     @Autowired
     GameEventRepository gameEventRepository;
     @Autowired
-    SyntheticDemoData syntheticDemoData;
+    CollectionRunRepository collectionRunRepository;
+
+    // Constructed per-test in clean() with a FIXED clock so seed()'s 10-minute-grid timestamps are
+    // deterministic. With a wall-clock now(), the first seed() (25k inserts, tens of seconds) and the
+    // second could straddle a 10-min grid boundary → different timestamps → broken idempotency (flaky).
+    // Prod calls seed() once at boot, so pinning the clock is a test-only seam, not a product change.
+    private SyntheticDemoData syntheticDemoData;
 
     private WatchlistSeeder seeder;
 
@@ -55,6 +65,11 @@ class WatchlistSeederIT extends PostgresRedisContainers {
         trackedItemRepository.deleteAll();
         gameEventRepository.deleteAll();
         seeder = new WatchlistSeeder(trackedItemRepository);
+        // Fixed instant (off the 10-min grid → floors to 12:00) shared by every seed() call in a test,
+        // so a second seed() is a true no-op regardless of wall-clock time.
+        syntheticDemoData = new SyntheticDemoData(trackedItemRepository, priceSnapshotRepository,
+                gameEventRepository, collectionRunRepository,
+                Clock.fixed(Instant.parse("2026-07-01T12:05:00Z"), ZoneOffset.UTC));
     }
 
     @Test
