@@ -9,6 +9,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    # CI(GitHub Actions)가 이 이미지를 GHCR에 push한다. VM은 `IMAGE_TAG=sha-xxx ... pull && up -d`로
+    # 완성 이미지만 받아 실행(4GB ARM에서 빌드 안 함). build: 는 로컬 폴백. IMAGE_TAG 미설정 시 latest.
+    image: ghcr.io/jongyeon2/lostark-app:${IMAGE_TAG:-latest}
     environment:
       SPRING_PROFILES_ACTIVE: prod
       POSTGRES_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
@@ -61,6 +64,8 @@ services:
     build:
       context: frontend
       dockerfile: Dockerfile
+    # web(프론트+Caddy) 이미지도 CI가 GHCR에 push, VM은 pull. build: 는 로컬 폴백.
+    image: ghcr.io/jongyeon2/lostark-web:${IMAGE_TAG:-latest}
     ports:
       - "80:80"
       - "443:443"
