@@ -24,11 +24,18 @@
 	}
 
 	# 보안 헤더
+	# CSP는 라이브 실자산 대조로 검증(quick 260713-e1o): 진입 script/stylesheet/폰트는 self 번들,
+	# Recharts 런타임 inline style 때문에 style-src에 'unsafe-inline' 필수, 이미지는 self+로스트아크 CDN,
+	# API는 same-origin(connect 'self'). unsafe-eval은 미포함 — 번들의 eval은 라이브러리 일회성
+	# 기능 프로브(무해)이고 막아도 차트/Select 정상 동작 확인.
 	header {
 		Strict-Transport-Security "max-age=31536000; includeSubDomains"
 		X-Content-Type-Options "nosniff"
 		X-Frame-Options "DENY"
 		Referrer-Policy "strict-origin-when-cross-origin"
+		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://cdn-lostark.game.onstove.com; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+		Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()"
+		Cross-Origin-Opener-Policy "same-origin"
 		-Server
 	}
 }
