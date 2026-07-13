@@ -4,8 +4,8 @@ milestone: v1.4
 milestone_name: CI/CD 자동화
 status: "v1.4 CI/CD 자동화 진행 — 19-01(GHCR 이미지화·CI 게이트) 실행 완료(compose image 참조 + ci.yml 3-job, actionlint 통과, 940901b·97d44b6). 실 이미지 push는 다음 main push 때 최초 발생. 다음: 19-02(Tailscale SSH 배포) — 사용자 사전조치 필요"
 stopped_at: 19-01 실행 완료 — 19-02/03 PLAN 미작성(19-02는 Tailscale·VM 사전조치 필요)
-last_updated: "2026-07-13T04:20:00.000Z"
-last_activity: 2026-07-13 -- 19-01 실행 완료: docker-compose image 참조 + ci.yml 3-job(프론트 게이트 + GHCR arm64 push)
+last_updated: "2026-07-13T07:35:00.000Z"
+last_activity: 2026-07-13 -- Quick 260713-mur: CI backend flaky(WatchlistSeederIT 시점경계) 수정 — 테스트 고정 Clock(a0ed5be)
 progress:
   total_phases: 8
   completed_phases: 7
@@ -96,6 +96,7 @@ None (2026-06-30: `.env` `LOSTARK_API_KEY` 무효(401) 이슈는 키 재발급·
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260713-mur | WatchlistSeederIT 시점 경계 flaky 수정 — SyntheticDemoData.seed()가 벽시계 now()로 gridNow 재계산, 첫 seed(~25k인서트 수십초)와 둘째가 10분 경계 넘으면 멱등성 깨짐. 테스트에서 Clock.fixed(UTC)로 수동 생성해 결정적 통과. prod 0줄, 로컬 그린 | 2026-07-13 | a0ed5be | [260713-mur-watchlistseederit-flaky-clock](./quick/260713-mur-watchlistseederit-flaky-clock/) |
 | 260713-h3s | README 클라이언트 친화 리라이트 v2 — glz 위에 2층 구조 확립(가시 ~80줄 + <details> 접힌 깊이, 375→206줄). 라이브 링크·타임라인 딥링크·배포 사이트 실제 스크린샷 3장 교체(impact 빈 상태=insufficient_data 정직 캡션), 스택 3중복→표 1곳, API 데모 4→1+표. 코드 0줄(문서+이미지) | 2026-07-13 | 3e996b2 | [260713-h3s-readme-client-rewrite](./quick/260713-h3s-readme-client-rewrite/) |
 | 260713-glz | README 리라이트 — 상단 히어로/소개 논문체→평이한 '무엇을·왜'(리크루터 20초 이해), 신규 '어떻게 만들었나(AI 협업)' 섹션(Claude Code+GSD 명시하되 설계결정 주도권·검증게이트·설명가능성 프레이밍, '바이브코딩' 금지), 중복 정리(상관≠인과 3→1·기술스택 2블록→1·seed/dev 압축), stale 사실 조정. 하단 깊이 보존. 문서만 | 2026-07-13 | dc4d7b4 | [260713-glz-readme-rewrite](./quick/260713-glz-readme-rewrite/) |
 | 260713-g9d | 배포 런북(oracle-vm-runbook) 하드닝 반영 — §4 SSH /32 제한 강화(유동 IP 주의·키 전용 인증), §8에 배포된 보안 헤더 7종 목록(CSP·Permissions-Policy·COOP)+curl 검증+CSP 근거(unsafe-eval 미포함·COEP 제외) 추가. 문서만, 코드 0줄 | 2026-07-13 | 0e783ad | [260713-g9d-runbook-post-deploy-hardening](./quick/260713-g9d-runbook-post-deploy-hardening/) |
