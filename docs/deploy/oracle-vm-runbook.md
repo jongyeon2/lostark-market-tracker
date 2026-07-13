@@ -74,6 +74,10 @@ OCI 콘솔 → 인스턴스의 VCN → **Security Lists**(또는 NSG) → **Ingr
 | `0.0.0.0/0` | TCP | **443** | HTTPS |
 | `<내 IP>/32` | TCP | **22** | SSH (전체 공개 금지 — 본인 IP로 제한) |
 
+> **SSH 하드닝(적용됨)**: 22번은 `0.0.0.0/0`이 아니라 **본인 공인 IP `/32`로만** 개방한다(`curl -s ifconfig.me`로 확인). 심층 방어로 VM의 `/etc/ssh/sshd_config`에서 `PasswordAuthentication no`(키 전용 로그인)를 확인한다.
+>
+> ⚠️ **유동 IP 주의**: 가정용 회선은 공인 IP가 바뀔 수 있다. IP 변경으로 SSH가 막히면 이 Ingress 규칙의 Source를 새 IP로 다시 수정한다. IP가 자주 바뀌어 번거로우면 22를 열어두되 **키 전용 인증 + `fail2ban`** 으로 대체 방어한다.
+
 ### (b) VM 내부 iptables
 
 Oracle Ubuntu 이미지는 기본 iptables가 80/443을 **차단**한다. 직접 열고 영속화:
@@ -146,6 +150,8 @@ systemctl status lostark
 - [ ] 대시보드 / 타임라인 / 이벤트영향 **3화면 렌더**
 - [ ] `/timeline` 같은 딥링크 **새로고침해도 정상**(SPA fallback)
 - [ ] 관리자 콘솔에서 **시크릿 로그인 동작**(강시크릿), 잘못된 시크릿은 401
+- [ ] **보안 응답 헤더 7종** 존재(아래 `curl`) + `Server` 헤더 제거됨
+- [ ] 브라우저 콘솔 **CSP 위반 = 무해한 `eval` 1건뿐**(차트·아이콘·Select 정상 렌더)
 - [ ] 수집 축적 확인:
 
 ```bash
@@ -153,7 +159,34 @@ docker compose -f docker-compose.prod.yml logs app | grep -i collection
 # collection_run SUCCESS / 스냅샷 축적 확인 (첫 tick은 initial-delay 후)
 ```
 
-> 배포 후 **보안 게이트(18-05)** 의 라이브 항목(off-box 포트 스캔·401 등)까지 통과해야 최종 go-live.
+### 보안 헤더 · CSP 검증
+
+`frontend/Caddyfile`의 `header` 블록이 모든 응답에 다음 헤더를 실어야 한다:
+
+| 헤더 | 값(요지) |
+|------|----------|
+| `Strict-Transport-Security` | `max-age=31536000; includeSubDomains` |
+| `X-Content-Type-Options` | `nosniff` |
+| `X-Frame-Options` | `DENY` |
+| `Referrer-Policy` | `strict-origin-when-cross-origin` |
+| `Content-Security-Policy` | `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://cdn-lostark.game.onstove.com; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'` |
+| `Permissions-Policy` | `geolocation=(), microphone=(), camera=(), payment=() …` (미사용 기능 차단) |
+| `Cross-Origin-Opener-Policy` | `same-origin` |
+| ~~`Server`~~ | **제거**(`-Server`) |
+
+```bash
+# 헤더 존재 확인 (7종 + Server 없음)
+curl -sI https://<도메인> | grep -iE 'content-security-policy|permissions-policy|cross-origin-opener|strict-transport|x-content-type|x-frame|referrer-policy'
+curl -sI https://<도메인> | grep -i '^server:' || echo "server 헤더 없음(OK)"
+```
+
+**CSP 근거(실측 검증됨)** — 이 정책은 라이브 자산과 대조해 도출했다:
+- `style-src`에 `'unsafe-inline'` 은 **필수**다. Recharts가 차트 색·범례를 런타임 inline `style`로 주입하므로 빼면 차트가 깨진다.
+- `img-src`에 `cdn-lostark.game.onstove.com` 은 **필수**다(아이템 아이콘 atlas + 배너 CDN).
+- `script-src`에 `'unsafe-eval'` 은 **넣지 않는다**. 번들의 유일한 `eval`은 라이브러리 일회성 기능 프로브(무해)로, 차단해도 대시보드·타임라인·이벤트영향·Radix Select가 전부 정상 동작함을 확인했다. 그래서 프로덕션 콘솔에 `Refused to evaluate … 'unsafe-eval'` 경고 **1줄**이 남는데, 이는 **기능 영향 0**이며 하드닝이 작동한다는 신호다(넣으면 XSS 방어가 약해지므로 유지).
+- `COEP require-corp` 는 **의도적으로 제외**한다(onstove CDN 이미지가 CORP 헤더를 안 줘서 넣으면 아이콘이 깨진다).
+
+> 배포 후 **보안 게이트(18-05)** 의 라이브 항목(off-box 포트 스캔·401 등)과 **게이트 밖 하드닝**(위 CSP/보안 헤더 · SSH `/32` 제한)까지 통과해야 최종 go-live. (이 프로젝트는 quick `260713-e1o`에서 CSP·헤더를, §4 SSH 제한을 라이브에 적용·검증 완료.)
 
 ## 9. 운영
 
