@@ -107,3 +107,70 @@ jobs:
             ghcr.io/jongyeon2/lostark-web:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  # main push가 이미지까지 통과하면 VM에 배포(pull → 재기동 → 스모크). Tailscale로 프라이빗
+  # tailnet에 접속해 SSH하므로 공개 SSH(22) 개방이 필요 없다. 패키지는 private 유지 —
+  # VM이 1회 `docker login ghcr.io`(read:packages PAT)로 pull하므로 CI엔 GHCR 자격증명을 넣지 않는다.
+  # 사전조치(Tailscale·secrets·VM docker login)가 준비되면 저장소 변수 DEPLOY_ENABLED=true 로 활성화한다
+  # — 그전에는 이 job이 skip 되어 CI 그린을 유지한다(미완 커밋이 파이프라인을 붉히지 않음).
+  deploy:
+    if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.DEPLOY_ENABLED == 'true' }}
+    needs: [images]
+    runs-on: ubuntu-latest
+    environment: production
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Compute image tag
+        id: meta
+        run: echo "tag=sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      # 러너를 프라이빗 tailnet에 임시 노드로 연결(OAuth). 이후 VM의 tailnet 주소로 SSH 가능.
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v3
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+
+      # 시크릿은 shell 인터폴레이션 대신 env: 로 전달(로그 마스킹·인젝션 방지).
+      - name: Prepare SSH key
+        env:
+          SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
+      # 최신 compose를 VM에 복사(VM은 git 불요 — pull 기반 배포).
+      - name: Copy compose to VM
+        env:
+          VM_HOST: ${{ secrets.VM_HOST }}
+          VM_USER: ${{ secrets.VM_USER }}
+        run: |
+          scp -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=accept-new \
+            docker-compose.prod.yml \
+            "$VM_USER@$VM_HOST:/opt/lostark-price-tracker/docker-compose.prod.yml"
+
+      # 이번 커밋 SHA 이미지를 pull하고 재기동(VM 빌드 0). VM의 docker login으로 private pull.
+      - name: Pull image & restart on VM
+        env:
+          VM_HOST: ${{ secrets.VM_HOST }}
+          VM_USER: ${{ secrets.VM_USER }}
+          TAG: ${{ steps.meta.outputs.tag }}
+        run: |
+          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=accept-new "$VM_USER@$VM_HOST" \
+            "cd /opt/lostark-price-tracker && \
+             IMAGE_TAG='$TAG' docker compose -f docker-compose.prod.yml --env-file .env.prod pull && \
+             IMAGE_TAG='$TAG' docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --remove-orphans"
+
+      # 공개 HTTPS로 실제 서비스 헬스 확인(앱 재기동 대비 retry). 실패 시 job 실패(loud).
+      - name: Smoke test (public HTTPS)
+        run: |
+          curl -fsS --retry 12 --retry-delay 5 --retry-all-errors --retry-connrefused \
+            https://lostark-tracker.duckdns.org/actuator/health | grep -q '"status":"UP"'
+          curl -fsS --retry 6 --retry-delay 5 --retry-all-errors \
+            https://lostark-tracker.duckdns.org/api/health/collection > /dev/null
