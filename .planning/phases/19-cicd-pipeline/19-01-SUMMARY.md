@@ -30,9 +30,16 @@ CI를 CD-준비 파이프라인으로 확장했다. 앱 로직(수집/캐시/eve
 - `.github/workflows/ci.yml` → **actionlint(공식 린터) 통과**(경고 0) + 구조 검증(3 job·`needs` 게이트·arm64 2·`sha`+`latest` 태그·프론트 게이트·`GITHUB_TOKEN`만·앱 시크릿 참조 0).
 - 수집/서빙 로직 diff 0줄.
 
+## 라이브 검증 (2026-07-13)
+
+첫 `main` push(run 29232382584)에서 파이프라인 전체 그린 — backend·frontend 게이트 통과 후 `images` job이 **네이티브 arm64**로 빌드해 GHCR에 push 확인:
+- `ghcr.io/jongyeon2/lostark-app` → `linux/arm64`, 태그 `sha-3764cdf`+`latest`, digest `sha256:655dd58…`
+- `ghcr.io/jongyeon2/lostark-web` → 동일 job에서 push
+- (경고) docker/* 액션이 Node 20 deprecation 경고 — 실패 아님, 향후 액션 버전 업으로 해소.
+
 ## 아직 안 된 것 / 다음
 
-- **실 이미지 push는 다음 `main` push 때 최초 발생** — 그때 Actions에서 arm64 이미지 2개가 GHCR에 올라가는지 확인 필요.
+- **GHCR 패키지 가시성**: 최초 push로 생성된 `lostark-app`·`lostark-web`는 기본 **private** → 19-02에서 VM이 pull하려면 **public 전환**(권장) 또는 VM에 read PAT로 `docker login` 필요.
 - **1회성(사용자/19-02)**: 첫 push 후 GHCR 패키지 2개(`lostark-app`·`lostark-web`)를 **public으로 전환**(VM에서 `docker login` 불필요). arm 미스매치는 배포 대표 실패 원인 → 19-02 스모크 전 `docker manifest inspect`로 arch 확인 권장.
 - **19-02**(배포 job, Tailscale SSH pull+재기동+스모크)는 **사용자 사전 조치 필요**: Tailscale 계정·키 발급 + VM 설치. **19-03**(런북·README·systemd `--build` 제거·롤백·배지).
 - `ubuntu-24.04-arm` 러너 미가용 시 `ubuntu-latest` + `docker/setup-qemu-action` + `platforms: linux/arm64` 폴백(빌드 느려짐) — 워크플로우 주석에 명시.

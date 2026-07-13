@@ -2,7 +2,7 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: CI/CD 자동화
-status: "v1.4 CI/CD 자동화 진행 — 19-01(GHCR 이미지화·CI 게이트) 실행 완료(compose image 참조 + ci.yml 3-job, actionlint 통과, 940901b·97d44b6). 실 이미지 push는 다음 main push 때 최초 발생. 다음: 19-02(Tailscale SSH 배포) — 사용자 사전조치 필요"
+status: "v1.4 CI/CD 자동화 진행 — 19-01(GHCR 이미지화·CI 게이트) 실행+라이브 검증 완료. 첫 main push(run 29232382584) 파이프라인 전체 그린, images job이 arm64 이미지 2개를 GHCR에 push 확인(lostark-app/web:sha-3764cdf+latest, linux/arm64). 별개로 CI backend flaky(WatchlistSeederIT 시점경계) 수정(a0ed5be). 다음: GHCR 패키지 public 전환 + 19-02(Tailscale SSH 배포, 사용자 사전조치)"
 stopped_at: 19-01 실행 완료 — 19-02/03 PLAN 미작성(19-02는 Tailscale·VM 사전조치 필요)
 last_updated: "2026-07-13T07:35:00.000Z"
 last_activity: 2026-07-13 -- Quick 260713-mur: CI backend flaky(WatchlistSeederIT 시점경계) 수정 — 테스트 고정 Clock(a0ed5be)
