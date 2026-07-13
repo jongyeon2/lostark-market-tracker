@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: CI/CD 자동화
-status: "v1.3 라이브 배포 완료(https://lostark-tracker.duckdns.org, 보안 게이트 6/6 + 하드닝 CSP·SSH/32). 현재 v1.4 CI/CD 자동화 착수 — Phase 19 로드맵 추가 + 19-01(GHCR 이미지화·CI 게이트) PLAN 작성. 아직 미실행(계획 단계)"
-stopped_at: Phase 19 추가 + 19-01 PLAN 작성 완료(미실행) — 19-01 실행 대기
-last_updated: "2026-07-13T04:05:00.000Z"
-last_activity: 2026-07-13 -- Phase 19(v1.4 CI/CD) 로드맵 추가 + 19-01 PLAN 작성(GHCR arm64 이미지화 + CI 프론트 게이트)
+status: "v1.4 CI/CD 자동화 진행 — 19-01(GHCR 이미지화·CI 게이트) 실행 완료(compose image 참조 + ci.yml 3-job, actionlint 통과, 940901b·97d44b6). 실 이미지 push는 다음 main push 때 최초 발생. 다음: 19-02(Tailscale SSH 배포) — 사용자 사전조치 필요"
+stopped_at: 19-01 실행 완료 — 19-02/03 PLAN 미작성(19-02는 Tailscale·VM 사전조치 필요)
+last_updated: "2026-07-13T04:20:00.000Z"
+last_activity: 2026-07-13 -- 19-01 실행 완료: docker-compose image 참조 + ci.yml 3-job(프론트 게이트 + GHCR arm64 push)
 progress:
   total_phases: 8
   completed_phases: 7
