@@ -130,7 +130,7 @@ jobs:
 
       # 러너를 프라이빗 tailnet에 임시 노드로 연결(OAuth). 이후 VM의 tailnet 주소로 SSH 가능.
       - name: Connect to Tailscale
-        uses: tailscale/github-action@v3
+        uses: tailscale/github-action@v4
         with:
           oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
