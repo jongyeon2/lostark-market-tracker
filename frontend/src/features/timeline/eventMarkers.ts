@@ -6,11 +6,18 @@ import type { EventType } from '@/lib/schemas'
 
 // Keyed by the EventType zod-derived enum so dropping/renaming a member is a compile error —
 // the color map and the schema stay in lockstep.
+// 색은 dataviz 검증기(scripts/validate_palette.js) 통과 팔레트 — 기존 4색과 합친 7색이 light 모드
+// CVD/대비 전 항목 PASS(worst adjacent ΔE 15.1). 앱은 다크모드 미구현이라 light만 필요. 마커는
+// 대시 수직선 + 범례 한글 라벨로 색-only 의존이 아니다(2차 인코딩).
 export const EVENT_MARKERS: Record<EventType, { color: string; koLabel: string }> = {
   LOA_ON: { color: '#7C3AED', koLabel: '로아ON' },
   MAJOR_UPDATE: { color: '#EA580C', koLabel: '대규모 업데이트' },
   SEASON_END: { color: '#DB2777', koLabel: '시즌 종료' },
   BALANCE_PATCH: { color: '#0D9488', koLabel: '밸런스 패치' },
+  // v1.5(EVT-01) additive
+  NEW_CLASS: { color: '#3B82F6', koLabel: '신규 캐릭터 출시' },
+  NEW_RAID: { color: '#DC2626', koLabel: '신규 레이드 출시' },
+  GENERAL_PATCH: { color: '#16A34A', koLabel: '일반 패치' },
 }
 
 // Dashed vertical-line style for the ReferenceLine markers (09-UI-SPEC): form-distinct from

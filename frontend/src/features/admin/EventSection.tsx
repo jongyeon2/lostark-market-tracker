@@ -40,8 +40,20 @@ const EVENT_TYPE_LABELS: Record<EventType, string> = {
   MAJOR_UPDATE: '대규모 업데이트',
   SEASON_END: '시즌 종료',
   BALANCE_PATCH: '밸런스 패치',
+  // v1.5(EVT-01) additive
+  NEW_CLASS: '신규 캐릭터 출시',
+  NEW_RAID: '신규 레이드 출시',
+  GENERAL_PATCH: '일반 패치',
 }
-const EVENT_TYPE_ORDER: EventType[] = ['LOA_ON', 'MAJOR_UPDATE', 'SEASON_END', 'BALANCE_PATCH']
+const EVENT_TYPE_ORDER: EventType[] = [
+  'LOA_ON',
+  'MAJOR_UPDATE',
+  'SEASON_END',
+  'BALANCE_PATCH',
+  'NEW_CLASS',
+  'NEW_RAID',
+  'GENERAL_PATCH',
+]
 
 const MUTATION_FAIL = '요청을 처리하지 못했어요. 잠시 후 다시 시도해 주세요.'
 const CONNECTION_ERROR =

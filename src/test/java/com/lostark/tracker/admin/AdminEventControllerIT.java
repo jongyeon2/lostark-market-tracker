@@ -83,6 +83,23 @@ class AdminEventControllerIT extends PostgresRedisContainers {
     }
 
     @Test
+    void createNewClassEventPersistsAdditiveEnumValue() {
+        // v1.5(EVT-01): additive event types(NEW_CLASS/NEW_RAID/GENERAL_PATCH)가 바인딩·영속을 왕복한다.
+        // 차원술사 출시발 각인서 시세 변동을 NEW_CLASS로 상관 기록하는 시나리오.
+        GameEventRequest request = new GameEventRequest(EventType.NEW_CLASS, "차원술사 출시", JAN, "신규 직업");
+
+        ResponseEntity<GameEventResponse> created = rest.exchange(
+                "/api/admin/events", HttpMethod.POST, AdminAuth.entity(request, adminSecret), GameEventResponse.class);
+
+        assertThat(created.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(created.getBody()).isNotNull();
+        assertThat(created.getBody().eventType()).isEqualTo(EventType.NEW_CLASS);
+
+        GameEvent persisted = gameEventRepository.findById(created.getBody().id()).orElseThrow();
+        assertThat(persisted.getEventType()).isEqualTo(EventType.NEW_CLASS);
+    }
+
+    @Test
     void listReturnsEventsOrderedByOccurredAtDesc() {
         create(new GameEventRequest(EventType.LOA_ON, "1월", JAN, null));
         create(new GameEventRequest(EventType.SEASON_END, "3월", MAR, null));

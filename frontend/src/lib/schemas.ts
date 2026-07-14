@@ -12,7 +12,16 @@ import { z } from 'zod'
 */
 
 // EventType enum — shared by timeline events and event-impact items.
-export const eventTypeSchema = z.enum(['LOA_ON', 'MAJOR_UPDATE', 'SEASON_END', 'BALANCE_PATCH'])
+export const eventTypeSchema = z.enum([
+  'LOA_ON',
+  'MAJOR_UPDATE',
+  'SEASON_END',
+  'BALANCE_PATCH',
+  // v1.5(EVT-01) additive — 백엔드 EventType과 1:1
+  'NEW_CLASS',
+  'NEW_RAID',
+  'GENERAL_PATCH',
+])
 export type EventType = z.infer<typeof eventTypeSchema>
 
 // RoleGroup enum — the item's role bucket, shared by all 4 read DTOs' enrichment fields.
