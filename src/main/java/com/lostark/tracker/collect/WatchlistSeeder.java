@@ -27,8 +27,9 @@ import java.util.List;
  * a real, spike-verified {@code Id} and {@code Icon} — no placeholders. The 18 relic engraving recipes
  * share {@code use_9_25.png} (grade-single glyph, not per-engraving), so Phase 14 always labels them by
  * name (D-06); the 31 materials carry distinct icons except the 재련보조 업화 group (야금술/재봉술 [15-18]·
- * [19-20] share use_12_218/219 — labeled by name). NOTE(domain): 업화 계열은 일반 재련 성공률 보조 재료이고,
- * 진짜 상급 재련 추가 재료는 장인의 야금술/재봉술 1~4단계다(quick-260714 교정).
+ * [19-20] share use_12_218/219 — labeled by name). NOTE(domain, quick-260714): item_group=상급재련은 상급 재련
+ * 전용 재료(장인의 야금술/재봉술 1~4단계)만; 업화 계열은 일반 재련 성공률 보조, 숨결은 상급·일반 겸용이라 둘 다
+ * item_group=재련보조로 분류한다.
  *
  * <p>This seeder writes only public metadata (Id / name / CategoryCode / iconUrl / group) — never a
  * key, account identifier, or price (SEED-04).
@@ -54,7 +55,7 @@ public class WatchlistSeeder implements ApplicationRunner {
     }
 
     // Spike-verified curation of 49 (12-/17.1-/21-/22b-/quick-260714-SPIKE-FINDINGS): 31 materials
-    // (융화 2 + 재련기본 9 + 상급재련 10 + 재련보조 4 + 아크그리드젬 6) + 11 dealer + 7 supporter engravings.
+    // (융화 2 + 재련기본 9 + 상급재련 8 + 재련보조 6 + 아크그리드젬 6) + 11 dealer + 7 supporter engravings.
     // Current T4 meta — high-volatility, high-value 스펙업 picks across all 3 role groups — judgment, not a dump.
     private static final List<SeedItem> WATCHLIST = List.of(
             // 재료 4 (role_group=MATERIAL, category=50010) — distinct icons. 융화재료 2 (아비도스) +
@@ -73,11 +74,9 @@ public class WatchlistSeeder implements ApplicationRunner {
             new SeedItem("66130141", "운명의 파편 주머니(소)", "50010", ICON_BASE + "use_12_91.png", "재련재료", "MATERIAL"),
             new SeedItem("66130142", "운명의 파편 주머니(중)", "50010", ICON_BASE + "use_12_92.png", "재련재료", "MATERIAL"),
             new SeedItem("66130143", "운명의 파편 주머니(대)", "50010", ICON_BASE + "use_12_93.png", "재련재료", "MATERIAL"),
-            // 상급 재련 10 (category=50020, item_group=상급재련) — 숨결 2 + 장인의 야금술/재봉술 1~4단계 8.
-            //   장인 책이 진짜 상급 재련 추가 재료다(무기=야금술, 방어구=재봉술; 단계별 등급 영웅→전설→유물→고대).
-            //   3·4단계 Id·등급은 quick-260714 스파이크(captureRefineMasterBooks, DESC/ASC)로 실측·잠금. 아이콘 전부 distinct.
-            new SeedItem("66111131", "용암의 숨결", "50020", ICON_BASE + "use_12_171.png", "상급재련", "MATERIAL"),
-            new SeedItem("66111132", "빙하의 숨결", "50020", ICON_BASE + "use_12_172.png", "상급재련", "MATERIAL"),
+            // 상급 재련 8 (category=50020, item_group=상급재련) — 장인의 야금술/재봉술 1~4단계. 상급 재련 전용 추가 재료.
+            //   무기=야금술, 방어구=재봉술; 단계별 등급 영웅→전설→유물→고대. 3·4단계 Id·등급은 quick-260714
+            //   스파이크(captureRefineMasterBooks, DESC/ASC)로 실측·잠금. 아이콘 전부 distinct.
             new SeedItem("66112711", "장인의 야금술 : 1단계", "50020", ICON_BASE + "use_12_242.png", "상급재련", "MATERIAL"),
             new SeedItem("66112713", "장인의 야금술 : 2단계", "50020", ICON_BASE + "use_12_244.png", "상급재련", "MATERIAL"),
             new SeedItem("66112715", "장인의 야금술 : 3단계", "50020", ICON_BASE + "use_13_221.png", "상급재련", "MATERIAL"),
@@ -86,8 +85,11 @@ public class WatchlistSeeder implements ApplicationRunner {
             new SeedItem("66112714", "장인의 재봉술 : 2단계", "50020", ICON_BASE + "use_12_245.png", "상급재련", "MATERIAL"),
             new SeedItem("66112716", "장인의 재봉술 : 3단계", "50020", ICON_BASE + "use_13_222.png", "상급재련", "MATERIAL"),
             new SeedItem("66112718", "장인의 재봉술 : 4단계", "50020", ICON_BASE + "use_13_224.png", "상급재련", "MATERIAL"),
-            // 재련 보조 4 (category=50020, item_group=재련보조) — 일반 재련 성공률 보조 재료(무기=야금술, 방어구=재봉술).
-            //   "업화 [15-18]·[19-20]"는 상급 재련이 아니라 일반 강화용이다(도메인 교정, quick-260714). 아이콘은 레벨구간 공유(라벨로 구분).
+            // 재련 보조 6 (category=50020, item_group=재련보조) — 재련에 넣는 보조 재료. 무기=야금술, 방어구=재봉술.
+            //   숨결 2(용암/빙하)는 상급 재련·일반 강화 겸용이라 상급재련 전용 아님 → 재련보조로 분류(도메인 교정, quick-260714).
+            //   업화 [15-18]·[19-20] 4는 일반 재련 성공률 보조 재료(아이콘은 레벨구간 공유 use_12_218/219 — 라벨로 구분).
+            new SeedItem("66111131", "용암의 숨결", "50020", ICON_BASE + "use_12_171.png", "재련보조", "MATERIAL"),
+            new SeedItem("66111132", "빙하의 숨결", "50020", ICON_BASE + "use_12_172.png", "재련보조", "MATERIAL"),
             new SeedItem("66112551", "야금술 : 업화 [15-18]", "50020", ICON_BASE + "use_12_218.png", "재련보조", "MATERIAL"),
             new SeedItem("66112552", "재봉술 : 업화 [15-18]", "50020", ICON_BASE + "use_12_219.png", "재련보조", "MATERIAL"),
             new SeedItem("66112553", "야금술 : 업화 [19-20]", "50020", ICON_BASE + "use_12_218.png", "재련보조", "MATERIAL"),

@@ -145,6 +145,15 @@ class WatchlistSeederIT extends PostgresRedisContainers {
         assertThat(refineAid.getItemGroup()).isEqualTo("재련보조");
         assertThat(refineAid.getRoleGroup()).isEqualTo("MATERIAL");
         assertThat(refineAid.getCategory()).isEqualTo("50020");
+
+        // Sample 숨결 (quick-260714 교정): 용암의 숨결은 상급 재련·일반 강화 겸용 → 상급재련 전용 아님 → item_group=재련보조.
+        TrackedItem breath = byId.get("66111131");
+        assertThat(breath).isNotNull();
+        assertThat(breath.getDisplayName()).isEqualTo("용암의 숨결");
+        assertThat(breath.getIconUrl()).isEqualTo(ICON_BASE + "use_12_171.png");
+        assertThat(breath.getItemGroup()).isEqualTo("재련보조");
+        assertThat(breath.getRoleGroup()).isEqualTo("MATERIAL");
+        assertThat(breath.getCategory()).isEqualTo("50020");
     }
 
     @Test
