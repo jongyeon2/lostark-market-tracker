@@ -7,7 +7,7 @@
 - ✅ **v1.2 Item Visual/Data Enrichment** — Phases 12–14 (shipped 2026-06-30) — [archive](milestones/v1.2-ROADMAP.md)
 - ✅ **v1.3 관리자 콘솔 + 실데이터 라이브 배포** — Phases 15–18 (+17.1~17.4 삽입, 라이브 배포 완료 2026-07-13)
 - ✅ **v1.4 CI/CD 자동화** — Phase 19 (shipped 2026-07-14 — 첫 실배포 run #30 `916bd3a`)
-- 🚀 **v1.5 시세 범위 확장 + UX** — Phases 20–24 (진행 중, 착수 2026-07-14)
+- ✅ **v1.5 시세 범위 확장 + UX** — Phases 20–23 완료 (2026-07-14). Phase 24(경매장 보석)=v1.6 후보
 
 ## Phases
 
@@ -197,7 +197,7 @@ Plans:
 
 **Plans**: 3/3 ✅ (19-01·19-02·19-03 실행 완료 · 라이브 배포 활성·검증)
 
-### 🚀 v1.5 시세 범위 확장 + UX (Phases 20–24) — IN PROGRESS (착수 2026-07-14)
+### ✅ v1.5 시세 범위 확장 + UX (Phases 20–23) — COMPLETE (2026-07-14). Phase 24(경매장)=v1.6 후보
 
 **Goal:** 사용자가 실제로 쓰는 **"스펙업 재료" 중심으로 시세 커버리지를 넓히고**, 대시보드를 maplanet식 **3열(좌 카테고리 / 중앙 물품 / 우 소식)**로 재구성하며, 이벤트 상관 분석 표현력을 **이벤트 카테고리 확장**으로 높인다. 설계: `docs/superpowers/specs/2026-07-14-v1.5-market-scope-ux-design.md`.
 
@@ -207,7 +207,7 @@ Plans:
 - [x] **Phase 20** 이벤트 카테고리 +3 (EVT-01) — `NEW_CLASS`/`NEW_RAID`/`GENERAL_PATCH` additive(enum+zod+마커색+폼). DB 마이그레이션 불필요. 차원술사(7/8) 상관 기록. **완료 2026-07-14** (dataviz 검증 색, 백엔드 IT+프론트 build 그린)
 - [x] **Phase 21** 재련 재료 스파이크 Stage 0 (MKT-01) — **완료 2026-07-14**(`21-SPIKE-FINDINGS.md`): 거래소 카탈로그 실측 + **큐레이션 비준(19종 잠금)**. 50010 기본(파괴/수호석 base+결정·돌파석 둘 다·파편 소중대) · 50020 추가(숨결·상급재련 업화[15-18]) · **230000 아크그리드젬=거래소, 영웅 6종**. 아크그리드젬=경매장 아님 발견.
 - [x] **Phase 22** 재련 재료 추적 확대 (MKT-02) — **완료 2026-07-14**: 재련기본 7·상급재련·아크그리드젬 6 WatchlistSeeder 편입. 아크그리드젬 포함(거래소). **수집/캐시/event-impact 로직 0줄**, SyntheticDemoData 무변경(동적 로드). `./gradlew build` 그린. 22b: [19-20] DESC 스파이크로 실측·편입. **quick-260714 교정**: 업화 계열(일반 재련 보조)·숨결(상급·일반 겸용)을 `재련보조`로 재분류하고, 진짜 상급재련 전용 재료=장인의 야금술/재봉술 1~4단계 8종 신규 편입 → **워치리스트 22→49, MATERIAL 31, item_group 6종**(상급재련=장인 책 8, 재련보조=숨결 2+업화 4; WatchlistSeederIT 49종 증명).
-- [ ] **Phase 23** 대시보드 3열 카테고리 레이아웃 (UX-01, UX-02) — 좌 카테고리 필터/중앙 물품/우 소식, 모바일 상단 칩. **UI-SPEC 승인 ✓**(`23-UI-SPEC.md`, 2단계 그룹 nav·필터·모바일 칩, 기존 토큰 재사용). 다음: plan→execute.
+- [x] **Phase 23** 대시보드 3열 카테고리 레이아웃 (UX-01, UX-02) — **완료 2026-07-14**: 2열→3열(좌 CategoryNav 2단계 그룹 필터 / 중앙 물품 / 우 소식), 모바일 상단 가로 칩. 신규 `categories.ts`(taxonomy 단일 출처)+`CategoryNav.tsx`(반응형 무상태), `DashboardPage` 3열 grid+필터 상태. ItemCard/NewsPanel 무변경, 기존 디자인 토큰 재사용(신규 0), **Core Value 0줄**. `npm run build` 그린 + 라이브 Playwright QA 통과(데스크톱 3열·필터·모바일 칩·빈 카테고리 숨김). UI-SPEC: `23-UI-SPEC.md`.
 - [ ] **(v1.6 후보) Phase 24** 경매장 통합 (MKT-03) — **보석(gems)만** 현재가 둘러보기(새 AUCTIONS 클라이언트). *(아크그리드젬은 거래소라 Phase 22로 이동 — 스파이크 발견.)* 스코프 경계 진화 → 별도 마일스톤에서 결정.
 
 **Requirements 정의:**
@@ -236,7 +236,7 @@ Plans:
 | 20. 이벤트 카테고리 +3 | v1.5 | 1/1 | Complete | 2026-07-14 |
 | 21. 재련 재료 스파이크 (Stage 0) | v1.5 | 1/1 | Complete — 큐레이션 비준(19종 잠금) | 2026-07-14 |
 | 22. 재련 재료 추적 확대 | v1.5 | 1/1 | Complete — 워치리스트 22→49 (quick-260714 교정) | 2026-07-14 |
-| 23. 대시보드 3열 레이아웃 | v1.5 | 0/1 | UI-SPEC ✓ — plan 대기 | 2026-07-14 |
+| 23. 대시보드 3열 레이아웃 | v1.5 | 1/1 | Complete — 3열+필터+모바일 칩, 라이브 QA 통과 | 2026-07-14 |
 | 24. 경매장 통합(보석·아크그리드젬) | v1.6? | — | Deferred (스코프 경계 진화) | — |
 
 **v1.3 Coverage:** v1.3 requirements 20 total · 매핑 **20/20 ✓** (ADMINUI 6 + CARD 2 + REALDATA 3 + POLISH 5 + DEPLOY 4)
