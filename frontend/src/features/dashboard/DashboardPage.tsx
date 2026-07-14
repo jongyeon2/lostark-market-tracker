@@ -1,73 +1,57 @@
+import { useMemo, useState } from 'react'
+
 import { useItems } from '@/lib/queries'
 import { AsyncBoundary } from '@/components/state/AsyncBoundary'
 import { sortByRole } from '@/features/_shared/roleGroup'
-import type { TrackedItem } from '@/lib/schemas'
 
+import { CategoryNav } from './CategoryNav'
+import { deriveCategories, filterByCategory, firstCategoryId } from './categories'
 import { ItemCard } from './ItemCard'
 import { NewsPanel } from './NewsPanel'
 
 /*
-  DashboardPage — the client dashboard focused on '무엇을 추적 → 지금 얼마'. Collection health is an
-  operator concern and now lives only in the admin console (17.1 D-07), so the dashboard no longer
-  renders it. useItems() is client-sorted by role group (DEALER→SUPPORT→MATERIAL→null)→name via
-  sortByRole (backend stays 0-line), then split into two vertical sections — 각인(DEALER+SUPPORT) →
-  재료(MATERIAL) (D-10). Each card is a full-width horizontal row (D-12). The list wraps its OWN
-  AsyncBoundary (pending/error/0-items); no separate honesty widget is added (D-09 — per-card pending +
-  boundary suffice).
+  DashboardPage — the client dashboard, a maplanet-style 3-column layout (Phase 23, UX-01/UX-02):
+  좌 CategoryNav(카테고리 필터) / 중앙 선택 카테고리 물품 / 우 NewsPanel. useItems() is client-sorted
+  by role via sortByRole (backend stays 0-line); deriveCategories groups the sorted items into
+  non-empty leaves (각인 딜러/서포터 + 재료 5 itemGroup — categories.ts is the single source). Picking a
+  leaf filters the center list; selection is local useState only (A4 — YAGNI, no URL/router state).
 
-  17.2 D-03: a lg 2-column layout fills the space beside the (now narrower) item rows — 좌 물품 / 우
-  로아 이벤트·공지(<NewsPanel/> ≈320px). The content wrapper is max-w-6xl and the former standalone
-  narrow item wrapper is removed (the grid controls width). Mobile (< lg) collapses to a single
-  column: items above, news below. The item grid and the news panel each own an INDEPENDENT
-  AsyncBoundary, so one side failing never blanks the other (D-07). Read-only: no chart, no write UI.
+  The center item list and the news panel each keep their OWN AsyncBoundary so one side failing never
+  blanks the other (D-07, preserved from the 2-column version). ItemCard·NewsPanel are UNCHANGED.
+  Mobile (< lg) collapses to one column in source order: 칩 탭 → 물품 → 소식. Read-only: no chart,
+  no write UI, no polling.
 */
 export function DashboardPage() {
   const { status, data, refetch } = useItems()
 
-  // D-11: sortByRole already orders DEALER→SUPPORT→MATERIAL→null, then name(ko-KR); we reuse it and
-  // split by role group. 각인 = DEALER+SUPPORT (딜러→서포터→이름 order preserved), 재료 = MATERIAL.
-  // isEmpty still reads the ORIGINAL data length so an empty list is judged before splitting.
-  const sorted = data ? sortByRole(data) : []
-  const engravings = sorted.filter((i) => i.roleGroup === 'DEALER' || i.roleGroup === 'SUPPORT')
-  const materials = sorted.filter((i) => i.roleGroup === 'MATERIAL')
+  const sorted = useMemo(() => (data ? sortByRole(data) : []), [data])
+  const categories = useMemo(() => deriveCategories(sorted), [sorted])
+
+  // Local selection; default/fallback = first non-empty leaf. Deriving the EFFECTIVE id each render
+  // (rather than syncing with useEffect) self-heals when a data change removes the picked category —
+  // no stale or empty selection can persist.
+  const [picked, setPicked] = useState<string | null>(null)
+  const selectedId =
+    picked && categories.some((c) => c.id === picked) ? picked : firstCategoryId(categories)
+
+  const visible = selectedId ? filterByCategory(sorted, selectedId) : []
 
   return (
-    <div className="space-y-6">
-      {/* D-03: max-w-6xl content; lg 2-column (좌 물품 minmax(0,1fr) / 우 뉴스 20rem≈320px), single
-          column below lg (items above, news below). The grid (not a standalone narrow wrapper) controls width. */}
-      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        {/* 좌 컬럼 — 기존 물품 AsyncBoundary + 각인 → 재료 섹션 (D-10, 회귀 없이 보존). */}
-        <AsyncBoundary status={status} isEmpty={(data?.length ?? 0) === 0} onRetry={() => refetch()}>
-          <div className="space-y-8">
-            {/* 섹션 순서: 각인 → 재료 (D-10). RoleBadge on each card distinguishes 딜러/서포터 (D-11). */}
-            <ItemSection title="각인" items={engravings} />
-            <ItemSection title="재료" items={materials} />
-          </div>
-        </AsyncBoundary>
+    <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-[11rem_minmax(0,1fr)_20rem]">
+      {/* 좌(lg) / 상단(모바일) — 카테고리 필터. 로딩 중엔 leaf가 없어 자연 축소. */}
+      <CategoryNav categories={categories} selectedId={selectedId} onSelect={setPicked} />
 
-        {/* 우 컬럼 — 로아 이벤트·공지. 물품과 독립 boundary (한쪽 실패가 다른 쪽 안 가림, D-07). */}
-        <NewsPanel />
-      </div>
+      {/* 중앙 — 선택 카테고리 물품. 기존 물품 AsyncBoundary 유지(pending/error/0건 판정은 원본 data 길이). */}
+      <AsyncBoundary status={status} isEmpty={(data?.length ?? 0) === 0} onRetry={() => refetch()}>
+        <div className="space-y-3">
+          {visible.map((item) => (
+            <ItemCard key={item.id} item={item} />
+          ))}
+        </div>
+      </AsyncBoundary>
+
+      {/* 우(lg) / 하단(모바일) — 로아 소식. 물품과 독립 boundary(한쪽 실패가 다른 쪽 안 가림, D-07). */}
+      <NewsPanel />
     </div>
-  )
-}
-
-/*
-  One category section: a lightweight heading (literal '각인'/'재료' — NOT ROLE_LABEL, since 각인 is the
-  DEALER+SUPPORT union, D-11) over a vertical stack of full-width rows. Empty categories render nothing
-  so a not-yet-populated bucket never shows a bare header.
-*/
-function ItemSection({ title, items }: { title: string; items: TrackedItem[] }) {
-  if (items.length === 0) return null
-
-  return (
-    <section className="space-y-3">
-      <h2 className="text-muted-foreground text-sm font-semibold tracking-wide">{title}</h2>
-      <div className="space-y-3">
-        {items.map((item) => (
-          <ItemCard key={item.id} item={item} />
-        ))}
-      </div>
-    </section>
   )
 }
