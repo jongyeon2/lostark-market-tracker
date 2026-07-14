@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: 시세 범위 확장 + UX
-status: "v1.5 진행(3/4) — Phase 20(이벤트 +3)·21(재련재료 스파이크)·22(추적 편입) 완료. Phase 22: 신규 19종(재련기본 7·상급재련 6[업화 15-18·19-20]·아크그리드젬 6) WatchlistSeeder 편입(22→41), item_group=재련재료/상급재련/아크그리드젬, role=MATERIAL(4→23). 수집/캐시/event-impact 로직 0줄, SyntheticDemoData 무변경(동적), ./gradlew build 그린. 22b: 사용자 요청 [19-20] DESC 스파이크로 실측·편입. 다음: Phase 23(대시보드 3열 카테고리 레이아웃) — 좌 카테고리(딜러/서포터/재료, 재료는 item_group 세분 후보)/중앙 물품/우 소식 필터, 모바일 칩. UI-SPEC 선행. v1.4 완료·라이브 검증됨."
-stopped_at: Phase 22 완료(워치리스트 22→41, [19-20] 포함). 다음: Phase 23(대시보드 3열) — UI-SPEC 선행
-last_updated: "2026-07-14T11:30:00.000Z"
-last_activity: 2026-07-14 -- Phase 22 완료: 재련 재료 19종 워치리스트 편입(22→41, 상급재련 [19-20] 포함), build 그린
+status: "v1.5 진행(3/4) — Phase 20(이벤트 +3)·21(재련재료 스파이크)·22(추적 편입) 완료. 워치리스트 **49종**(quick-260714 도메인 교정 반영): 강화재료 2·재련재료 9·상급재련 10(숨결 2+장인 야금술/재봉술 1~4단계 8)·재련보조 4(업화)·아크그리드젬 6·각인서 18. item_group 6종, role=MATERIAL 31/DEALER 11/SUPPORT 7. 수집/캐시/event-impact 로직 0줄, SyntheticDemoData 무변경(동적), ./gradlew build 그린. 교정: 업화 계열은 상급재련이 아닌 일반 재련 보조(→재련보조), 진짜 상급재련=장인 책 1~4단계. 다음: Phase 23(대시보드 3열 카테고리 레이아웃) — 좌 카테고리(딜러/서포터/재료, 재료는 item_group 6종 세분)/중앙 물품/우 소식 필터, 모바일 칩. UI-SPEC 선행. v1.4 완료·라이브 검증됨."
+stopped_at: Phase 22 완료 + quick-260714 교정(워치리스트 22→49, 장인 책 편입·업화 재분류). 다음: Phase 23(대시보드 3열) — UI-SPEC 선행
+last_updated: "2026-07-14T12:10:00.000Z"
+last_activity: 2026-07-14 -- quick-260714: 재련 재료 분류 교정(업화→재련보조) + 상급재련 장인 책 1~4단계 8종 편입(워치리스트 41→49, MATERIAL 31), build 그린
 progress:
   total_phases: 12
   completed_phases: 8
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-07-01 for v1.3 milestone)
 ## Current Position
 
 Milestone: v1.5 시세 범위 확장 + UX (Phases 20–24) — 🚀 진행(3/4: Phase 20·21·22 완료)
-Next: **Phase 23(대시보드 3열 카테고리 레이아웃)** — 좌 카테고리/중앙 물품/우 소식 필터, 모바일 칩. 재료 21종은 item_group(강화재료/재련재료/상급재련/아크그리드젬) 세분 후보. **UI-SPEC 선행**(`/gsd-ui-phase`). Phase 24(경매장)는 보석만(v1.6).
-Status: ✅ Phase 20·21·22 완료. Phase 22: 재련 재료 19종 편입(워치리스트 22→41, MATERIAL 4→23, 상급재련 [15-18]·[19-20]), 수집 로직 0줄, build 그린. 설계: `docs/superpowers/specs/2026-07-14-v1.5-market-scope-ux-design.md`
-Last activity: 2026-07-14 -- Phase 22 완료(재련 재료 추적 편입 22→39). 직전: Phase 21 완료
+Next: **Phase 23(대시보드 3열 카테고리 레이아웃)** — 좌 카테고리/중앙 물품/우 소식 필터, 모바일 칩. 재료 31종은 item_group(강화재료/재련재료/상급재련/재련보조/아크그리드젬) 세분 후보. **UI-SPEC 선행**(`/gsd-ui-phase`). Phase 24(경매장)는 보석만(v1.6).
+Status: ✅ Phase 20·21·22 완료 + quick-260714 교정. 워치리스트 **49**(MATERIAL 31/DEALER 11/SUPPORT 7), item_group 6종. 업화→재련보조, 상급재련=장인 책 1~4단계 8종. 수집 로직 0줄, build 그린. 설계: `docs/superpowers/specs/2026-07-14-v1.5-market-scope-ux-design.md`
+Last activity: 2026-07-14 -- quick-260714(재련 재료 분류 교정 + 상급재련 장인 책 편입, 41→49). 직전: Phase 22 완료
 
 ## Performance Metrics
 
@@ -96,6 +96,7 @@ None (2026-06-30: `.env` `LOSTARK_API_KEY` 무효(401) 이슈는 키 재발급·
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260714-sxn | 재련 재료 분류 교정(업화 → `재련보조`) + 진짜 상급재련=장인의 야금술/재봉술 1~4단계 8종 스파이크(captureRefineMasterBooks, DESC/ASC 50020) 실측·편입 → 워치리스트 41→49, MATERIAL 31. 도메인 오분류(로아 유저 지적) 교정. Core Value 로직 0줄, `./gradlew build` 그린 | 2026-07-14 | 2c96665 | [260714-sxn-refine-material-reclassify](./quick/260714-sxn-refine-material-reclassify/) |
 | 260713-mur | WatchlistSeederIT 시점 경계 flaky 수정 — SyntheticDemoData.seed()가 벽시계 now()로 gridNow 재계산, 첫 seed(~25k인서트 수십초)와 둘째가 10분 경계 넘으면 멱등성 깨짐. 테스트에서 Clock.fixed(UTC)로 수동 생성해 결정적 통과. prod 0줄, 로컬 그린 | 2026-07-13 | a0ed5be | [260713-mur-watchlistseederit-flaky-clock](./quick/260713-mur-watchlistseederit-flaky-clock/) |
 | 260713-h3s | README 클라이언트 친화 리라이트 v2 — glz 위에 2층 구조 확립(가시 ~80줄 + <details> 접힌 깊이, 375→206줄). 라이브 링크·타임라인 딥링크·배포 사이트 실제 스크린샷 3장 교체(impact 빈 상태=insufficient_data 정직 캡션), 스택 3중복→표 1곳, API 데모 4→1+표. 코드 0줄(문서+이미지) | 2026-07-13 | 3e996b2 | [260713-h3s-readme-client-rewrite](./quick/260713-h3s-readme-client-rewrite/) |
 | 260713-glz | README 리라이트 — 상단 히어로/소개 논문체→평이한 '무엇을·왜'(리크루터 20초 이해), 신규 '어떻게 만들었나(AI 협업)' 섹션(Claude Code+GSD 명시하되 설계결정 주도권·검증게이트·설명가능성 프레이밍, '바이브코딩' 금지), 중복 정리(상관≠인과 3→1·기술스택 2블록→1·seed/dev 압축), stale 사실 조정. 하단 깊이 보존. 문서만 | 2026-07-13 | dc4d7b4 | [260713-glz-readme-rewrite](./quick/260713-glz-readme-rewrite/) |
@@ -132,6 +133,6 @@ Resume file: .planning/phases/17.4-timeline-gap-backfill/17.4-VERIFICATION.md
 - ⚠️ **후속 보안(문서만 남김):** 공개 SSH 22 폐쇄(OCI Ingress `/32` 제거)는 **Windows Tailscale 클라이언트로 운영자 SSH 실검증 후**. 검증 전엔 비상 복구 경로 유지 위해 열어둠. 런북 §10.9.
 - 🚀 **v1.5 시세 범위 확장 + UX 진행(1/4, 2026-07-14):** 설계 스펙(`9cd8393`) + 로드맵 Phase 20~24 세팅. ✅ **Phase 20(이벤트 +3) 완료** — NEW_CLASS/NEW_RAID/GENERAL_PATCH additive, 백엔드 IT+프론트 build 그린, 마커색 dataviz 7색 CVD PASS. 남은: 21(재료 스파이크) → 22(재료 추적) → 23(대시보드 3열). Phase 24(경매장 보석)는 v1.6 후보. 설계: `docs/superpowers/specs/2026-07-14-v1.5-market-scope-ux-design.md`.
 - ✅ **Phase 21(재련 재료 스파이크) 실행 완료(2026-07-14):** `21-SPIKE-FINDINGS.md` — 거래소 카탈로그 실측(50010 기본·50020 추가/상급재련·230000 아크그리드젬), Id·아이콘 잠금. 🔑 **아크그리드젬=거래소**(경매장 아님) → Phase 24는 보석만.
-- ✅ **Phase 22(재련 재료 추적 편입) 완료(2026-07-14):** 신규 19종(재련기본 7·상급재련 6[업화 15-18·19-20]·아크그리드젬 6) WatchlistSeeder 편입(22→41), MATERIAL 4→23. SyntheticDemoData 무변경(동적 로드), 수집/캐시/event-impact 0줄. `./gradlew build` 그린. 22b: [19-20] DESC 스파이크로 실측·편입.
-- **다음:** **Phase 23(대시보드 3열 카테고리 레이아웃)** — 신규 UI 레이아웃이라 **UI-SPEC 선행**(`/gsd-ui-phase`) → plan → execute. 좌 카테고리 필터(재료 21종은 item_group 세분 후보)/중앙 물품/우 소식, 모바일 칩. gstack `/browse`·`/design-review` QA.
+- ✅ **Phase 22(재련 재료 추적 편입) 완료(2026-07-14) + quick-260714 교정:** 재련기본 7·상급재련·아크그리드젬 6 WatchlistSeeder 편입. SyntheticDemoData 무변경(동적 로드), 수집/캐시/event-impact 0줄. `./gradlew build` 그린. 22b: [19-20] DESC 스파이크로 실측·편입. **🔧 quick-260714 교정(로아 유저 지적):** 업화 계열은 상급재련이 **아니라** 일반 재련 성공률 보조 재료(→`재련보조` 재분류), 진짜 상급재련 추가 재료=**장인의 야금술/재봉술 1~4단계 8종**(스파이크 실측 편입) → **워치리스트 22→49, MATERIAL 31, item_group 6종**.
+- **다음:** **Phase 23(대시보드 3열 카테고리 레이아웃)** — 신규 UI 레이아웃이라 **UI-SPEC 선행**(`/gsd-ui-phase`) → plan → execute. 좌 카테고리 필터(재료 31종은 item_group 6종[강화재료/재련재료/상급재련/재련보조/아크그리드젬/각인서] 세분 후보)/중앙 물품/우 소식, 모바일 칩. gstack `/browse`·`/design-review` QA.
 - 불변 제약 상시 가드: 수집/캐시/event-impact/서빙 **로직 0줄** — v1.5의 C(추적 확대)는 워치리스트 **데이터만** 늘림(같은 수집기·레이트리밋·스키마). 경매장(AUCTIONS)은 "현재가 둘러보기"로 한정. 실 시크릿은 VM `.env.prod`에만.
