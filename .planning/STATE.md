@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: 시세 범위 확장 + UX
-status: "v1.5 진행(1/4) — Phase 20(이벤트 카테고리 +3: NEW_CLASS/NEW_RAID/GENERAL_PATCH additive) 완료. 백엔드 IT(AdminEventControllerIT NEW_CLASS 왕복)+프론트 build 그린, 마커색 dataviz 7색 CVD PASS, DB 마이그레이션 불필요, Core Value 0줄. 남은 3갈래: 21(재료 스파이크)→22(재료 추적)→23(대시보드 3열). C: 재련재료=거래소 추적까지 / 보석=경매장(v1.6). 다음: Phase 21(재련 재료 스파이크) — 거래소 재련재료 실측·잠금. v1.4는 완료·라이브 검증됨."
-stopped_at: Phase 20(이벤트 +3) 완료. 다음: Phase 21(재련 재료 스파이크 Stage 0)
-last_updated: "2026-07-14T08:00:00.000Z"
-last_activity: 2026-07-14 -- Phase 20 완료: 이벤트 카테고리 +3(enum+zod+마커색[dataviz 검증]+폼), 백엔드 IT+프론트 build 그린
+status: "v1.5 진행 — Phase 20(이벤트 +3) 완료 + Phase 21(재련재료 스파이크) 실행 완료. 스파이크 실측(21-SPIKE-FINDINGS): 거래소 카탈로그 — 50010 기본(파괴석/수호석/돌파석/파편/융화재료)·50020 추가(숨결·상급재련 야금술/재봉술)·230000 아크그리드젬. 🔑 아크그리드젬=거래소(경매장 아님)→Phase 24는 보석만. 🚦 큐레이션 최종 잠금은 휴먼 비준 대기(4개 열린 결정: 파괴석 base vs 결정 / 상급재련 tier / 젬 등급 / 파편 범위). 다음: 사용자 큐레이션 비준 → Phase 22(추적 편입). v1.4 완료·라이브 검증됨."
+stopped_at: Phase 21 스파이크 실행 완료 — 큐레이션 최종 잠금 휴먼 비준 대기. 다음: 비준 → Phase 22(추적 편입)
+last_updated: "2026-07-14T09:00:00.000Z"
+last_activity: 2026-07-14 -- Phase 21 스파이크 실행: 거래소 재련재료 카탈로그 실측·잠금(50010/50020/230000), 아크그리드젬=거래소 발견
 progress:
   total_phases: 12
   completed_phases: 8
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-07-01 for v1.3 milestone)
 
 ## Current Position
 
-Milestone: v1.5 시세 범위 확장 + UX (Phases 20–24) — 🚀 진행(1/4, Phase 20 완료)
-Next Phase: **21 (재련 재료 스파이크 Stage 0)** — 거래소(MARKETS) 재련재료 실측·잠금(파괴석/수호석/돌파석/파편/융화재료/숨결/야금술·재봉술), 아크그리드젬 API 위치 확인. Phase 12 spike-then-lock. 이후 22(재료 추적)→23(대시보드 3열).
-Status: ✅ Phase 20(이벤트 +3) 완료 — enum+zod+마커색(dataviz 7색 CVD PASS)+폼, 백엔드 IT+프론트 build 그린, DB 마이그레이션 불필요, Core Value 0줄. 설계: `docs/superpowers/specs/2026-07-14-v1.5-market-scope-ux-design.md`
-Last activity: 2026-07-14 -- Phase 20 완료(이벤트 카테고리 +3). 직전: v1.5 착수(스펙+로드맵)
+Milestone: v1.5 시세 범위 확장 + UX (Phases 20–24) — 🚀 진행(Phase 20 완료 · 21 스파이크 완료·비준 대기)
+Next: 🚦 **Phase 21 큐레이션 휴먼 비준**(4개 열린 결정) → **Phase 22(추적 편입)**. 이후 23(대시보드 3열). 아크그리드젬=거래소라 Phase 24(경매장)는 보석만.
+Status: ✅ Phase 20(이벤트 +3) 완료 · ✅ Phase 21 스파이크 실행 완료(`21-SPIKE-FINDINGS.md`: 거래소 카탈로그 50010/50020/230000, 아크그리드젬=거래소). 큐레이션 최종 잠금은 로아 유저 비준 대기. 설계: `docs/superpowers/specs/2026-07-14-v1.5-market-scope-ux-design.md`
+Last activity: 2026-07-14 -- Phase 21 스파이크 실행(재련재료 카탈로그 실측·잠금). 직전: Phase 20 완료
 
 ## Performance Metrics
 
@@ -131,5 +131,6 @@ Resume file: .planning/phases/17.4-timeline-gap-backfill/17.4-VERIFICATION.md
 - ✅ **Phase 19 (v1.4 CI/CD 자동화) 완료(2026-07-14):** 3/3 plans 인라인 실행. `main` push → CI(백엔드+프론트 게이트) → arm64 이미지 GHCR push → Tailscale SSH로 VM pull+재기동 → 공개 HTTPS 스모크까지 **무인 배포**. **첫 실배포 성공: run #30(`916bd3a`)** — VM `sha-916bd3a` 4컨테이너 Up, `/actuator/health`=UP. systemd/compose `--build` 제거(GHCR pull 전용), 운영 Runbook(배포·상태·로그·health·롤백·장애진단·GHCR/Tailscale/SSH 복구) 정리. Core Value 가드 0줄(순수 배포 파이프라인).
 - ⚠️ **후속 보안(문서만 남김):** 공개 SSH 22 폐쇄(OCI Ingress `/32` 제거)는 **Windows Tailscale 클라이언트로 운영자 SSH 실검증 후**. 검증 전엔 비상 복구 경로 유지 위해 열어둠. 런북 §10.9.
 - 🚀 **v1.5 시세 범위 확장 + UX 진행(1/4, 2026-07-14):** 설계 스펙(`9cd8393`) + 로드맵 Phase 20~24 세팅. ✅ **Phase 20(이벤트 +3) 완료** — NEW_CLASS/NEW_RAID/GENERAL_PATCH additive, 백엔드 IT+프론트 build 그린, 마커색 dataviz 7색 CVD PASS. 남은: 21(재료 스파이크) → 22(재료 추적) → 23(대시보드 3열). Phase 24(경매장 보석)는 v1.6 후보. 설계: `docs/superpowers/specs/2026-07-14-v1.5-market-scope-ux-design.md`.
-- **다음:** **Phase 21(재련 재료 스파이크 Stage 0)** — 거래소 재련재료 실측·잠금 + 아크그리드젬 API 위치 확인. `/gsd-spike`(Phase 12 패턴). 유효 API 키 필요(스파이크 프로파일).
+- ✅ **Phase 21(재련 재료 스파이크) 실행 완료(2026-07-14):** `21-SPIKE-FINDINGS.md` — 거래소 카탈로그 실측(50010 기본·50020 추가/상급재련·230000 아크그리드젬), Id·아이콘 잠금. 🔑 **아크그리드젬=거래소**(경매장 아님) → Phase 24는 보석만.
+- **다음:** 🚦 **Phase 21 큐레이션 휴먼 비준** — 4개 열린 결정(파괴석 base vs 결정 / 상급재련 tier / 젬 등급·종류 / 파편 범위). 비준되면 **Phase 22(추적 편입, `/gsd-plan-phase`)**로 워치리스트 확대.
 - 불변 제약 상시 가드: 수집/캐시/event-impact/서빙 **로직 0줄** — v1.5의 C(추적 확대)는 워치리스트 **데이터만** 늘림(같은 수집기·레이트리밋·스키마). 경매장(AUCTIONS)은 "현재가 둘러보기"로 한정. 실 시크릿은 VM `.env.prod`에만.
