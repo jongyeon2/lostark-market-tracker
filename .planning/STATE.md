@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.4
-milestone_name: CI/CD 자동화
-status: "v1.4 CI/CD 자동화 완료(3/3) — 19-01(GHCR arm64 이미지화·CI 게이트)·19-02(deploy job: Tailscale SSH→VM pull+재기동+스모크, DEPLOY_ENABLED 게이트)·19-03(운영 Runbook·--build 제거·README·첫 실배포 반영) 실행 완료. 사용자 사전조치 완료 후 DEPLOY_ENABLED=true 전환 → 첫 실배포 성공(GitHub Actions run #30, 916bd3a, 2026-07-14): 전 job 성공·VM sha-916bd3a 4컨테이너 Up·공개 HTTPS health UP. 수동 배포→GHCR+Tailscale 무인 파이프라인 전환 완료. 후속(문서만): 공개 SSH 22 폐쇄는 Windows Tailscale 운영자 SSH 검증 후"
-stopped_at: Phase 19(v1.4) 완료 — 자동 배포 활성·검증(run #30 916bd3a). 후속(문서만): 공개 SSH 22 폐쇄는 Windows Tailscale 운영자 SSH 검증 후
-last_updated: "2026-07-14T00:00:00.000Z"
-last_activity: 2026-07-14 -- 19-03 실행 완료: 운영 Runbook(배포·롤백·장애진단·복구) + systemd/compose --build 제거 + README 자동배포 + 첫 실배포(run #30 916bd3a) 반영
+milestone: v1.5
+milestone_name: 시세 범위 확장 + UX
+status: "v1.5 착수(2026-07-14) — brainstorming 설계 스펙 확정(사용자 승인) + 로드맵 Phase 20~24 세팅. 3갈래: A 대시보드 3열 카테고리 필터, B 이벤트 +3(신규 캐릭터/레이드/일반 패치), C 시세 확장(재련재료=거래소 추적까지 / 보석=경매장 다음 단계, API 경계로 분할). 순서: Phase 20(이벤트) → 21(재료 스파이크) → 22(재료 추적) → 23(대시보드). Core Value 가드: 수집 로직 0줄(추적확대는 워치리스트 데이터만). 다음: Phase 20 실행 착수(코드 변경 시작 전 스펙 검토 지점). v1.4는 완료·라이브 검증됨."
+stopped_at: v1.5 착수 — 스펙·로드맵 세팅 완료(9cd8393 스펙 커밋). Phase 20(이벤트 +3) 실행 대기
+last_updated: "2026-07-14T02:00:00.000Z"
+last_activity: 2026-07-14 -- v1.5 착수: brainstorming 스펙(docs/superpowers/specs/2026-07-14-v1.5-market-scope-ux-design.md) + 로드맵 Phase 20~24 세팅
 progress:
-  total_phases: 8
+  total_phases: 12
   completed_phases: 8
   total_plans: 23
   completed_plans: 23
-  percent: 100
+  percent: 67
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-01 for v1.3 milestone)
 
 **Core value:** 레이트리밋이 걸린 외부 마켓 API에서 시세를 빠짐없이 수집해 시계열로 쌓고, 캐시로 안정적으로 서빙한다
-**Current focus:** v1.4 CI/CD 자동화 **완료(2026-07-14)** — Phase 19(19-01·02·03) 실행 완료, 수동 배포→GHCR+Tailscale 무인 파이프라인 전환·첫 실배포 검증(run #30 `916bd3a`). 다음 마일스톤 대기.
+**Current focus:** v1.5 시세 범위 확장 + UX **착수(2026-07-14)** — 설계 스펙 확정 + 로드맵 Phase 20~24 세팅. 다음: **Phase 20(이벤트 카테고리 +3)** 실행. (v1.4 CI/CD 자동화는 완료·라이브 검증됨.)
 
 ## Current Position
 
-Phase: 19 (cicd-pipeline, v1.4) — ✅ COMPLETE (3/3) · 자동 배포 활성·검증
-Plan: 3/3 실행 완료 — 19-01(GHCR arm64 이미지화·CI 게이트) · 19-02(deploy job: Tailscale SSH→VM pull+재기동+스모크, DEPLOY_ENABLED 게이트, private 패키지+VM docker login) · 19-03(운영 Runbook·systemd/compose --build 제거·README 자동배포·첫 실배포 반영). Core Value 가드: 수집/캐시/event-impact/서빙 0줄(순수 배포 파이프라인)
-Status: ✅ Complete — 첫 실배포 성공(run #30 `916bd3a`, 2026-07-14): 전 job 성공·VM sha-916bd3a 4컨테이너 Up(postgres·redis healthy)·공개 HTTPS `/actuator/health`=UP. 후속(문서만): 공개 SSH 22 폐쇄는 Windows Tailscale 운영자 SSH 검증 후(런북 §10.9)
-Last activity: 2026-07-14 -- 19-03 실행 완료(운영 Runbook + --build 제거 + 첫 실배포 반영)
+Milestone: v1.5 시세 범위 확장 + UX (Phases 20–24) — 🚀 착수(설계 스펙·로드맵 세팅 완료)
+Next Phase: **20 (이벤트 카테고리 +3)** — NEW_CLASS/NEW_RAID/GENERAL_PATCH additive(enum+zod+마커색+폼), DB 마이그레이션 불필요. 이후 21(재료 스파이크)→22(재료 추적)→23(대시보드 3열). Phase 24(경매장 보석)는 v1.6 후보.
+Status: 🚀 v1.5 착수 — brainstorming 스펙 확정·커밋(9cd8393) + 로드맵 Phase 20~24 세팅. **코드 변경(Phase 20) 착수 전 스펙 검토 지점.** 설계: `docs/superpowers/specs/2026-07-14-v1.5-market-scope-ux-design.md`
+Last activity: 2026-07-14 -- v1.5 착수(스펙 + 로드맵 세팅). 직전: Phase 19(v1.4) 완료·라이브 검증(run #30 916bd3a)
 
 ## Performance Metrics
 
@@ -130,5 +130,6 @@ Resume file: .planning/phases/17.4-timeline-gap-backfill/17.4-VERIFICATION.md
 
 - ✅ **Phase 19 (v1.4 CI/CD 자동화) 완료(2026-07-14):** 3/3 plans 인라인 실행. `main` push → CI(백엔드+프론트 게이트) → arm64 이미지 GHCR push → Tailscale SSH로 VM pull+재기동 → 공개 HTTPS 스모크까지 **무인 배포**. **첫 실배포 성공: run #30(`916bd3a`)** — VM `sha-916bd3a` 4컨테이너 Up, `/actuator/health`=UP. systemd/compose `--build` 제거(GHCR pull 전용), 운영 Runbook(배포·상태·로그·health·롤백·장애진단·GHCR/Tailscale/SSH 복구) 정리. Core Value 가드 0줄(순수 배포 파이프라인).
 - ⚠️ **후속 보안(문서만 남김):** 공개 SSH 22 폐쇄(OCI Ingress `/32` 제거)는 **Windows Tailscale 클라이언트로 운영자 SSH 실검증 후**. 검증 전엔 비상 복구 경로 유지 위해 열어둠. 런북 §10.9.
-- **다음:** 새 마일스톤 착수 시 `/gsd-new-milestone`(후보: 경매장/보석 소스 확장 v2 · 데이터 롤업/파티셔닝 · 다중 인스턴스 HA). 필요 시 `/gsd-code-review 19` 또는 `/gsd-ship`로 PR.
-- 불변 제약 상시 가드(증명됨): 수집/캐시/event-impact/서빙 0줄 — Phase 19는 순수 배포 파이프라인·문서. 실 시크릿은 VM `.env.prod`에만, CI 미주입(패키지 private + VM `docker login`).
+- 🚀 **v1.5 시세 범위 확장 + UX 착수(2026-07-14):** brainstorming 설계 스펙 확정·커밋(`9cd8393`) + 로드맵 Phase 20~24 세팅. 순서: **Phase 20(이벤트 +3)** → 21(재료 스파이크) → 22(재료 추적) → 23(대시보드 3열). Phase 24(경매장 보석)는 v1.6 후보(스코프 경계 진화). 설계: `docs/superpowers/specs/2026-07-14-v1.5-market-scope-ux-design.md`.
+- **다음:** Phase 20 실행 — 소규모 additive(이벤트 카테고리 +3). `/gsd-plan-phase 20`(또는 quick 규모로 인라인)로 착수. 코드 변경 시작 전 스펙 검토 권장.
+- 불변 제약 상시 가드: 수집/캐시/event-impact/서빙 **로직 0줄** — v1.5의 C(추적 확대)는 워치리스트 **데이터만** 늘림(같은 수집기·레이트리밋·스키마). 경매장(AUCTIONS)은 "현재가 둘러보기"로 한정. 실 시크릿은 VM `.env.prod`에만.

@@ -7,6 +7,7 @@
 - ✅ **v1.2 Item Visual/Data Enrichment** — Phases 12–14 (shipped 2026-06-30) — [archive](milestones/v1.2-ROADMAP.md)
 - ✅ **v1.3 관리자 콘솔 + 실데이터 라이브 배포** — Phases 15–18 (+17.1~17.4 삽입, 라이브 배포 완료 2026-07-13)
 - ✅ **v1.4 CI/CD 자동화** — Phase 19 (shipped 2026-07-14 — 첫 실배포 run #30 `916bd3a`)
+- 🚀 **v1.5 시세 범위 확장 + UX** — Phases 20–24 (진행 중, 착수 2026-07-14)
 
 ## Phases
 
@@ -196,6 +197,29 @@ Plans:
 
 **Plans**: 3/3 ✅ (19-01·19-02·19-03 실행 완료 · 라이브 배포 활성·검증)
 
+### 🚀 v1.5 시세 범위 확장 + UX (Phases 20–24) — IN PROGRESS (착수 2026-07-14)
+
+**Goal:** 사용자가 실제로 쓰는 **"스펙업 재료" 중심으로 시세 커버리지를 넓히고**, 대시보드를 maplanet식 **3열(좌 카테고리 / 중앙 물품 / 우 소식)**로 재구성하며, 이벤트 상관 분석 표현력을 **이벤트 카테고리 확장**으로 높인다. 설계: `docs/superpowers/specs/2026-07-14-v1.5-market-scope-ux-design.md`.
+
+**불변 제약(상시):** 수집/캐시/event-impact **로직 0줄**(C의 추적 확대는 워치리스트 **데이터만**) · 실키 서버 env only · 프론트 Lostark 직접 호출 금지 · 경매장(AUCTIONS) 진입은 "**현재가 둘러보기**"로 한정(거래소 시계열 수집 무오염).
+
+**분할(Phase):**
+- [ ] **Phase 20** 이벤트 카테고리 +3 (EVT-01) — `NEW_CLASS`/`NEW_RAID`/`GENERAL_PATCH` additive(enum+zod+마커색+폼). DB 마이그레이션 불필요. 차원술사(7/8) 상관 기록.
+- [ ] **Phase 21** 재련 재료 스파이크 Stage 0 (MKT-01) — 거래소 재련재료 실측·잠금(파괴석/수호석/돌파석/파편/융화재료/숨결/야금술·재봉술), 아크그리드젬 API 위치 확인. Phase 12 spike-then-lock.
+- [ ] **Phase 22** 재련 재료 추적 확대 (MKT-02) — 잠근 재료 워치리스트/seed 편입 → 10분 시계열. **수집 로직 0줄**, 레이트리밋 여유 검증.
+- [ ] **Phase 23** 대시보드 3열 카테고리 레이아웃 (UX-01, UX-02) — 좌 카테고리 필터/중앙 물품/우 소식, 모바일 상단 칩. **UI-SPEC 선행**.
+- [ ] **(v1.6 후보) Phase 24** 경매장 통합 (MKT-03) — 보석·아크그리드젬 현재가 둘러보기(새 AUCTIONS 클라이언트). 스코프 경계 진화 → 별도 마일스톤에서 결정.
+
+**Requirements 정의:**
+- **EVT-01** 이벤트 카테고리 확장 — 신규 캐릭터/레이드/일반 패치 3종 additive(백엔드 enum + 프론트 레전드·폼·마커색)
+- **MKT-01** 재련 재료 카탈로그 스파이크 — 거래소 실측·잠금(품목·카테고리·아이콘) + 아크그리드젬 API 위치
+- **MKT-02** 재련 재료 추적 확대 — 잠근 재료 워치리스트 편입, 10분 시계열 축적, Core Value 로직 0줄
+- **MKT-03** (v1.6) 경매장 보석·아크그리드젬 현재가 둘러보기 — AUCTIONS 온디맨드+캐시, 시계열 미기록
+- **UX-01** 대시보드 3열 카테고리 필터 레이아웃 — 좌 카테고리/중앙 물품/우 소식, 필터 상호작용
+- **UX-02** 모바일 반응형 — 카테고리 상단 칩 탭, 물품/소식 세로 스택
+
+**Plans**: 0/4 (Phase 20~23 착수 전 · Phase 24는 v1.6 후보)
+
 
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -209,7 +233,12 @@ Plans:
 | 17.1 데모 최종 폴리시 (INSERTED) | v1.3 | 4/4 | Complete   | 2026-07-06 |
 | 18. 무료 라이브 배포 + 보안 검증 | v1.3 | 5/5 | Complete — 라이브 배포 완료 | 2026-07-13 |
 | 19. 자동 CI/CD 파이프라인 | v1.4 | 3/3 | Complete — 자동 배포 활성·검증(run #30 `916bd3a`) | 2026-07-14 |
+| 20. 이벤트 카테고리 +3 | v1.5 | 0/1 | Planned | — |
+| 21. 재련 재료 스파이크 (Stage 0) | v1.5 | 0/1 | Planned | — |
+| 22. 재련 재료 추적 확대 | v1.5 | 0/1 | Planned | — |
+| 23. 대시보드 3열 레이아웃 | v1.5 | 0/1 | Planned | — |
+| 24. 경매장 통합(보석·아크그리드젬) | v1.6? | — | Deferred (스코프 경계 진화) | — |
 
 **v1.3 Coverage:** v1.3 requirements 20 total · 매핑 **20/20 ✓** (ADMINUI 6 + CARD 2 + REALDATA 3 + POLISH 5 + DEPLOY 4)
 
-_v1.0/v1.1/v1.2 상세는 milestones/ 아카이브. v1.3(Phases 15–18, +17.1~17.4) 라이브 배포 완료(2026-07-13). **v1.4 CI/CD 자동화 (Phase 19) 완료(2026-07-14)** — 수동 배포를 GHCR+Tailscale 무인 파이프라인으로 전환, 첫 실배포 run #30(`916bd3a`) 성공. https://lostark-tracker.duckdns.org._
+_v1.0/v1.1/v1.2 상세는 milestones/ 아카이브. v1.3(Phases 15–18, +17.1~17.4) 라이브 배포 완료(2026-07-13). **v1.4 CI/CD 자동화 (Phase 19) 완료(2026-07-14)** — 수동 배포를 GHCR+Tailscale 무인 파이프라인으로 전환, 첫 실배포 run #30(`916bd3a`) 성공. 현재 활성: **v1.5 시세 범위 확장 + UX (Phases 20–24, 착수 2026-07-14)** — 스펙업 재료 커버리지 확대 + 대시보드 3열 + 이벤트 카테고리. 설계 스펙 `docs/superpowers/specs/2026-07-14-v1.5-market-scope-ux-design.md`. 순서: Phase 20(이벤트) → 21(재료 스파이크) → 22(재료 추적) → 23(대시보드). https://lostark-tracker.duckdns.org._
