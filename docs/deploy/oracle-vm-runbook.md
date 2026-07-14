@@ -77,6 +77,8 @@ OCI 콘솔 → 인스턴스의 VCN → **Security Lists**(또는 NSG) → **Ingr
 > **SSH 하드닝(적용됨)**: 22번은 `0.0.0.0/0`이 아니라 **본인 공인 IP `/32`로만** 개방한다(`curl -s ifconfig.me`로 확인). 심층 방어로 VM의 `/etc/ssh/sshd_config`에서 `PasswordAuthentication no`(키 전용 로그인)를 확인한다.
 >
 > ⚠️ **유동 IP 주의**: 가정용 회선은 공인 IP가 바뀔 수 있다. IP 변경으로 SSH가 막히면 이 Ingress 규칙의 Source를 새 IP로 다시 수정한다. IP가 자주 바뀌어 번거로우면 22를 열어두되 **키 전용 인증 + `fail2ban`** 으로 대체 방어한다.
+>
+> **CI/CD 배포는 공개 22를 쓰지 않는다(Phase 19)**: GitHub Actions runner가 **Tailscale**로 프라이빗 tailnet에 임시 접속한 뒤 VM의 tailnet 주소로 SSH한다(`tag:ci → tag:server:22`, VM iptables는 `tailscale0`의 22만 허용). 따라서 위 공개 22 `/32`는 이제 **운영자 비상 복구용**이다. ⚠️ **아직 닫지 말 것** — Tailscale/tailnet 장애 시 VM에서 잠기지 않도록, Windows Tailscale 클라이언트로 운영자 SSH가 실제 되는지 검증한 뒤 폐쇄하는 것을 **후속 보안 작업**으로 §10에 남긴다.
 
 ### (b) VM 내부 iptables
 
@@ -118,8 +120,15 @@ openssl rand -hex 32   # → ADMIN_API_SECRET (⚠️ dev의 123456789 절대 �
 
 ## 6. 스택 기동 (Caddy 인증서 자동 발급)
 
+이미지는 CI(GitHub Actions)가 GHCR에 올린 것을 **pull**해 기동한다 — VM에서 소스 빌드하지 않는다(4GB ARM 부담 제거). 패키지가 **private**이므로 VM에서 **1회 GHCR 로그인**이 필요하다:
+
 ```bash
-docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+# read:packages 스코프 PAT로 1회 로그인(자격증명은 ~/.docker/config.json에 남아 이후 pull은 무인)
+echo <GHCR_PAT> | docker login ghcr.io -u jongyeon2 --password-stdin
+
+# 최신 이미지 pull + 기동 (VM 빌드 없음)
+docker compose -f docker-compose.prod.yml --env-file .env.prod pull
+docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
 ```
 
 - DuckDNS DNS 전파(수 분) 후, Caddy가 `SITE_ADDRESS`로 Let's Encrypt 인증서를 **자동 발급**한다.
@@ -129,6 +138,8 @@ docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
 docker compose -f docker-compose.prod.yml logs -f caddy
 # "certificate obtained successfully" 류 로그가 뜨면 성공
 ```
+
+> **오프라인 폴백**: GHCR에 접근할 수 없을 때만 compose의 `build:` 블록으로 로컬 빌드도 가능하다(`... up -d --build`, ARM에서 수 분~십수 분). 정상 운영·CI/CD 배포는 **pull 기반**이다.
 
 ## 7. 부팅 시 자동 기동 (systemd)
 
@@ -188,18 +199,132 @@ curl -sI https://<도메인> | grep -i '^server:' || echo "server 헤더 없음(
 
 > 배포 후 **보안 게이트(18-05)** 의 라이브 항목(off-box 포트 스캔·401 등)과 **게이트 밖 하드닝**(위 CSP/보안 헤더 · SSH `/32` 제한)까지 통과해야 최종 go-live. (이 프로젝트는 quick `260713-e1o`에서 CSP·헤더를, §4 SSH 제한을 라이브에 적용·검증 완료.)
 
-## 9. 운영
+## 9. 운영 (일상 명령)
+
+> **정상 배포는 자동이다** — `main`에 push하면 CI/CD가 빌드·GHCR push·VM 재배포·스모크까지 무인 처리한다(아래 **§10**). 아래 명령은 상태 점검·수동 개입용이다.
 
 ```bash
-# 업데이트 배포
-cd /opt/lostark-price-tracker && git pull
-docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+cd /opt/lostark-price-tracker
 
-# 로그 / 상태
+# 상태 / 로그
 docker compose -f docker-compose.prod.yml ps
 docker compose -f docker-compose.prod.yml logs -f app
+
+# 수동 재배포(자동을 안 쓰거나 특정 태그로 띄울 때) — VM 빌드 없음, GHCR pull
+IMAGE_TAG=sha-<커밋> docker compose -f docker-compose.prod.yml --env-file .env.prod pull
+IMAGE_TAG=sha-<커밋> docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --remove-orphans
 
 # (선택) DB 백업
 docker compose -f docker-compose.prod.yml exec postgres \
   pg_dump -U lostark lostark > backup_$(date +%F).sql
 ```
+
+## 10. 자동 배포 (CI/CD 파이프라인) · 운영 Runbook
+
+`main` push 한 번으로 빌드→배포→검증이 무인 처리된다. **첫 실배포 성공: 2026-07-14, GitHub Actions run #30(커밋 `916bd3a`)** — `ghcr.io/jongyeon2/lostark-app:sha-916bd3a`·`lostark-web:sha-916bd3a`가 VM에 떠서 4컨테이너 Up(postgres·redis healthy), 공개 HTTPS `/actuator/health`={"status":"UP"} 확인.
+
+**파이프라인 흐름** (`.github/workflows/ci.yml`):
+
+```
+main push
+ → backend  (./gradlew build — Testcontainers)      ┐ 게이트: 실패 시 배포 안 됨
+ → frontend (npm ci && npm run build, tsc)           ┘
+ → images   (arm64 app·web 빌드 → GHCR push: sha-<커밋> + latest)
+ → deploy   (DEPLOY_ENABLED=true 일 때):
+      Tailscale 접속(tag:ci) → VM SSH → compose scp
+      → IMAGE_TAG=sha-<커밋> docker compose pull && up -d --remove-orphans
+      → 공개 HTTPS 스모크(/actuator/health=UP · /api/health/collection=200)
+```
+
+- **접근**: runner는 공개 SSH(22)가 아니라 **Tailscale tailnet 경유**로 VM에 SSH한다. 앱/레지스트리 시크릿은 CI에 넣지 않는다 — VM이 1회 `docker login ghcr.io`로 private 이미지를 pull한다.
+- **불변 이미지**: `sha-<커밋>` 태그로 배포·롤백. `latest`도 함께 갱신(부팅 시 systemd가 사용).
+
+### 10.1 정상 배포
+
+특별한 조작 없이 `main`에 push(또는 PR 머지)하면 위 흐름이 자동 실행된다. GitHub → **Actions** 탭에서 진행/성공을 본다. deploy job이 초록이면 스모크까지 통과한 것.
+
+### 10.2 배포 상태 확인
+
+```bash
+# (GitHub) Actions 탭 → 최신 run → deploy job 초록 여부 + Smoke test 단계 로그
+
+# (VM) 무엇이 떠 있나 — 컨테이너 + 실제 이미지 태그
+docker compose -f docker-compose.prod.yml ps
+docker compose -f docker-compose.prod.yml images        # app/web 이미지 태그(sha-<커밋>) 확인
+docker inspect --format '{{.Config.Image}}' $(docker compose -f docker-compose.prod.yml ps -q app)
+
+# (외부) 공개 HTTPS 헬스
+curl -fsS https://lostark-tracker.duckdns.org/actuator/health          # {"status":"UP"}
+curl -fsS https://lostark-tracker.duckdns.org/api/health/collection    # 200 + 수집 상태
+```
+
+### 10.3 컨테이너 로그
+
+```bash
+docker compose -f docker-compose.prod.yml logs -f app        # 앱(수집·Flyway·에러)
+docker compose -f docker-compose.prod.yml logs -f caddy      # TLS·프록시
+docker compose -f docker-compose.prod.yml logs app | grep -i collection   # 수집 축적
+```
+
+### 10.4 롤백 (특정 sha 이미지로)
+
+배포가 나쁜 커밋을 올렸을 때, **이전 정상 커밋의 sha 태그**로 즉시 되돌린다:
+
+```bash
+# 이전 정상 커밋 짧은 SHA(7자) — git log 또는 GHCR 패키지 태그 목록에서 확인
+cd /opt/lostark-price-tracker
+IMAGE_TAG=sha-<이전정상커밋> docker compose -f docker-compose.prod.yml --env-file .env.prod pull
+IMAGE_TAG=sha-<이전정상커밋> docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --remove-orphans
+curl -fsS https://lostark-tracker.duckdns.org/actuator/health   # {"status":"UP"} 확인
+```
+
+- 위 수동 롤백은 **일시적**이다 — 다음 `main` 배포나 재부팅(systemd `:latest`)이 다시 최신을 띄운다.
+- **지속 롤백**은 둘 중 하나: (a) 문제 커밋을 `git revert`해서 `main`에 push → CI가 깨끗한 forward 배포로 되돌림(권장), 또는 (b) `.env.prod`에 `IMAGE_TAG=sha-<이전정상커밋>`을 고정.
+
+### 10.5 배포 실패 진단 순서
+
+GitHub → Actions → 실패한 run에서 **어느 job/step**이 붉은지부터 본다:
+
+1. **backend / frontend 실패** → 테스트·빌드 문제. 배포 전 게이트라 **VM 영향 0**(라이브는 이전 버전 유지). 로그 보고 코드 수정 후 재푸시.
+2. **images 실패** → 이미지 빌드/GHCR push. Dockerfile 또는 `packages: write` 권한 확인.
+3. **deploy 실패** → 단계별로:
+   - `Connect to Tailscale` → **§10.7 Tailscale 대응**.
+   - `Copy compose to VM` / `Pull image & restart` 의 SSH 실패(`Permission denied`/`timeout`) → 키(`SSH_PRIVATE_KEY`)·`VM_HOST`(tailnet IP)·VM `authorized_keys`·iptables 확인(**§10.8 SSH**).
+   - `Pull image & restart` 의 pull 실패(`unauthorized`/`denied`/`manifest unknown`) → **§10.6 GHCR 인증**.
+   - `Smoke test` 실패 → 이미지는 떴으나 앱이 안 뜬 것. VM에서 `docker compose logs app`(Flyway·DB 연결·포트) 확인. 회복 안 되면 **§10.4 롤백**.
+
+### 10.6 GHCR 인증 만료/실패 대응
+
+- **증상**: deploy의 pull 단계에서 `unauthorized` / `denied` / `manifest unknown`.
+- **원인**: VM의 `docker login` PAT 만료·삭제, 또는 `~/.docker/config.json` 손상.
+- **대응** (VM에서):
+
+```bash
+echo <새_PAT> | docker login ghcr.io -u jongyeon2 --password-stdin   # read:packages 스코프
+docker compose -f docker-compose.prod.yml pull                       # 재확인
+```
+
+  classic PAT 만료 시 GitHub에서 재발급(read:packages). PAT는 **VM에만** 두고 CI/코드/문서에 넣지 않는다.
+
+### 10.7 Tailscale 연결 실패 대응
+
+- **증상**: deploy `Connect to Tailscale` step 실패, 또는 이후 SSH가 `VM_HOST`(tailnet IP)에 timeout.
+- **점검**:
+
+```bash
+# (VM) tailnet 연결·온라인 여부
+sudo tailscale status
+sudo tailscale ip -4        # 이 값이 GitHub secret VM_HOST와 일치하는지
+```
+
+- **대응**: VM에서 `sudo tailscale up` 재연결. CI용 OAuth client가 만료/삭제됐으면 재발급 후 secrets `TS_OAUTH_CLIENT_ID`/`TS_OAUTH_SECRET` 갱신. ACL에 `tag:ci → tag:server:22` 규칙, VM iptables에 `tailscale0` 22 ACCEPT 규칙이 남아 있는지 확인.
+
+### 10.8 SSH 복구 경로 주의사항
+
+- CI 배포 SSH는 **Tailscale tailnet 경유**(공개 22 아님). 운영자 수동 접속 경로는 두 갈래: **(a)** 공개 22 `/32`(집 공인 IP — **비상 복구용, 현재 유지**), **(b)** Tailscale 경유.
+- ⚠️ **공개 22를 완전히 닫기 전에** Tailscale 경유 운영자 SSH가 실제로 되는지 반드시 먼저 확인한다. 안 그러면 tailnet 장애 시 VM에서 잠긴다.
+- iptables에 `tailscale0`의 22 ACCEPT와 공개 `/32` 규칙이 **둘 다** 있어야 이중 경로가 유지된다.
+
+### 10.9 후속 보안 작업 (아직 미실행)
+
+- [ ] **공개 SSH 22 폐쇄** — OCI Ingress에서 22 `/32` 규칙 제거. **선행 조건**: Windows Tailscale 클라이언트로 운영자 SSH 접속이 실제로 되는지 검증 완료. (검증 전엔 비상 복구 경로가 사라지므로 닫지 않는다.)

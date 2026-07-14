@@ -67,7 +67,8 @@
 - **한 대의 VM(Oracle Cloud Always Free)** 에 **Docker Compose**로 앱 · PostgreSQL · Redis · Caddy를 함께 올립니다.
 - **Caddy**가 유일한 공개 진입점이 되어 **자동 HTTPS(Let's Encrypt)** + 정적 프론트 서빙 + `/api` 프록시를 담당합니다(프론트·API 동일 출처 → CORS 불필요). DB · Redis · 앱은 내부 네트워크에 격리돼 외부에서 접근할 수 없습니다.
 - `@Scheduled` 수집기가 **24/7** 상시 돌며 시세를 계속 쌓습니다.
-- 배포 + 보안 하드닝(HTTPS · 보안 헤더/CSP · SSH 제한) 절차는 [`docs/deploy/oracle-vm-runbook.md`](docs/deploy/oracle-vm-runbook.md)에 정리했습니다.
+- **코드를 올리면 자동으로 배포됩니다** — `main`에 반영하면 GitHub Actions가 **테스트 → 이미지 빌드(GHCR) → VM에 안전하게 접속(Tailscale) → 새 버전으로 무중단 교체 → HTTPS 헬스체크**까지 사람 손 없이 처리합니다. 문제가 생기면 이전 버전 이미지로 즉시 되돌릴 수 있습니다.
+- 자동 배포 파이프라인과 보안 하드닝(HTTPS · 보안 헤더/CSP · SSH 제한) · 롤백·장애 대응 절차는 [`docs/deploy/oracle-vm-runbook.md`](docs/deploy/oracle-vm-runbook.md)에 정리했습니다.
 
 ---
 
