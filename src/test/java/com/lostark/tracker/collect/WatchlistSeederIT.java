@@ -25,7 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Proves the {@link WatchlistSeeder} replaces the watchlist with the Phase 12 + 17.1 + 21 spike-verified
- * curation of 39 (SEED-01, v1.5 MKT-02) and that {@link SyntheticDemoData} populates synthetic history for the
+ * curation of 41 (SEED-01, v1.5 MKT-02) and that {@link SyntheticDemoData} populates synthetic history for the
  * resulting new items WITHOUT a key or network (SEED-02) — all on Testcontainers.
  *
  * <p>Runs under the {@code test} profile, where {@code WatchlistSeeder} is inactive
@@ -73,16 +73,16 @@ class WatchlistSeederIT extends PostgresRedisContainers {
     }
 
     @Test
-    void seedsCurationOf39WithRoleDistributionAndEnrichment() {
+    void seedsCurationOf41WithRoleDistributionAndEnrichment() {
         seeder.run(null);
 
         List<TrackedItem> items = trackedItemRepository.findByActiveTrue();
-        assertThat(items).hasSize(39);
+        assertThat(items).hasSize(41);
 
         Map<String, Long> byRole = items.stream()
                 .collect(Collectors.groupingBy(TrackedItem::getRoleGroup, Collectors.counting()));
-        // v1.5(MKT-02): 재련 재료 17종 추가 → MATERIAL 4→21. 각인서(DEALER 11·SUPPORT 7)는 불변.
-        assertThat(byRole).containsEntry("MATERIAL", 21L)
+        // v1.5(MKT-02): 재련 재료 19종 추가 → MATERIAL 4→23(상급재련 업화 [15-18]·[19-20] 포함). 각인서 불변.
+        assertThat(byRole).containsEntry("MATERIAL", 23L)
                 .containsEntry("DEALER", 11L)
                 .containsEntry("SUPPORT", 7L);
 
@@ -141,11 +141,11 @@ class WatchlistSeederIT extends PostgresRedisContainers {
     @Test
     void seederIsIdempotentByExternalItemId() {
         seeder.run(null);
-        assertThat(trackedItemRepository.count()).isEqualTo(39);
+        assertThat(trackedItemRepository.count()).isEqualTo(41);
 
         // A second pass upserts by external_item_id — no duplicate inserts.
         seeder.run(null);
-        assertThat(trackedItemRepository.count()).isEqualTo(39);
+        assertThat(trackedItemRepository.count()).isEqualTo(41);
     }
 
     @Test

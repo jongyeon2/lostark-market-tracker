@@ -256,6 +256,24 @@ class MarketsApiSpikeTest extends PostgresRedisContainers {
         }
     }
 
+    /**
+     * Phase 22b (MKT-02): confirm whether 상급 재련(야금술/재봉술)에 [19-20] tier가 존재하는지 — 가격
+     * 오름차순 page 1은 상위 tier를 가리므로 DESC(비싼 것 먼저) p1 + ASC p2로 열거. Metadata only.
+     */
+    @Test
+    void captureAdvancedHoningTiers() {
+        Assumptions.assumeTrue(apiKey != null && !apiKey.isBlank(),
+                "LOSTARK_API_KEY not set — skipping live Phase 22b spike");
+        for (String name : java.util.List.of("야금술", "재봉술")) {
+            ResponseEntity<String> desc = client.searchMarketItems(50020, name, 1, "DESC");
+            System.out.println("=== SPIKE 22b " + name + " DESC p1 STATUS=" + desc.getStatusCode());
+            printItemFields(name + "/DESC", desc.getBody());
+            ResponseEntity<String> asc2 = client.searchMarketItems(50020, name, 2, "ASC");
+            System.out.println("=== SPIKE 22b " + name + " ASC p2 STATUS=" + asc2.getStatusCode());
+            printItemFields(name + "/ASCp2", asc2.getBody());
+        }
+    }
+
     /** Phase 21: 강화 재료 leaf CategoryCodes to probe for 스펙업 재련 재료. */
     private static final int[] HONING_CATEGORY_CANDIDATES = {50010, 50020, 51000};
 

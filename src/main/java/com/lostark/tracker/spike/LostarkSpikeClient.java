@@ -69,6 +69,15 @@ public class LostarkSpikeClient {
      * is an optional filter added only when provided. Returns status + headers + raw body.
      */
     public ResponseEntity<String> searchMarketItems(int categoryCode, String itemName) {
+        return searchMarketItems(categoryCode, itemName, 1, "ASC");
+    }
+
+    /**
+     * Overload with {@code PageNo} + {@code SortCondition} so a spike can page/sort — e.g. sort
+     * {@code DESC} (most-expensive first) to surface the highest-tier items that a cheapest-first
+     * page 1 hides (Phase 22b: confirm 상급재련 [19-20] tier). Same request shape otherwise.
+     */
+    public ResponseEntity<String> searchMarketItems(int categoryCode, String itemName, int pageNo, String sortCondition) {
         String nameField = (itemName == null || itemName.isBlank())
                 ? ""
                 : "\"ItemName\": \"%s\",%n".formatted(itemName);
@@ -76,10 +85,10 @@ public class LostarkSpikeClient {
                 {
                   %s"CategoryCode": %d,
                   "Sort": "CURRENT_MIN_PRICE",
-                  "PageNo": 1,
-                  "SortCondition": "ASC"
+                  "PageNo": %d,
+                  "SortCondition": "%s"
                 }
-                """.formatted(nameField, categoryCode);
+                """.formatted(nameField, categoryCode, pageNo, sortCondition);
 
         return restClient.post()
                 .uri("/markets/items")

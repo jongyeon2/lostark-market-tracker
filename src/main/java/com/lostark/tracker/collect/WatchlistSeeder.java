@@ -23,15 +23,16 @@ import java.util.List;
  * <p>Beyond the collection identity, each entry carries the read-path enrichment locked by the
  * Phase 12 + 17.1 API spikes (12-/17.1-SPIKE-FINDINGS.md): {@code iconUrl} (CDN base + measured
  * filename), {@code itemGroup} (강화재료/재련재료/각인서), and {@code roleGroup} ({@code MATERIAL}/
- * {@code DEALER}/{@code SUPPORT}). All 39 entries below carry a real, spike-verified {@code Id} and
+ * {@code DEALER}/{@code SUPPORT}). All 41 entries below carry a real, spike-verified {@code Id} and
  * {@code Icon} — no placeholders. The 18 relic engraving recipes share {@code use_9_25.png}
- * (grade-single glyph, not per-engraving), so Phase 14 always labels them by name (D-06); the 21
- * materials (융화재료 + 재련재료 + 상급재련 + 아크그리드젬) each have a distinct icon.
+ * (grade-single glyph, not per-engraving), so Phase 14 always labels them by name (D-06); the 23
+ * materials (융화재료 + 재련재료 + 상급재련 + 아크그리드젬) carry distinct icons (상급재련 업화 [15-18]/[19-20]는
+ * 같은 아이콘·다른 라벨).
  *
  * <p>This seeder writes only public metadata (Id / name / CategoryCode / iconUrl / group) — never a
  * key, account identifier, or price (SEED-04).
  *
- * <p>{@code prod} is included (Phase 18) so the live deployment seeds the 39-item watchlist too —
+ * <p>{@code prod} is included (Phase 18) so the live deployment seeds the 41-item watchlist too —
  * real collection needs targets. Unlike {@code seed}, {@code prod} does NOT run SeedDataRunner
  * ({@code @Profile("seed")}), so production accrues real prices only, never synthetic snapshots.
  */
@@ -51,8 +52,8 @@ public class WatchlistSeeder implements ApplicationRunner {
                             String iconUrl, String itemGroup, String roleGroup) {
     }
 
-    // Spike-verified curation of 39 (12-/17.1-/21-SPIKE-FINDINGS): 21 materials (융화 2 + 재련기본 9 +
-    // 상급재련 4 + 아크그리드젬 6) + 11 dealer + 7 supporter engravings. Current T4 meta — high-volatility,
+    // Spike-verified curation of 41 (12-/17.1-/21-/22b-SPIKE-FINDINGS): 23 materials (융화 2 + 재련기본 9 +
+    // 상급재련 6 + 아크그리드젬 6) + 11 dealer + 7 supporter engravings. Current T4 meta — high-volatility,
     // high-value 스펙업 picks across all 3 role groups — a curation of judgment, not a dump.
     private static final List<SeedItem> WATCHLIST = List.of(
             // 재료 4 (role_group=MATERIAL, category=50010) — distinct icons. 융화재료 2 (아비도스) +
@@ -71,11 +72,14 @@ public class WatchlistSeeder implements ApplicationRunner {
             new SeedItem("66130141", "운명의 파편 주머니(소)", "50010", ICON_BASE + "use_12_91.png", "재련재료", "MATERIAL"),
             new SeedItem("66130142", "운명의 파편 주머니(중)", "50010", ICON_BASE + "use_12_92.png", "재련재료", "MATERIAL"),
             new SeedItem("66130143", "운명의 파편 주머니(대)", "50010", ICON_BASE + "use_12_93.png", "재련재료", "MATERIAL"),
-            // 상급 재련 4 (category=50020, item_group=상급재련) — 숨결 2 + 야금술/재봉술 업화[15-18](유물).
+            // 상급 재련 6 (category=50020, item_group=상급재련) — 숨결 2 + 야금술/재봉술 업화 [15-18]·[19-20](유물).
+            //   [19-20]은 22b 스파이크로 확인(DESC 검색). 업화 아이콘(use_12_218/219)은 레벨구간 공유(라벨로 구분).
             new SeedItem("66111131", "용암의 숨결", "50020", ICON_BASE + "use_12_171.png", "상급재련", "MATERIAL"),
             new SeedItem("66111132", "빙하의 숨결", "50020", ICON_BASE + "use_12_172.png", "상급재련", "MATERIAL"),
             new SeedItem("66112551", "야금술 : 업화 [15-18]", "50020", ICON_BASE + "use_12_218.png", "상급재련", "MATERIAL"),
             new SeedItem("66112552", "재봉술 : 업화 [15-18]", "50020", ICON_BASE + "use_12_219.png", "상급재련", "MATERIAL"),
+            new SeedItem("66112553", "야금술 : 업화 [19-20]", "50020", ICON_BASE + "use_12_218.png", "상급재련", "MATERIAL"),
+            new SeedItem("66112554", "재봉술 : 업화 [19-20]", "50020", ICON_BASE + "use_12_219.png", "상급재련", "MATERIAL"),
             // 아크그리드 젬 6 (category=230000, item_group=아크그리드젬, 영웅 등급) — 질서 3 + 혼돈 3. 거래소에서 거래(경매장 아님).
             new SeedItem("67400003", "질서의 젬 : 안정", "230000", ICON_BASE + "use_13_110.png", "아크그리드젬", "MATERIAL"),
             new SeedItem("67400103", "질서의 젬 : 견고", "230000", ICON_BASE + "use_13_111.png", "아크그리드젬", "MATERIAL"),
