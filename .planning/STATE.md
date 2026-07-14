@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: 시세 범위 확장 + UX
-status: "v1.5 진행(3/4) — Phase 20(이벤트 +3)·21(재련재료 스파이크)·22(추적 편입) 완료. 워치리스트 **49종**(quick-260714 도메인 교정 반영): 강화재료 2·재련재료 9·상급재련 8(장인 야금술/재봉술 1~4단계)·재련보조 6(숨결 2+업화 4)·아크그리드젬 6·각인서 18. item_group 6종, role=MATERIAL 31/DEALER 11/SUPPORT 7. 수집/캐시/event-impact 로직 0줄, SyntheticDemoData 무변경(동적), ./gradlew build 그린. 교정: 업화는 일반 재련 보조, 숨결은 상급·일반 겸용 → 둘 다 재련보조. 상급재련=장인 책 1~4단계 전용. 다음: Phase 23(대시보드 3열 카테고리 레이아웃) — 좌 카테고리(딜러/서포터/재료, 재료는 item_group 6종 세분)/중앙 물품/우 소식 필터, 모바일 칩. UI-SPEC 선행. v1.4 완료·라이브 검증됨."
-stopped_at: Phase 22 완료 + quick-260714 교정(워치리스트 22→49, 장인 책 편입·업화 재분류). 다음: Phase 23(대시보드 3열) — UI-SPEC 선행
-last_updated: "2026-07-14T12:10:00.000Z"
-last_activity: 2026-07-14 -- quick-260714: 재련 재료 분류 교정(업화→재련보조) + 상급재련 장인 책 1~4단계 8종 편입(워치리스트 41→49, MATERIAL 31), build 그린
+status: "v1.5 진행(3/4) — Phase 20(이벤트 +3)·21(재련재료 스파이크)·22(추적 편입) 완료. 워치리스트 **49종**(quick-260714 도메인 교정 반영): 강화재료 2·재련재료 9·상급재련 8(장인 야금술/재봉술 1~4단계)·재련보조 6(숨결 2+업화 4)·아크그리드젬 6·각인서 18. item_group 6종, role=MATERIAL 31/DEALER 11/SUPPORT 7. 수집/캐시/event-impact 로직 0줄, SyntheticDemoData 무변경(동적), ./gradlew build 그린. 교정: 업화는 일반 재련 보조, 숨결은 상급·일반 겸용 → 둘 다 재련보조. 상급재련=장인 책 1~4단계 전용. **Phase 23 UI-SPEC 승인(2026-07-14)**: 대시보드 3열(좌 CategoryNav 2단계 그룹 필터 / 중앙 물품 / 우 소식), 신규 컴포넌트 CategoryNav+categories.ts, ItemCard/NewsPanel 무변경, 기존 디자인 토큰 재사용(신규 0). 다음: /gsd-plan-phase 23. v1.4 완료·라이브 검증됨."
+stopped_at: Phase 23 UI-SPEC 승인(대시보드 3열, 2단계 그룹 nav·필터·모바일 칩). 다음: /gsd-plan-phase 23 → execute
+last_updated: "2026-07-14T12:40:00.000Z"
+last_activity: 2026-07-14 -- Phase 23 UI-SPEC 승인(대시보드 3열 카테고리 레이아웃, UX-01/UX-02). 직전: quick-260714(재련 재료 교정)
 progress:
   total_phases: 12
   completed_phases: 8
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-07-01 for v1.3 milestone)
 ## Current Position
 
 Milestone: v1.5 시세 범위 확장 + UX (Phases 20–24) — 🚀 진행(3/4: Phase 20·21·22 완료)
-Next: **Phase 23(대시보드 3열 카테고리 레이아웃)** — 좌 카테고리/중앙 물품/우 소식 필터, 모바일 칩. 재료 31종은 item_group(강화재료/재련재료/상급재련/재련보조/아크그리드젬) 세분 후보. **UI-SPEC 선행**(`/gsd-ui-phase`). Phase 24(경매장)는 보석만(v1.6).
-Status: ✅ Phase 20·21·22 완료 + quick-260714 교정. 워치리스트 **49**(MATERIAL 31/DEALER 11/SUPPORT 7), item_group 6종. 업화→재련보조, 상급재련=장인 책 1~4단계 8종. 수집 로직 0줄, build 그린. 설계: `docs/superpowers/specs/2026-07-14-v1.5-market-scope-ux-design.md`
-Last activity: 2026-07-14 -- quick-260714(재련 재료 분류 교정 + 상급재련 장인 책 편입, 41→49). 직전: Phase 22 완료
+Next: **Phase 23 plan → execute** — UI-SPEC 승인됨(`23-UI-SPEC.md`). `/gsd-plan-phase 23`로 계획 → 실행(gstack `/browse`·`/design-review` QA). Phase 24(경매장)는 보석만(v1.6).
+Status: ✅ Phase 20·21·22 완료 + quick-260714 교정. **Phase 23 UI-SPEC 승인**(3열 대시보드, 2단계 그룹 nav). 워치리스트 **49**(MATERIAL 31/DEALER 11/SUPPORT 7), item_group 6종. 수집 로직 0줄. 설계: `docs/superpowers/specs/2026-07-14-v1.5-market-scope-ux-design.md`
+Last activity: 2026-07-14 -- Phase 23 UI-SPEC 승인(대시보드 3열). 직전: quick-260714(재련 재료 교정, 41→49)
 
 ## Performance Metrics
 
