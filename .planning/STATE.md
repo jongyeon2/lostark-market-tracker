@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: 시세 범위 확장 + UX
-status: "v1.5 착수(2026-07-14) — brainstorming 설계 스펙 확정(사용자 승인) + 로드맵 Phase 20~24 세팅. 3갈래: A 대시보드 3열 카테고리 필터, B 이벤트 +3(신규 캐릭터/레이드/일반 패치), C 시세 확장(재련재료=거래소 추적까지 / 보석=경매장 다음 단계, API 경계로 분할). 순서: Phase 20(이벤트) → 21(재료 스파이크) → 22(재료 추적) → 23(대시보드). Core Value 가드: 수집 로직 0줄(추적확대는 워치리스트 데이터만). 다음: Phase 20 실행 착수(코드 변경 시작 전 스펙 검토 지점). v1.4는 완료·라이브 검증됨."
-stopped_at: v1.5 착수 — 스펙·로드맵 세팅 완료(9cd8393 스펙 커밋). Phase 20(이벤트 +3) 실행 대기
-last_updated: "2026-07-14T02:00:00.000Z"
-last_activity: 2026-07-14 -- v1.5 착수: brainstorming 스펙(docs/superpowers/specs/2026-07-14-v1.5-market-scope-ux-design.md) + 로드맵 Phase 20~24 세팅
+status: "v1.5 진행(1/4) — Phase 20(이벤트 카테고리 +3: NEW_CLASS/NEW_RAID/GENERAL_PATCH additive) 완료. 백엔드 IT(AdminEventControllerIT NEW_CLASS 왕복)+프론트 build 그린, 마커색 dataviz 7색 CVD PASS, DB 마이그레이션 불필요, Core Value 0줄. 남은 3갈래: 21(재료 스파이크)→22(재료 추적)→23(대시보드 3열). C: 재련재료=거래소 추적까지 / 보석=경매장(v1.6). 다음: Phase 21(재련 재료 스파이크) — 거래소 재련재료 실측·잠금. v1.4는 완료·라이브 검증됨."
+stopped_at: Phase 20(이벤트 +3) 완료. 다음: Phase 21(재련 재료 스파이크 Stage 0)
+last_updated: "2026-07-14T08:00:00.000Z"
+last_activity: 2026-07-14 -- Phase 20 완료: 이벤트 카테고리 +3(enum+zod+마커색[dataviz 검증]+폼), 백엔드 IT+프론트 build 그린
 progress:
   total_phases: 12
   completed_phases: 8
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-01 for v1.3 milestone)
 
 **Core value:** 레이트리밋이 걸린 외부 마켓 API에서 시세를 빠짐없이 수집해 시계열로 쌓고, 캐시로 안정적으로 서빙한다
-**Current focus:** v1.5 시세 범위 확장 + UX **착수(2026-07-14)** — 설계 스펙 확정 + 로드맵 Phase 20~24 세팅. 다음: **Phase 20(이벤트 카테고리 +3)** 실행. (v1.4 CI/CD 자동화는 완료·라이브 검증됨.)
+**Current focus:** v1.5 시세 범위 확장 + UX **진행(1/4)** — ✅ Phase 20(이벤트 카테고리 +3) 완료. 다음: **Phase 21(재련 재료 스파이크 Stage 0)** — 거래소 재련재료 실측·잠금. (v1.4 CI/CD 자동화는 완료·라이브 검증됨.)
 
 ## Current Position
 
-Milestone: v1.5 시세 범위 확장 + UX (Phases 20–24) — 🚀 착수(설계 스펙·로드맵 세팅 완료)
-Next Phase: **20 (이벤트 카테고리 +3)** — NEW_CLASS/NEW_RAID/GENERAL_PATCH additive(enum+zod+마커색+폼), DB 마이그레이션 불필요. 이후 21(재료 스파이크)→22(재료 추적)→23(대시보드 3열). Phase 24(경매장 보석)는 v1.6 후보.
-Status: 🚀 v1.5 착수 — brainstorming 스펙 확정·커밋(9cd8393) + 로드맵 Phase 20~24 세팅. **코드 변경(Phase 20) 착수 전 스펙 검토 지점.** 설계: `docs/superpowers/specs/2026-07-14-v1.5-market-scope-ux-design.md`
-Last activity: 2026-07-14 -- v1.5 착수(스펙 + 로드맵 세팅). 직전: Phase 19(v1.4) 완료·라이브 검증(run #30 916bd3a)
+Milestone: v1.5 시세 범위 확장 + UX (Phases 20–24) — 🚀 진행(1/4, Phase 20 완료)
+Next Phase: **21 (재련 재료 스파이크 Stage 0)** — 거래소(MARKETS) 재련재료 실측·잠금(파괴석/수호석/돌파석/파편/융화재료/숨결/야금술·재봉술), 아크그리드젬 API 위치 확인. Phase 12 spike-then-lock. 이후 22(재료 추적)→23(대시보드 3열).
+Status: ✅ Phase 20(이벤트 +3) 완료 — enum+zod+마커색(dataviz 7색 CVD PASS)+폼, 백엔드 IT+프론트 build 그린, DB 마이그레이션 불필요, Core Value 0줄. 설계: `docs/superpowers/specs/2026-07-14-v1.5-market-scope-ux-design.md`
+Last activity: 2026-07-14 -- Phase 20 완료(이벤트 카테고리 +3). 직전: v1.5 착수(스펙+로드맵)
 
 ## Performance Metrics
 
@@ -130,6 +130,6 @@ Resume file: .planning/phases/17.4-timeline-gap-backfill/17.4-VERIFICATION.md
 
 - ✅ **Phase 19 (v1.4 CI/CD 자동화) 완료(2026-07-14):** 3/3 plans 인라인 실행. `main` push → CI(백엔드+프론트 게이트) → arm64 이미지 GHCR push → Tailscale SSH로 VM pull+재기동 → 공개 HTTPS 스모크까지 **무인 배포**. **첫 실배포 성공: run #30(`916bd3a`)** — VM `sha-916bd3a` 4컨테이너 Up, `/actuator/health`=UP. systemd/compose `--build` 제거(GHCR pull 전용), 운영 Runbook(배포·상태·로그·health·롤백·장애진단·GHCR/Tailscale/SSH 복구) 정리. Core Value 가드 0줄(순수 배포 파이프라인).
 - ⚠️ **후속 보안(문서만 남김):** 공개 SSH 22 폐쇄(OCI Ingress `/32` 제거)는 **Windows Tailscale 클라이언트로 운영자 SSH 실검증 후**. 검증 전엔 비상 복구 경로 유지 위해 열어둠. 런북 §10.9.
-- 🚀 **v1.5 시세 범위 확장 + UX 착수(2026-07-14):** brainstorming 설계 스펙 확정·커밋(`9cd8393`) + 로드맵 Phase 20~24 세팅. 순서: **Phase 20(이벤트 +3)** → 21(재료 스파이크) → 22(재료 추적) → 23(대시보드 3열). Phase 24(경매장 보석)는 v1.6 후보(스코프 경계 진화). 설계: `docs/superpowers/specs/2026-07-14-v1.5-market-scope-ux-design.md`.
-- **다음:** Phase 20 실행 — 소규모 additive(이벤트 카테고리 +3). `/gsd-plan-phase 20`(또는 quick 규모로 인라인)로 착수. 코드 변경 시작 전 스펙 검토 권장.
+- 🚀 **v1.5 시세 범위 확장 + UX 진행(1/4, 2026-07-14):** 설계 스펙(`9cd8393`) + 로드맵 Phase 20~24 세팅. ✅ **Phase 20(이벤트 +3) 완료** — NEW_CLASS/NEW_RAID/GENERAL_PATCH additive, 백엔드 IT+프론트 build 그린, 마커색 dataviz 7색 CVD PASS. 남은: 21(재료 스파이크) → 22(재료 추적) → 23(대시보드 3열). Phase 24(경매장 보석)는 v1.6 후보. 설계: `docs/superpowers/specs/2026-07-14-v1.5-market-scope-ux-design.md`.
+- **다음:** **Phase 21(재련 재료 스파이크 Stage 0)** — 거래소 재련재료 실측·잠금 + 아크그리드젬 API 위치 확인. `/gsd-spike`(Phase 12 패턴). 유효 API 키 필요(스파이크 프로파일).
 - 불변 제약 상시 가드: 수집/캐시/event-impact/서빙 **로직 0줄** — v1.5의 C(추적 확대)는 워치리스트 **데이터만** 늘림(같은 수집기·레이트리밋·스키마). 경매장(AUCTIONS)은 "현재가 둘러보기"로 한정. 실 시크릿은 VM `.env.prod`에만.
