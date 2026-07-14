@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: 시세 범위 확장 + UX
-status: "v1.5 진행 — Phase 20(이벤트 +3) 완료 + Phase 21(재련재료 스파이크) 실행 완료. 스파이크 실측(21-SPIKE-FINDINGS): 거래소 카탈로그 — 50010 기본(파괴석/수호석/돌파석/파편/융화재료)·50020 추가(숨결·상급재련 야금술/재봉술)·230000 아크그리드젬. 🔑 아크그리드젬=거래소(경매장 아님)→Phase 24는 보석만. 🚦 큐레이션 최종 잠금은 휴먼 비준 대기(4개 열린 결정: 파괴석 base vs 결정 / 상급재련 tier / 젬 등급 / 파편 범위). 다음: 사용자 큐레이션 비준 → Phase 22(추적 편입). v1.4 완료·라이브 검증됨."
-stopped_at: Phase 21 스파이크 실행 완료 — 큐레이션 최종 잠금 휴먼 비준 대기. 다음: 비준 → Phase 22(추적 편입)
-last_updated: "2026-07-14T09:00:00.000Z"
-last_activity: 2026-07-14 -- Phase 21 스파이크 실행: 거래소 재련재료 카탈로그 실측·잠금(50010/50020/230000), 아크그리드젬=거래소 발견
+status: "v1.5 진행(2/4) — Phase 20(이벤트 +3)·Phase 21(재련재료 스파이크) 완료. Phase 21 큐레이션 비준 완료(19종 잠금): 재련기본 9(파괴/수호석 base+결정·돌파석 둘 다·파편 소중대) + 재련추가 4(숨결 2·상급재련 업화[15-18] 야금/재봉) + 아크그리드젬 6(영웅). 아크그리드젬=거래소(경매장 아님). 다음: Phase 22(추적 편입) — 19종을 WatchlistSeeder에 추가, 기존 17.1 파괴/수호석 중복 대조, item_group(재련재료/상급재련/아크그리드젬) 부여, 레이트리밋·DB 검증, Core Value 로직 0줄. v1.4 완료·라이브 검증됨."
+stopped_at: Phase 21 완료(큐레이션 19종 비준·잠금). 다음: Phase 22(추적 편입) — WatchlistSeeder 확대
+last_updated: "2026-07-14T10:00:00.000Z"
+last_activity: 2026-07-14 -- Phase 21 완료: 재련재료 카탈로그 실측 + 큐레이션 비준(19종 잠금, 아크그리드젬 영웅)
 progress:
   total_phases: 12
   completed_phases: 8
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-07-01 for v1.3 milestone)
 
 ## Current Position
 
-Milestone: v1.5 시세 범위 확장 + UX (Phases 20–24) — 🚀 진행(Phase 20 완료 · 21 스파이크 완료·비준 대기)
-Next: 🚦 **Phase 21 큐레이션 휴먼 비준**(4개 열린 결정) → **Phase 22(추적 편입)**. 이후 23(대시보드 3열). 아크그리드젬=거래소라 Phase 24(경매장)는 보석만.
-Status: ✅ Phase 20(이벤트 +3) 완료 · ✅ Phase 21 스파이크 실행 완료(`21-SPIKE-FINDINGS.md`: 거래소 카탈로그 50010/50020/230000, 아크그리드젬=거래소). 큐레이션 최종 잠금은 로아 유저 비준 대기. 설계: `docs/superpowers/specs/2026-07-14-v1.5-market-scope-ux-design.md`
-Last activity: 2026-07-14 -- Phase 21 스파이크 실행(재련재료 카탈로그 실측·잠금). 직전: Phase 20 완료
+Milestone: v1.5 시세 범위 확장 + UX (Phases 20–24) — 🚀 진행(2/4: Phase 20·21 완료)
+Next: **Phase 22(재련 재료 추적 편입)** — 비준된 19종을 WatchlistSeeder에 추가 → 10분 시계열. 이후 23(대시보드 3열). Phase 24(경매장)는 보석만.
+Status: ✅ Phase 20·21 완료. Phase 21 큐레이션 비준(19종 잠금, `21-SPIKE-FINDINGS.md`): 재련기본 9 + 재련추가 4 + 아크그리드젬 6(영웅). 설계: `docs/superpowers/specs/2026-07-14-v1.5-market-scope-ux-design.md`
+Last activity: 2026-07-14 -- Phase 21 완료(큐레이션 19종 비준·잠금). 직전: Phase 20 완료
 
 ## Performance Metrics
 
@@ -132,5 +132,5 @@ Resume file: .planning/phases/17.4-timeline-gap-backfill/17.4-VERIFICATION.md
 - ⚠️ **후속 보안(문서만 남김):** 공개 SSH 22 폐쇄(OCI Ingress `/32` 제거)는 **Windows Tailscale 클라이언트로 운영자 SSH 실검증 후**. 검증 전엔 비상 복구 경로 유지 위해 열어둠. 런북 §10.9.
 - 🚀 **v1.5 시세 범위 확장 + UX 진행(1/4, 2026-07-14):** 설계 스펙(`9cd8393`) + 로드맵 Phase 20~24 세팅. ✅ **Phase 20(이벤트 +3) 완료** — NEW_CLASS/NEW_RAID/GENERAL_PATCH additive, 백엔드 IT+프론트 build 그린, 마커색 dataviz 7색 CVD PASS. 남은: 21(재료 스파이크) → 22(재료 추적) → 23(대시보드 3열). Phase 24(경매장 보석)는 v1.6 후보. 설계: `docs/superpowers/specs/2026-07-14-v1.5-market-scope-ux-design.md`.
 - ✅ **Phase 21(재련 재료 스파이크) 실행 완료(2026-07-14):** `21-SPIKE-FINDINGS.md` — 거래소 카탈로그 실측(50010 기본·50020 추가/상급재련·230000 아크그리드젬), Id·아이콘 잠금. 🔑 **아크그리드젬=거래소**(경매장 아님) → Phase 24는 보석만.
-- **다음:** 🚦 **Phase 21 큐레이션 휴먼 비준** — 4개 열린 결정(파괴석 base vs 결정 / 상급재련 tier / 젬 등급·종류 / 파편 범위). 비준되면 **Phase 22(추적 편입, `/gsd-plan-phase`)**로 워치리스트 확대.
+- **다음:** **Phase 22(재련 재료 추적 편입)** — 비준된 19종을 `WatchlistSeeder`에 추가(role_group=MATERIAL, item_group=재련재료/상급재련/아크그리드젬) → 수집기 10분 시계열. 기존 17.1 파괴/수호석 중복 대조, 레이트리밋·DB 여유 검증, Core Value 로직 0줄. `/gsd-plan-phase 22`(인라인).
 - 불변 제약 상시 가드: 수집/캐시/event-impact/서빙 **로직 0줄** — v1.5의 C(추적 확대)는 워치리스트 **데이터만** 늘림(같은 수집기·레이트리밋·스키마). 경매장(AUCTIONS)은 "현재가 둘러보기"로 한정. 실 시크릿은 VM `.env.prod`에만.

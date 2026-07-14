@@ -236,11 +236,36 @@ class MarketsApiSpikeTest extends PostgresRedisContainers {
         }
     }
 
+    /**
+     * Phase 21b (MKT-01): enumerate the grade tiers of the 6 아크그리드 젬 by ItemName so the ratified
+     * curation can lock the chosen grade's Id (the 젬-only search returns 고급/희귀 first, price ASC —
+     * higher grades need a per-name query). Metadata only (Id/Name/Grade/Icon), no prices.
+     */
+    @Test
+    void captureArkgridGemGrades() {
+        Assumptions.assumeTrue(apiKey != null && !apiKey.isBlank(),
+                "LOSTARK_API_KEY not set — skipping live Phase 21b spike");
+        for (String gem : ARKGRID_GEM_NAMES) {
+            try {
+                ResponseEntity<String> g = client.searchMarketItems(ARKGRID_CATEGORY, gem);
+                System.out.println("=== SPIKE 21b gem name='" + gem + "' STATUS = " + g.getStatusCode());
+                printItemFields("gem/" + gem, g.getBody());
+            } catch (org.springframework.web.client.HttpClientErrorException e) {
+                System.out.println("=== SPIKE 21b gem name='" + gem + "' HTTP " + e.getStatusCode() + " (skipped)");
+            }
+        }
+    }
+
     /** Phase 21: 강화 재료 leaf CategoryCodes to probe for 스펙업 재련 재료. */
     private static final int[] HONING_CATEGORY_CANDIDATES = {50010, 50020, 51000};
 
     /** 아크 그리드 재료 leaf — probe whether 젬 live here (MARKETS) vs 경매장(AUCTIONS). */
     private static final int ARKGRID_CATEGORY = 230000;
+
+    /** Phase 21b: 6 아크그리드 젬 (질서 3 + 혼돈 3) queried by ItemName to enumerate grade tiers. */
+    private static final java.util.List<String> ARKGRID_GEM_NAMES = java.util.List.of(
+            "질서의 젬 : 안정", "질서의 젬 : 견고", "질서의 젬 : 불변",
+            "혼돈의 젬 : 침식", "혼돈의 젬 : 왜곡", "혼돈의 젬 : 붕괴");
 
     /** Phase 21 스펙업 재련 재료 candidate names (substring ItemName filter). */
     private static final java.util.List<String> HONING_MATERIAL_NAME_CANDIDATES = java.util.List.of(
