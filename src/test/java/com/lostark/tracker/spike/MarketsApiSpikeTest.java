@@ -190,6 +190,64 @@ class MarketsApiSpikeTest extends PostgresRedisContainers {
         assertThat(notices.getBody()).isNotBlank();
     }
 
+    /**
+     * Phase 21 spike (MKT-01): live-measure the 스펙업 재련 재료 catalog on the 거래소(MARKETS) so
+     * 21-SPIKE-FINDINGS.md can lock the curated set (Id/Name/Grade/Icon/CategoryCode) before Phase 22
+     * transcribes it into WatchlistSeeder. Also probes whether 아크그리드 젬 live on MARKETS(230000)
+     * or must come from the 경매장(AUCTIONS) API (Phase 24). Prints ONLY public metadata
+     * (Id/Name/Grade/Icon) — no price fields — so no 가격原文 lands in the console dump.
+     */
+    @Test
+    void captureHoningMaterialCatalog() {
+        Assumptions.assumeTrue(apiKey != null && !apiKey.isBlank(),
+                "LOSTARK_API_KEY not set — skipping live Phase 21 spike");
+
+        // 1) /markets/options — full category tree so every 재련 재료 leaf code surfaces
+        //    (재련재료/추가재료/기타재료/무기진화/아크그리드재료 + any 상급재련 leaf).
+        ResponseEntity<String> options = client.getMarketOptions();
+        System.out.println("=== SPIKE 21 options STATUS = " + options.getStatusCode());
+        System.out.println("=== SPIKE 21 options BODY   = " + options.getBody());
+        assertThat(options.getStatusCode().is2xxSuccessful()).isTrue();
+
+        // 2) 스펙업 재련 재료 — search each candidate name across the 강화재료 leaf codes so the real
+        //    CategoryCode surfaces (파괴석/수호석/돌파석/파편/융화재료/숨결/야금술·재봉술 상급재련).
+        for (int categoryCode : HONING_CATEGORY_CANDIDATES) {
+            for (String material : HONING_MATERIAL_NAME_CANDIDATES) {
+                try {
+                    ResponseEntity<String> mat = client.searchMarketItems(categoryCode, material);
+                    System.out.println("=== SPIKE 21 material cat=" + categoryCode + " name='" + material
+                            + "' STATUS = " + mat.getStatusCode());
+                    printItemFields("material/" + categoryCode + "/" + material, mat.getBody());
+                } catch (org.springframework.web.client.HttpClientErrorException e) {
+                    System.out.println("=== SPIKE 21 material cat=" + categoryCode + " name='" + material
+                            + "' HTTP " + e.getStatusCode() + " (skipped)");
+                }
+            }
+        }
+
+        // 3) 아크그리드 젬 probe — search '젬' in 아크그리드재료(230000). 0 rows => 젬은 경매장(AUCTIONS,
+        //    Phase 24)에 있고 MARKETS엔 없음을 의미. Metadata only.
+        try {
+            ResponseEntity<String> gem = client.searchMarketItems(ARKGRID_CATEGORY, "젬");
+            System.out.println("=== SPIKE 21 arkgrid gem cat=" + ARKGRID_CATEGORY + " name='젬' STATUS = " + gem.getStatusCode());
+            printItemFields("arkgrid-gem/" + ARKGRID_CATEGORY, gem.getBody());
+        } catch (org.springframework.web.client.HttpClientErrorException e) {
+            System.out.println("=== SPIKE 21 arkgrid gem HTTP " + e.getStatusCode() + " (skipped)");
+        }
+    }
+
+    /** Phase 21: 강화 재료 leaf CategoryCodes to probe for 스펙업 재련 재료. */
+    private static final int[] HONING_CATEGORY_CANDIDATES = {50010, 50020, 51000};
+
+    /** 아크 그리드 재료 leaf — probe whether 젬 live here (MARKETS) vs 경매장(AUCTIONS). */
+    private static final int ARKGRID_CATEGORY = 230000;
+
+    /** Phase 21 스펙업 재련 재료 candidate names (substring ItemName filter). */
+    private static final java.util.List<String> HONING_MATERIAL_NAME_CANDIDATES = java.util.List.of(
+            "운명의 파괴석", "운명의 수호석", "운명의 돌파석", "운명의 파편",
+            "아비도스 융화 재료", "상급 아비도스 융화 재료", "오레하 융화 재료",
+            "용암의 숨결", "빙하의 숨결", "야금술", "재봉술");
+
     /** 유물 각인서 leaf CategoryCode (community-confirmed; re-verified from the options dump). */
     private static final int ENGRAVING_CATEGORY = 40000;
 
