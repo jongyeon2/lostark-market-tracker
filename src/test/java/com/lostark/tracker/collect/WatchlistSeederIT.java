@@ -24,9 +24,9 @@ import java.util.stream.Collectors;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Proves the {@link WatchlistSeeder} replaces the watchlist with the Phase 12 + 17.1 + 21 spike-verified
- * curation of 41 (SEED-01, v1.5 MKT-02) and that {@link SyntheticDemoData} populates synthetic history for the
- * resulting new items WITHOUT a key or network (SEED-02) — all on Testcontainers.
+ * Proves the {@link WatchlistSeeder} replaces the watchlist with the Phase 12 + 17.1 + 21 + quick-260714
+ * spike-verified curation of 49 (SEED-01, v1.5 MKT-02) and that {@link SyntheticDemoData} populates synthetic
+ * history for the resulting new items WITHOUT a key or network (SEED-02) — all on Testcontainers.
  *
  * <p>Runs under the {@code test} profile, where {@code WatchlistSeeder} is inactive
  * ({@code @Profile({dev,seed})}). The test therefore constructs the seeder directly against the
@@ -73,23 +73,23 @@ class WatchlistSeederIT extends PostgresRedisContainers {
     }
 
     @Test
-    void seedsCurationOf41WithRoleDistributionAndEnrichment() {
+    void seedsCurationOf49WithRoleDistributionAndEnrichment() {
         seeder.run(null);
 
         List<TrackedItem> items = trackedItemRepository.findByActiveTrue();
-        assertThat(items).hasSize(41);
+        assertThat(items).hasSize(49);
 
         Map<String, Long> byRole = items.stream()
                 .collect(Collectors.groupingBy(TrackedItem::getRoleGroup, Collectors.counting()));
-        // v1.5(MKT-02): 재련 재료 19종 추가 → MATERIAL 4→23(상급재련 업화 [15-18]·[19-20] 포함). 각인서 불변.
-        assertThat(byRole).containsEntry("MATERIAL", 23L)
+        // v1.5(MKT-02) + quick-260714: 장인의 야금술/재봉술 1~4단계 8종 추가 → MATERIAL 23→31. 각인서 불변.
+        assertThat(byRole).containsEntry("MATERIAL", 31L)
                 .containsEntry("DEALER", 11L)
                 .containsEntry("SUPPORT", 7L);
 
         // Every entry carries CDN-prefixed enrichment from one of the item groups.
         assertThat(items).allSatisfy(item -> {
             assertThat(item.getIconUrl()).startsWith(ICON_BASE);
-            assertThat(item.getItemGroup()).isIn("강화재료", "재련재료", "상급재련", "아크그리드젬", "각인서");
+            assertThat(item.getItemGroup()).isIn("강화재료", "재련재료", "상급재련", "재련보조", "아크그리드젬", "각인서");
         });
 
         Map<String, TrackedItem> byId = items.stream()
@@ -129,23 +129,32 @@ class WatchlistSeederIT extends PostgresRedisContainers {
         assertThat(gem.getRoleGroup()).isEqualTo("MATERIAL");
         assertThat(gem.getCategory()).isEqualTo("230000");
 
-        // Sample 상급 재련 (v1.5 MKT-02): MATERIAL·상급재련, category 50020.
-        TrackedItem advanced = byId.get("66112551");
-        assertThat(advanced).isNotNull();
-        assertThat(advanced.getDisplayName()).isEqualTo("야금술 : 업화 [15-18]");
-        assertThat(advanced.getItemGroup()).isEqualTo("상급재련");
-        assertThat(advanced.getRoleGroup()).isEqualTo("MATERIAL");
-        assertThat(advanced.getCategory()).isEqualTo("50020");
+        // Sample 상급 재련 (quick-260714): 진짜 상급 재련 재료 = 장인의 야금술 4단계(고대), category 50020.
+        TrackedItem master = byId.get("66112717");
+        assertThat(master).isNotNull();
+        assertThat(master.getDisplayName()).isEqualTo("장인의 야금술 : 4단계");
+        assertThat(master.getIconUrl()).isEqualTo(ICON_BASE + "use_13_223.png");
+        assertThat(master.getItemGroup()).isEqualTo("상급재련");
+        assertThat(master.getRoleGroup()).isEqualTo("MATERIAL");
+        assertThat(master.getCategory()).isEqualTo("50020");
+
+        // Sample 재련 보조 (quick-260714 교정): "업화 [15-18]"는 일반 재련 보조 재료 → item_group=재련보조(상급재련 아님).
+        TrackedItem refineAid = byId.get("66112551");
+        assertThat(refineAid).isNotNull();
+        assertThat(refineAid.getDisplayName()).isEqualTo("야금술 : 업화 [15-18]");
+        assertThat(refineAid.getItemGroup()).isEqualTo("재련보조");
+        assertThat(refineAid.getRoleGroup()).isEqualTo("MATERIAL");
+        assertThat(refineAid.getCategory()).isEqualTo("50020");
     }
 
     @Test
     void seederIsIdempotentByExternalItemId() {
         seeder.run(null);
-        assertThat(trackedItemRepository.count()).isEqualTo(41);
+        assertThat(trackedItemRepository.count()).isEqualTo(49);
 
         // A second pass upserts by external_item_id — no duplicate inserts.
         seeder.run(null);
-        assertThat(trackedItemRepository.count()).isEqualTo(41);
+        assertThat(trackedItemRepository.count()).isEqualTo(49);
     }
 
     @Test

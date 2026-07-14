@@ -274,6 +274,32 @@ class MarketsApiSpikeTest extends PostgresRedisContainers {
         }
     }
 
+    /**
+     * Quick task 260714 (MKT-02 후속): 진짜 상급 재련 재료 = 장인의 야금술(무기)/장인의 재봉술(방어구)
+     * 1~4단계. "야금술 : 업화 [19-20]" 계열은 일반 재련 성공률 보조 재료로 별개(재분류 대상). 이름검색
+     * '장인의 야금술'/'장인의 재봉술'(부분일치)로 4단계 전부 열거 — 단계별 등급이 다르므로 DESC(비싼 것
+     * 먼저)·ASC p1 둘 다 찍어 상·하위 단계를 모두 잡는다. Metadata only(Id/Name/Grade/Icon), no prices.
+     */
+    @Test
+    void captureRefineMasterBooks() throws java.io.IOException {
+        Assumptions.assumeTrue(apiKey != null && !apiKey.isBlank(),
+                "LOSTARK_API_KEY not set — skipping live quick-260714 spike");
+        // Korean does not survive Gradle's stdout capture on a cp949 host (grades arrive as U+FFFD in
+        // the JUnit XML), so write the metadata straight to a UTF-8 file the spike controls end-to-end.
+        // Still ONLY public metadata (Id/Name/Grade/Icon) — appendItemFields never emits price fields.
+        StringBuilder sb = new StringBuilder();
+        for (String name : java.util.List.of("장인의 야금술", "장인의 재봉술")) {
+            for (String sort : java.util.List.of("DESC", "ASC")) {
+                ResponseEntity<String> r = client.searchMarketItems(50020, name, 1, sort);
+                System.out.println("=== SPIKE 장인책 " + name + " " + sort + " p1 STATUS=" + r.getStatusCode());
+                appendItemFields(sb, name + "/" + sort, r.getBody());
+            }
+        }
+        java.nio.file.Path out = java.nio.file.Path.of("build", "spike-refine-master.txt");
+        java.nio.file.Files.writeString(out, sb.toString(), java.nio.charset.StandardCharsets.UTF_8);
+        System.out.println("=== SPIKE 장인책 wrote " + out.toAbsolutePath());
+    }
+
     /** Phase 21: 강화 재료 leaf CategoryCodes to probe for 스펙업 재련 재료. */
     private static final int[] HONING_CATEGORY_CANDIDATES = {50010, 50020, 51000};
 
@@ -321,6 +347,25 @@ class MarketsApiSpikeTest extends PostgresRedisContainers {
 
     /** 강화 재료 leaf CategoryCodes to probe: 50010 재련 재료 (운명 결정 live here) + 50020 재련 추가 재료. */
     private static final int[] NEW_MATERIAL_CATEGORY_CANDIDATES = {50010, 50020};
+
+    /**
+     * Append Id/Name/Grade/Icon tuples (no price fields) to a StringBuilder for UTF-8 file capture —
+     * used when Korean text must not pass through Gradle's charset-lossy stdout pipe.
+     */
+    private static void appendItemFields(StringBuilder sb, String label, String body) {
+        if (body == null || body.isBlank()) {
+            return;
+        }
+        var item = java.util.regex.Pattern.compile(
+                "\"Id\":(\\d+).*?\"Name\":\"([^\"]*)\".*?\"Grade\":\"([^\"]*)\".*?\"Icon\":\"([^\"]*)\"",
+                java.util.regex.Pattern.DOTALL).matcher(body);
+        while (item.find()) {
+            sb.append(label).append(" | Id=").append(item.group(1))
+                    .append(" | Name=").append(item.group(2))
+                    .append(" | Grade=").append(item.group(3))
+                    .append(" | Icon=").append(item.group(4)).append('\n');
+        }
+    }
 
     /** Print Id/Name/Grade/Icon per item (no price fields) so the findings table can be hand-built. */
     private static void printItemFields(String label, String body) {
