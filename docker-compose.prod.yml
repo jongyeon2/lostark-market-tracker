@@ -1,5 +1,6 @@
-# Prod 스택(Phase 18) — Oracle Always Free VM 단일 박스. `docker compose -f docker-compose.prod.yml
-# --env-file .env.prod up -d --build`로 기동.
+# Prod 스택(Phase 18) — Oracle Always Free VM 단일 박스. 운영은 GHCR 이미지 pull 기반으로 기동한다
+# (Phase 19 CI/CD): `IMAGE_TAG=sha-<커밋> docker compose -f docker-compose.prod.yml --env-file .env.prod
+# pull && up -d`. VM에서 소스 빌드하지 않는다(`--build` 없음). 아래 `build:` 블록은 오프라인 폴백.
 #
 # 보안 네트워킹(DEPLOY-03): app·postgres·redis는 host 포트를 열지 않고(내부 `internal` 네트워크
 # 전용), 오직 caddy만 80/443을 publish한다 → DB/Redis/app은 인터넷에서 도달 불가.

@@ -1,5 +1,9 @@
 # Lostark Price Tracker — 부팅 시 docker-compose prod 스택 기동(Phase 18).
 #
+# 이미지는 CI/CD(GitHub Actions)가 GHCR에 push한 것을 쓴다(Phase 19) — systemd는 소스 빌드하지
+# 않고 로컬에 있는 이미지로 기동한다(`up -d`, `--build` 없음). 없으면 compose가 GHCR에서 pull
+# (VM은 1회 `docker login ghcr.io` 완료). 최신 배포는 CI가 `:latest`+`:sha-<커밋>`을 함께 갱신.
+#
 # 설치:
 #   sudo cp deploy/lostark.service /etc/systemd/system/lostark.service
 #   sudo systemctl daemon-reload
@@ -16,7 +20,7 @@ Wants=network-online.target
 Type=oneshot
 RemainAfterExit=yes
 WorkingDirectory=/opt/lostark-price-tracker
-ExecStart=/usr/bin/docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+ExecStart=/usr/bin/docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
 ExecStop=/usr/bin/docker compose -f docker-compose.prod.yml --env-file .env.prod down
 TimeoutStartSec=0
 

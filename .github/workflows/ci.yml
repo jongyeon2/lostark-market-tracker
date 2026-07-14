@@ -55,8 +55,8 @@ jobs:
         run: npm run build
 
   # main push가 백엔드+프론트 게이트를 통과하면 app·web 이미지를 GHCR에 push.
-  # runs-on 네이티브 arm64(public repo 무료). 미가용 시 ubuntu-latest + docker/setup-qemu-action@v3
-  # + platforms 유지로 폴백(빌드는 느려짐).
+  # runs-on 네이티브 arm64(GitHub-hosted, VM Ampere와 동일 arch라 QEMU 없이 빠름). 미가용 시
+  # ubuntu-latest + docker/setup-qemu-action@v3 + platforms 유지로 폴백(빌드는 느려짐).
   images:
     if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
     needs: [backend, frontend]
