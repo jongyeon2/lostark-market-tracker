@@ -6,7 +6,7 @@
 - ✅ **v1.1 Frontend Demo Dashboard** — Phases 7–11 (shipped 2026-06-29) — [archive](milestones/v1.1-ROADMAP.md)
 - ✅ **v1.2 Item Visual/Data Enrichment** — Phases 12–14 (shipped 2026-06-30) — [archive](milestones/v1.2-ROADMAP.md)
 - ✅ **v1.3 관리자 콘솔 + 실데이터 라이브 배포** — Phases 15–18 (+17.1~17.4 삽입, 라이브 배포 완료 2026-07-13)
-- 🚀 **v1.4 CI/CD 자동화** — Phase 19 (진행 중, 착수 2026-07-13)
+- ✅ **v1.4 CI/CD 자동화** — Phase 19 (shipped 2026-07-14 — 첫 실배포 run #30 `916bd3a`)
 
 ## Phases
 
@@ -165,11 +165,11 @@ Plans:
 
 **실행 상태**: 저장소 산출물 5/5 완료·검증 그린. **라이브 배포는 사용자 수동**(Oracle VM 계정 필요) — 런북 `docs/deploy/oracle-vm-runbook.md` + 게이트 `docs/deploy/security-checklist.md` 준비됨. **라이브 배포 완료(2026-07-13)** — https://lostark-tracker.duckdns.org, 보안 게이트 6/6 + 게이트 밖 하드닝(CSP/헤더·SSH /32) 통과.
 
-### 🚀 v1.4 CI/CD 자동화 (Phase 19) — IN PROGRESS (착수 2026-07-13)
+### ✅ v1.4 CI/CD 자동화 (Phase 19) — SHIPPED 2026-07-14
 
-**Goal:** Phase 18에서 **수동으로 남겨둔 배포를 자동화**한다 — `main` 머지 → CI(백엔드+프론트 테스트) 그린 → GHCR 이미지 빌드·푸시 → Tailscale로 VM에 SSH해 pull+재기동+스모크테스트까지 자동. VM에서 빌드하지 않고(4GB ARM 부담 제거) **불변 이미지(SHA 태그)**로 배포·롤백한다. Phase 18에서 "CD 자동화는 v2"로 미뤘던 항목의 실현.
+**Goal:** Phase 18에서 **수동으로 남겨둔 배포를 자동화**한다 — `main` 머지 → CI(백엔드+프론트 테스트) 그린 → GHCR 이미지 빌드·푸시 → Tailscale로 VM에 SSH해 pull+재기동+스모크테스트까지 자동. VM에서 빌드하지 않고(4GB ARM 부담 제거) **불변 이미지(SHA 태그)**로 배포·롤백한다. Phase 18에서 "CD 자동화는 v2"로 미뤘던 항목의 실현. **첫 실배포 성공: run #30(`916bd3a`, 2026-07-14) — 전 구간 실사 검증.**
 
-**불변 제약(상시):** 실 시크릿(`.env.prod`)은 VM에만 · CI는 앱 시크릿 미접근 · 수집/캐시/event-impact/서빙 로직 **0줄**(순수 배포 파이프라인) · **public 저장소이므로 self-hosted 러너 금지**.
+**불변 제약(상시):** 실 시크릿(`.env.prod`)은 VM에만 · CI는 앱/레지스트리 시크릿 미접근(패키지 **private** + VM 1회 `docker login`) · 수집/캐시/event-impact/서빙 로직 **0줄**(순수 배포 파이프라인) · **GitHub-hosted 러너 사용**(self-hosted 미사용).
 
 #### Phase 19: 자동 CI/CD 파이프라인
 
@@ -191,10 +191,10 @@ Plans:
 
 **분할:**
 - [x] **19-01** GHCR 이미지화 — compose `build`→`image` + CI 이미지 빌드·GHCR push job + 프론트 CI 게이트 (실행 완료 2026-07-13, `940901b`·`97d44b6`, actionlint 통과)
-- [x] **19-02** 배포 job — Tailscale SSH → pull+재기동+스모크 (게이트 `DEPLOY_ENABLED`, 실행 완료 2026-07-13, `c5cde94`, actionlint 통과). **라이브 활성화는 사용자 사전조치**(Tailscale·secrets·VM docker login) + `DEPLOY_ENABLED=true`
-- [ ] **19-03** 운영 문서 — 런북·README·`systemd`(--build 제거)·롤백·배지 갱신
+- [x] **19-02** 배포 job — Tailscale SSH → pull+재기동+스모크 (게이트 `DEPLOY_ENABLED`, 실행 완료 2026-07-13, `c5cde94`). 사전조치 완료 후 `DEPLOY_ENABLED=true` 전환 → **첫 실배포 성공(run #30, `916bd3a`, 2026-07-14)**
+- [x] **19-03** 운영 문서 — 런북 운영 Runbook(배포·상태·로그·health·롤백·장애진단·복구) · README 자동 배포 · `systemd`/compose `--build` 제거 · 첫 실배포 반영 (실행 완료 2026-07-14)
 
-**Plans**: 2/3 (19-01·19-02 실행 완료 · 19-03 미작성)
+**Plans**: 3/3 ✅ (19-01·19-02·19-03 실행 완료 · 라이브 배포 활성·검증)
 
 
 
@@ -208,8 +208,8 @@ Plans:
 | 17. 실데이터 전환 | v1.3 | 3/3 | Complete   | 2026-07-03 |
 | 17.1 데모 최종 폴리시 (INSERTED) | v1.3 | 4/4 | Complete   | 2026-07-06 |
 | 18. 무료 라이브 배포 + 보안 검증 | v1.3 | 5/5 | Complete — 라이브 배포 완료 | 2026-07-13 |
-| 19. 자동 CI/CD 파이프라인 | v1.4 | 2/3 | In progress — 19-01·02 실행 완료(라이브 배포 활성화는 사용자 사전조치 대기) | — |
+| 19. 자동 CI/CD 파이프라인 | v1.4 | 3/3 | Complete — 자동 배포 활성·검증(run #30 `916bd3a`) | 2026-07-14 |
 
 **v1.3 Coverage:** v1.3 requirements 20 total · 매핑 **20/20 ✓** (ADMINUI 6 + CARD 2 + REALDATA 3 + POLISH 5 + DEPLOY 4)
 
-_v1.0/v1.1/v1.2 상세는 milestones/ 아카이브. v1.3(Phases 15–18, +17.1~17.4) 라이브 배포 완료(2026-07-13, https://lostark-tracker.duckdns.org). 현재 활성: **v1.4 CI/CD 자동화 (Phase 19)** — 수동 배포를 GHCR+Tailscale 자동 배포로. 다음: 19-01 계획 → 실행._
+_v1.0/v1.1/v1.2 상세는 milestones/ 아카이브. v1.3(Phases 15–18, +17.1~17.4) 라이브 배포 완료(2026-07-13). **v1.4 CI/CD 자동화 (Phase 19) 완료(2026-07-14)** — 수동 배포를 GHCR+Tailscale 무인 파이프라인으로 전환, 첫 실배포 run #30(`916bd3a`) 성공. https://lostark-tracker.duckdns.org._

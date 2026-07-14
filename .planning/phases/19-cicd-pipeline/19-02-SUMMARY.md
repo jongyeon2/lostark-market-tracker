@@ -20,11 +20,13 @@ commits: [c5cde94]
 
 ## 검증
 - **actionlint 통과**(exit 0, 경고 0) + 구조 확인(deploy·게이트·needs·environment·concurrency·Tailscale·scp·IMAGE_TAG pull·스모크·env 전달).
-- `DEPLOY_ENABLED` 미설정 시 job skip → 커밋 후에도 CI 그린(다음 push에서 확인).
+- `DEPLOY_ENABLED` 미설정 시 job skip → CI 그린 유지(게이트 설계 검증). **이후 활성화되어 라이브 배포 검증 완료** — 아래 참조.
 
-## 라이브 배포는 사용자 사전조치 필요 (1회)
+## 라이브 활성화 — ✅ 완료 (2026-07-14)
 
-`DEPLOY_ENABLED=true` 켜기 전에:
+**첫 실배포 성공: GitHub Actions run #30(커밋 `916bd3a`)** — backend·frontend·images·deploy 전 job 성공. VM에 `ghcr.io/jongyeon2/lostark-app:sha-916bd3a`·`lostark-web:sha-916bd3a` 4컨테이너 Up(postgres·redis healthy), 공개 HTTPS `/actuator/health`={"status":"UP"} 확인. 파이프라인 전 구간(main push→CI→arm64 이미지→GHCR→Tailscale SSH→pull+재기동→스모크)이 실사 검증됨.
+
+아래 1회 사전조치가 **모두 완료**되어 `DEPLOY_ENABLED=true`로 전환했다(기록):
 1. **Tailscale**: tailnet + OAuth client(tag:ci) → secrets `TS_OAUTH_CLIENT_ID`/`TS_OAUTH_SECRET`. ACL에 `tag:ci → VM:22` 허용.
 2. **VM**: `tailscale up`(설치·가입) → tailnet IP → secret `VM_HOST`, `VM_USER`.
 3. **VM**: `read:packages` PAT로 `docker login ghcr.io -u jongyeon2`(1회, config.json 잔존). PAT는 VM에만.

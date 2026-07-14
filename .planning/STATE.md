@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: CI/CD 자동화
-status: "v1.4 CI/CD 자동화 진행(2/3) — 19-01(GHCR arm64 이미지화·CI 게이트) 실행+라이브 검증 완료(images job이 lostark-app/web을 GHCR에 push 확인). 19-02(deploy job: Tailscale SSH→VM pull+재기동+스모크, DEPLOY_ENABLED 게이트) 실행 완료(c5cde94, actionlint 통과). 결정: 패키지 private 유지 + VM docker login. backend flaky(WatchlistSeederIT)도 수정. 다음: 19-03(문서) + 사용자 사전조치(Tailscale·secrets·VM login)로 배포 활성화"
-stopped_at: 19-01 실행 완료 — 19-02/03 PLAN 미작성(19-02는 Tailscale·VM 사전조치 필요)
-last_updated: "2026-07-13T08:05:00.000Z"
-last_activity: 2026-07-13 -- 19-02 실행 완료: ci.yml deploy job(Tailscale SSH→VM pull+재기동+스모크, DEPLOY_ENABLED 게이트, private 패키지+VM docker login, c5cde94)
+status: "v1.4 CI/CD 자동화 완료(3/3) — 19-01(GHCR arm64 이미지화·CI 게이트)·19-02(deploy job: Tailscale SSH→VM pull+재기동+스모크, DEPLOY_ENABLED 게이트)·19-03(운영 Runbook·--build 제거·README·첫 실배포 반영) 실행 완료. 사용자 사전조치 완료 후 DEPLOY_ENABLED=true 전환 → 첫 실배포 성공(GitHub Actions run #30, 916bd3a, 2026-07-14): 전 job 성공·VM sha-916bd3a 4컨테이너 Up·공개 HTTPS health UP. 수동 배포→GHCR+Tailscale 무인 파이프라인 전환 완료. 후속(문서만): 공개 SSH 22 폐쇄는 Windows Tailscale 운영자 SSH 검증 후"
+stopped_at: Phase 19(v1.4) 완료 — 자동 배포 활성·검증(run #30 916bd3a). 후속(문서만): 공개 SSH 22 폐쇄는 Windows Tailscale 운영자 SSH 검증 후
+last_updated: "2026-07-14T00:00:00.000Z"
+last_activity: 2026-07-14 -- 19-03 실행 완료: 운영 Runbook(배포·롤백·장애진단·복구) + systemd/compose --build 제거 + README 자동배포 + 첫 실배포(run #30 916bd3a) 반영
 progress:
   total_phases: 8
-  completed_phases: 7
-  total_plans: 22
-  completed_plans: 22
-  percent: 88
+  completed_phases: 8
+  total_plans: 23
+  completed_plans: 23
+  percent: 100
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-01 for v1.3 milestone)
 
 **Core value:** 레이트리밋이 걸린 외부 마켓 API에서 시세를 빠짐없이 수집해 시계열로 쌓고, 캐시로 안정적으로 서빙한다
-**Current focus:** Phase 19 (v1.4 CI/CD 자동화) — GHCR 이미지 빌드 + Tailscale SSH 자동 배포. 19-01 PLAN 작성 완료·**실행 대기**. (v1.3은 라이브 배포 완료)
+**Current focus:** v1.4 CI/CD 자동화 **완료(2026-07-14)** — Phase 19(19-01·02·03) 실행 완료, 수동 배포→GHCR+Tailscale 무인 파이프라인 전환·첫 실배포 검증(run #30 `916bd3a`). 다음 마일스톤 대기.
 
 ## Current Position
 
-Phase: 19 (cicd-pipeline, v1.4) — 📋 로드맵 추가 + 19-01 PLAN 작성 완료 · 실행 대기
-Plan: 0/3 계획 — 19-01(GHCR 이미지화: compose build→image + CI 프론트 게이트 + arm64 이미지 빌드·GHCR push job) PLAN 작성 완료 · 19-02(Tailscale SSH 배포 job+스모크)·19-03(런북·README·systemd·롤백) 미작성. 결정: GHCR 이미지 빌드 + Tailscale SSH 자동배포(공개 SSH 불필요) · CI 그린 시 자동 · VM=ARM64라 이미지 linux/arm64 필수 · 앱 시크릿 CI 미주입. Core Value 가드: 수집/캐시/event-impact/서빙 0줄
-Status: Planned(19-01) — 미실행. **다음: 19-01 실행(docker-compose.prod.yml image 참조 + ci.yml 3 job). 사전조건(사용자): Tailscale 계정/키·VM 설치는 19-02 실행 전 필요.** 참고: README.md에 사용자 수동 편집 미커밋 상태
-Last activity: 2026-07-13 -- Phase 19 추가 + 19-01 PLAN 작성(GHCR arm64 이미지화 + CI 게이트)
+Phase: 19 (cicd-pipeline, v1.4) — ✅ COMPLETE (3/3) · 자동 배포 활성·검증
+Plan: 3/3 실행 완료 — 19-01(GHCR arm64 이미지화·CI 게이트) · 19-02(deploy job: Tailscale SSH→VM pull+재기동+스모크, DEPLOY_ENABLED 게이트, private 패키지+VM docker login) · 19-03(운영 Runbook·systemd/compose --build 제거·README 자동배포·첫 실배포 반영). Core Value 가드: 수집/캐시/event-impact/서빙 0줄(순수 배포 파이프라인)
+Status: ✅ Complete — 첫 실배포 성공(run #30 `916bd3a`, 2026-07-14): 전 job 성공·VM sha-916bd3a 4컨테이너 Up(postgres·redis healthy)·공개 HTTPS `/actuator/health`=UP. 후속(문서만): 공개 SSH 22 폐쇄는 Windows Tailscale 운영자 SSH 검증 후(런북 §10.9)
+Last activity: 2026-07-14 -- 19-03 실행 완료(운영 Runbook + --build 제거 + 첫 실배포 반영)
 
 ## Performance Metrics
 
@@ -128,8 +128,7 @@ Resume file: .planning/phases/17.4-timeline-gap-backfill/17.4-VERIFICATION.md
 
 ## Operator Next Steps
 
-- ✅ **Phase 17.4(타임라인 gap 백필) 완료(2026-07-07):** 4/4 plans 인라인 실행. `item_daily_stats`(V6) 독립 저장 + 소스 2종(YDayAvgPrice going-forward 전 품목·상세 Stats 재료 14일 소급) + read 병합/차트(백필 연속선+실측 min 마커). BACKFILL-01..04 충족, Core Value 가드 0줄, 백엔드 127 tests·프론트 그린. 커밋 a21bc62..78f0551.
-- **다음:** Phase 18(라이브 배포) — 상시 운영으로 going-forward 백필 시리즈 축적(14일/각인서 과거 gap 한계의 근본 보완). 필요 시 `/gsd-code-review 17.4` 또는 `/gsd-ship`로 PR.
-- ⚠️ **수집기 재기동 시 백필 자동 활성**: `DetailStatsBackfillRunner`가 기동+일1회(cron `0 30 4 * * *`) 재료 소급 실행 — dev/prod 프로파일에서 유효 API 키 필요(test 제외). YDayAvgPrice 캡처는 매 수집 자동.
-- ⚠️ 스파이크 중 대화 노출 JWT 키 **포털 재발급 권장**(.env는 gitignored·추적 0).
-- 불변 제약 상시 가드(증명됨): 수집/캐시/event-impact/WindowQueryService/DownsampleService 0줄 + V1–V5 불변 + price_snapshot 스키마 무변경 — 백필은 순수 additive.
+- ✅ **Phase 19 (v1.4 CI/CD 자동화) 완료(2026-07-14):** 3/3 plans 인라인 실행. `main` push → CI(백엔드+프론트 게이트) → arm64 이미지 GHCR push → Tailscale SSH로 VM pull+재기동 → 공개 HTTPS 스모크까지 **무인 배포**. **첫 실배포 성공: run #30(`916bd3a`)** — VM `sha-916bd3a` 4컨테이너 Up, `/actuator/health`=UP. systemd/compose `--build` 제거(GHCR pull 전용), 운영 Runbook(배포·상태·로그·health·롤백·장애진단·GHCR/Tailscale/SSH 복구) 정리. Core Value 가드 0줄(순수 배포 파이프라인).
+- ⚠️ **후속 보안(문서만 남김):** 공개 SSH 22 폐쇄(OCI Ingress `/32` 제거)는 **Windows Tailscale 클라이언트로 운영자 SSH 실검증 후**. 검증 전엔 비상 복구 경로 유지 위해 열어둠. 런북 §10.9.
+- **다음:** 새 마일스톤 착수 시 `/gsd-new-milestone`(후보: 경매장/보석 소스 확장 v2 · 데이터 롤업/파티셔닝 · 다중 인스턴스 HA). 필요 시 `/gsd-code-review 19` 또는 `/gsd-ship`로 PR.
+- 불변 제약 상시 가드(증명됨): 수집/캐시/event-impact/서빙 0줄 — Phase 19는 순수 배포 파이프라인·문서. 실 시크릿은 VM `.env.prod`에만, CI 미주입(패키지 private + VM `docker login`).
