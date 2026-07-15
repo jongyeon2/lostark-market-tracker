@@ -7,6 +7,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import {
+  anchorSourceLabel,
   changeRateColorClass,
   formatChangeRate,
   formatPrice,
@@ -61,7 +62,13 @@ export function EventImpactTable({ events }: { events: EventImpactItem[] }) {
                   <span className="tabular-nums">{formatKst(event.occurredAt)} KST</span>
                 </TableCell>
                 <TableCell>
-                  <ImpactStatusBadge status={event.status} />
+                  <div className="flex flex-col items-start gap-1">
+                    <ImpactStatusBadge status={event.status} />
+                    {/* 어떤 자로 잰 수치인지 — 스냅샷 행과 나란히 놓일 때 같은 의미로 읽히지 않도록. */}
+                    {anchorSourceLabel(event) && (
+                      <span className="text-muted-foreground text-xs">{anchorSourceLabel(event)}</span>
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell>
                   {isOk ? (

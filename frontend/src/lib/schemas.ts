@@ -129,11 +129,16 @@ export const eventImpactItemSchema = z.object({
   status: eventImpactStatusSchema,
   // All anchor/price/changeRate fields are null when status is insufficient_data —
   // modeled explicitly so a null can never masquerade as a real number downstream.
+  // Anchor TIMES are also null on a DAILY_AVG row: a daily average belongs to a date, not an instant.
   preAnchorAt: z.string().nullable(),
   postAnchorAt: z.string().nullable(),
   prePrice: z.number().nullable(),
   postPrice: z.number().nullable(),
   changeRate: z.number().nullable(),
+  // Which measurement changeRate came from (Phase 25): SNAPSHOT_MIN = 10분 최저 호가(기본),
+  // DAILY_AVG = 백필 일별 체결 평균(스냅샷이 없는 과거 이벤트). z.enum so an unknown source fails
+  // loudly at .parse rather than being rendered as an unlabeled number (roleGroup precedent).
+  anchorSource: z.enum(['SNAPSHOT_MIN', 'DAILY_AVG']).nullable(),
 })
 export type EventImpactItem = z.infer<typeof eventImpactItemSchema>
 

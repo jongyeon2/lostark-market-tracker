@@ -41,6 +41,16 @@ export const STATUS_BADGE_META: Record<EventImpactStatus, { label: string; class
   insufficient_data: { label: '데이터 부족', className: 'bg-warning/10 text-warning' },
 }
 
+/*
+  The lens an ok row was measured through (Phase 25), or null when nothing needs saying.
+  SNAPSHOT_MIN is the default meaning of every number on this page (10분 최저 호가), so labeling it
+  would be noise; DAILY_AVG is a different measurement (하루 전체의 체결 평균) reported at day
+  resolution, and showing it unlabeled beside snapshot rows would imply the two are the same thing.
+*/
+export function anchorSourceLabel(item: EventImpactItem): string | null {
+  return item.anchorSource === 'DAILY_AVG' ? '일별 평균 기준' : null
+}
+
 // Derive 희소(sparse) vs stale from ANCHOR NULLNESS ALONE (D-08) — the 30-minute staleness
 // threshold is intentionally NOT referenced here, to avoid coupling the frontend to a backend
 // constant (the most honest stance). This matches EventImpactService.toImpactItem: a side with 0

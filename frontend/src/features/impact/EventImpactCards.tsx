@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import {
+  anchorSourceLabel,
   changeRateColorClass,
   formatChangeRate,
   formatPrice,
@@ -28,7 +29,13 @@ export function EventImpactCards({ events }: { events: EventImpactItem[] }) {
               <div className="flex flex-wrap items-center gap-2">
                 <EventTypeBadge eventType={event.eventType} />
                 <span className="font-semibold">{event.title}</span>
-                <ImpactStatusBadge status={event.status} />
+                <div className="flex flex-col items-end gap-1">
+                  <ImpactStatusBadge status={event.status} />
+                  {/* 어떤 자로 잰 수치인지 — 스냅샷 카드와 섞여 같은 의미로 읽히지 않도록. */}
+                  {anchorSourceLabel(event) && (
+                    <span className="text-muted-foreground text-xs">{anchorSourceLabel(event)}</span>
+                  )}
+                </div>
               </div>
               <div className="flex items-center justify-between gap-4">
                 <span className="text-muted-foreground text-sm tabular-nums">
