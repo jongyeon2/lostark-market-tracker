@@ -8,12 +8,17 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 /**
- * Task 0 spike client (D-03 RestClient). Issues a single read-only POST to the Lostark
- * {@code markets/items} endpoint and returns the full response (status + headers + raw body)
- * so the spike can inspect the actual fields and rate-limit headers. No persistence.
+ * Read-only spike client (D-03 RestClient) for the Lostark Open API. Returns the FULL response
+ * (status + headers + raw body) from each endpoint so a spike can inspect the actual fields and
+ * rate-limit headers before any data model is locked. No persistence, no parsing.
  *
- * <p>Active only under the {@code spike} profile, exercised by the {@code @Disabled}
- * {@link MarketsApiSpikeTest}; never wired in normal runs or CI.
+ * <p>Grown one endpoint at a time by successive spikes, each answering a question that had to be
+ * measured rather than assumed: {@code markets/*} (Task 0 fields, Phase 12 categories, Phase 17.4
+ * daily Stats), {@code news/*} (Phase 17.2 DTO mapping), and {@code auctions/*} (Phase 24 — 보석
+ * catalog and what "현재가" means on a bid-based market).
+ *
+ * <p>Active only under the {@code spike} profile, exercised by {@code @Disabled} spike tests
+ * ({@link MarketsApiSpikeTest} and friends); never wired in normal runs or CI.
  */
 @Component
 @Profile("spike")
@@ -105,6 +110,67 @@ public class LostarkSpikeClient {
     public ResponseEntity<String> getItemDetail(long itemId) {
         return restClient.get()
                 .uri("/markets/items/{id}", itemId)
+                .retrieve()
+                .toEntity(String.class);
+    }
+
+    /**
+     * GET {@code /auctions/options} — the auction house's category tree + the search parameter set
+     * (grades, tiers, quality, sort conditions). The Phase 24 spike reads this to find the 보석 leaf
+     * {@code CategoryCode} EMPIRICALLY rather than trusting a remembered constant, and to see which
+     * request fields {@link #searchAuctionItems} may legitimately send.
+     *
+     * <p>The auction house is a DIFFERENT API surface from {@code /markets/*} — this project had
+     * never called it before Phase 24 (zero {@code auctions} references). Read-only GET, no body;
+     * returns status + headers + raw body so the spike can read rate-limit headers too. No persistence.
+     */
+    public ResponseEntity<String> getAuctionOptions() {
+        return restClient.get()
+                .uri("/auctions/options")
+                .retrieve()
+                .toEntity(String.class);
+    }
+
+    /**
+     * POST {@code /auctions/items} — auction search. Deliberately NOT reusing
+     * {@link #searchMarketItems}: the endpoint, the request body schema, and the response shape all
+     * differ from the 거래소. An auction listing is a bid, not a fixed ask, so it carries an
+     * {@code AuctionInfo} block instead of 거래소's flat {@code CurrentMinPrice} — which is exactly
+     * why Phase 24 must measure what "현재가" even means here before anything is built on top.
+     *
+     * <p>Null/blank parameters are OMITTED from the body rather than sent empty: an empty
+     * {@code "ItemName": ""} risks being read as a filter for the empty string (the
+     * {@link #searchMarketItems} {@code nameField} precedent). Returns status + headers + raw body.
+     *
+     * @param categoryCode leaf category read from {@link #getAuctionOptions()} — never a guessed constant
+     * @param itemName     optional name filter; omitted when null/blank
+     * @param itemTier     optional tier filter (4 = 티어4); omitted when null
+     * @param pageNo       page index — the spike records whether this API is 0-based or 1-based
+     * @param sort         sort field, e.g. BUY_PRICE / BIDSTART_PRICE — valid values come from options
+     * @param sortCondition ASC or DESC
+     */
+    public ResponseEntity<String> searchAuctionItems(int categoryCode, String itemName, Integer itemTier,
+                                                     int pageNo, String sort, String sortCondition) {
+        StringBuilder fields = new StringBuilder();
+        if (itemName != null && !itemName.isBlank()) {
+            fields.append("\"ItemName\": \"%s\",%n".formatted(itemName));
+        }
+        if (itemTier != null) {
+            fields.append("\"ItemTier\": %d,%n".formatted(itemTier));
+        }
+        String requestBody = """
+                {
+                  %s"CategoryCode": %d,
+                  "Sort": "%s",
+                  "PageNo": %d,
+                  "SortCondition": "%s"
+                }
+                """.formatted(fields, categoryCode, sort, pageNo, sortCondition);
+
+        return restClient.post()
+                .uri("/auctions/items")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(requestBody)
                 .retrieve()
                 .toEntity(String.class);
     }

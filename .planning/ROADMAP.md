@@ -243,6 +243,7 @@ Plans:
 **Goal**: 경매장(AUCTIONS) API를 **실호출로 검증**해, 티어4 8~10레벨 보석의 실 카탈로그(품목·Id·아이콘)와 **"현재가"의 정의**를 잠근다. 이 프로젝트는 경매장 API를 한 번도 호출한 적이 없고, 거래소(MARKETS)와 요청 shape·레이트리밋·응답 구조가 다르다 — 실측 전엔 데이터 모델도 화면도 확정하지 않는다(Task 0 / Phase 12 / Phase 21의 spike-then-lock 계승).
 **Depends on**: Phase 21(`21-SPIKE-FINDINGS` — 아크그리드젬=거래소 판명으로 이 phase 스코프가 보석만으로 축소됨), Phase 2(`LostarkApiClient`·레이트리밋 예산), `spike` 프로파일 하네스(`LostarkSpikeClient`/`MarketsApiSpikeTest`)
 **Requirements**: GEM-01
+**Status**: ✅ 실행 완료 2026-07-15 — `24-SPIKE-FINDINGS.md` 잠금(보석 6종 · 현재가=`min(BuyPrice)` · 레이트리밋 버킷 공유). 🚦 휴먼 비준 후 GEM-02.
 **Success criteria**:
 1. `GET /auctions/options` · `POST /auctions/items`가 **기존 JWT 키로 실호출 200**을 반환하고, 응답의 레이트리밋 헤더로 **거래소 수집과 버킷을 공유하는지** 판정된다 (공유면 수집 예산 잠식 위험이므로 구현 phase의 캐시 TTL·호출 빈도 설계 입력이 된다 — Core Value 가드)
 2. **티어4 8·9·10레벨 보석이 실제로 무엇이며 몇 종인지** 실측으로 확정된다 — 도메인 가정 금지(Phase 21에서 "아크그리드젬=경매장" 가정이 실측으로 뒤집힌 선례)
@@ -273,7 +274,7 @@ Plans:
 | 22. 재련 재료 추적 확대 | v1.5 | 1/1 | Complete — 워치리스트 22→49 (quick-260714 교정) | 2026-07-14 |
 | 23. 대시보드 3열 레이아웃 | v1.5 | 1/1 | Complete — 3열+필터+모바일 칩, 라이브 QA 통과 | 2026-07-14 |
 | 25. event-impact 백필 폴백 앵커 | v1.6 | 1/1 | Complete — 차원술사×타격의 대가 데이터 부족→+40.6% | 2026-07-15 |
-| 24. 경매장 보석 카탈로그 스파이크 | v1.7 | 0/1 | Planned — 티어4 8~10레벨 보석만 (Stage 0 게이트) | — |
+| 24. 경매장 보석 카탈로그 스파이크 | v1.7 | 1/1 | Complete — 보석 6종 잠금 · 현재가=최저 즉시구매가 · 버킷 공유 확정 (휴먼 비준 대기) | 2026-07-15 |
 
 **v1.3 Coverage:** v1.3 requirements 20 total · 매핑 **20/20 ✓** (ADMINUI 6 + CARD 2 + REALDATA 3 + POLISH 5 + DEPLOY 4)
 
