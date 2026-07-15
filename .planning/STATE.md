@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-07-01 for v1.3 milestone)
 Milestone: v1.5 시세 범위 확장 + UX (Phases 20–24) — ✅ 완료(4/4: Phase 20·21·22·23). Phase 24(경매장)=v1.6 후보
 Next: **v1.5 마감 또는 Phase 24(경매장 보석, v1.6) 착수 결정.** 배포 반영은 push 시 CI가 프론트 빌드→GHCR 재배포(워치리스트 49종 재시드).
 Status: ✅ **v1.5 4/4 완료** + quick-260714 교정. Phase 23(대시보드 3열) 코드+라이브 Playwright QA 통과(데스크톱 3열·필터·모바일 칩). 워치리스트 **49**(MATERIAL 31/DEALER 11/SUPPORT 7), item_group 6종. 수집 로직 0줄. 설계: `docs/superpowers/specs/2026-07-14-v1.5-market-scope-ux-design.md`
-Last activity: 2026-07-14 -- Phase 23 완료(대시보드 3열 카테고리 레이아웃) — 라이브 QA 통과. 직전: quick-260714(재련 재료 교정, 41→49)
+Last activity: 2026-07-15 -- quick-260715-eeg 완료(소식 패널: 만료 이벤트 필터 실버그 수정 + 라벨/쿠폰 표시 정리). 다음: quick-A(대시보드 카테고리 — 각인서 구분선/아이콘 + 강화재료→재련재료 이관, Flyway V7 필수) → Phase 24(event-impact 백필 폴백 앵커)
 
 ## Performance Metrics
 
@@ -96,6 +96,7 @@ None (2026-06-30: `.env` `LOSTARK_API_KEY` 무효(401) 이슈는 키 재발급·
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260715-eeg | 소식 패널 교정(요청 3·4번) — **만료 이벤트 필터 실버그 수정**: `fetchEvents()`가 endDate asc(종료임박순)+6건 cap만 하고 만료를 안 걸러, 7/8 종료 이벤트 2건이 7/15 운영 최상단 점유(만료가 cap 잠식→진행중 이벤트 축출). `NewsEvent.isOngoingAt(nowKst)` 술어 신설(KST 벽시계, 경계 inclusive, null/파싱불가 유지) + filter를 sorted/limit 앞에, `getLatest()`에도 재적용(TTL 12h·폴링 6h 구멍 차단). "진행중 이벤트"→"진행중인 이벤트", 쿠폰 행 reward 표시 제거(DB/어드민 유지). `NewsServiceIT` fixture 시한폭탄(2026-07-20) 제거. 검증: TDD 6케이스·build 그린·로컬 API 실측(만료 2건↓·진행중 2건↑)·Playwright 라이브. Core Value 0줄 | 2026-07-15 | 50136b1, 3871c16 | [260715-eeg-news-panel-fix](./quick/260715-eeg-news-panel-fix/) |
 | 260714-sxn | 재련 재료 분류 교정(업화·숨결 → `재련보조`) + 진짜 상급재련=장인의 야금술/재봉술 1~4단계 8종 스파이크(captureRefineMasterBooks, DESC/ASC 50020) 실측·편입 → 워치리스트 41→49, MATERIAL 31, item_group 6종(상급재련=장인 책 8 전용, 재련보조=숨결 2+업화 4). 도메인 오분류(로아 유저 지적) 교정. Core Value 로직 0줄, `./gradlew build` 그린 | 2026-07-14 | 2c96665 | [260714-sxn-refine-material-reclassify](./quick/260714-sxn-refine-material-reclassify/) |
 | 260713-mur | WatchlistSeederIT 시점 경계 flaky 수정 — SyntheticDemoData.seed()가 벽시계 now()로 gridNow 재계산, 첫 seed(~25k인서트 수십초)와 둘째가 10분 경계 넘으면 멱등성 깨짐. 테스트에서 Clock.fixed(UTC)로 수동 생성해 결정적 통과. prod 0줄, 로컬 그린 | 2026-07-13 | a0ed5be | [260713-mur-watchlistseederit-flaky-clock](./quick/260713-mur-watchlistseederit-flaky-clock/) |
 | 260713-h3s | README 클라이언트 친화 리라이트 v2 — glz 위에 2층 구조 확립(가시 ~80줄 + <details> 접힌 깊이, 375→206줄). 라이브 링크·타임라인 딥링크·배포 사이트 실제 스크린샷 3장 교체(impact 빈 상태=insufficient_data 정직 캡션), 스택 3중복→표 1곳, API 데모 4→1+표. 코드 0줄(문서+이미지) | 2026-07-13 | 3e996b2 | [260713-h3s-readme-client-rewrite](./quick/260713-h3s-readme-client-rewrite/) |
