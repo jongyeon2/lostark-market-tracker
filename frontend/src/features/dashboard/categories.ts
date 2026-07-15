@@ -11,6 +11,14 @@ import type { TrackedItem } from '@/lib/schemas'
 
 export type CategoryGroup = '각인서' | '재료'
 
+/*
+  보석 leaf id (Phase 28, DASH-01). 보석은 CATEGORY_DEFS에 없다 — 그 목록은 TrackedItem 술어이고
+  보석은 TrackedItem이 아니다(경매장 · Id 없음 · 다른 API · 시계열 미보유). match 술어를 억지로
+  만들려면 TrackedItem 모양의 가짜 보석을 지어내야 한다. 그래서 보석은 별도 leaf로만 존재하고,
+  "이 카테고리가 보석인가"는 DashboardPage가 이 id로 판정해 데이터 소스를 갈아끼운다.
+*/
+export const GEM_CATEGORY_ID = 'gems'
+
 interface CategoryDef {
   id: string
   label: string
@@ -33,11 +41,14 @@ const CATEGORY_DEFS: readonly CategoryDef[] = [
   ),
 ]
 
-/** A derived category: its definition plus the count of matching items in the current data. */
+/**
+ * A derived category: its definition plus the count of matching items in the current data.
+ * {@link Category.group} is null for a standalone leaf that belongs under no group header (보석).
+ */
 export interface Category {
   id: string
   label: string
-  group: CategoryGroup
+  group: CategoryGroup | null
   count: number
 }
 
@@ -45,14 +56,23 @@ export interface Category {
   Non-empty leaves in canonical order, each with its item count. Empty leaves are dropped so a
   not-yet-populated bucket never renders a dead tab; a group whose leaves are all empty therefore
   disappears too (the nav only ever reads this list).
+
+  보석 (Phase 28) appends LAST as a standalone leaf (group: null) — 사용자 결정 2026-07-15: no level
+  sub-categories, all six render at once. It follows the same drop-when-empty rule: gems that failed to
+  load or returned nothing produce no category at all, rather than a tab leading to an empty panel.
 */
-export function deriveCategories(items: readonly TrackedItem[]): Category[] {
-  return CATEGORY_DEFS.map(({ id, label, group, match }) => ({
+export function deriveCategories(items: readonly TrackedItem[], gemCount = 0): Category[] {
+  const leaves: Category[] = CATEGORY_DEFS.map(({ id, label, group, match }) => ({
     id,
     label,
     group,
     count: items.filter(match).length,
   })).filter((c) => c.count > 0)
+
+  if (gemCount > 0) {
+    leaves.push({ id: GEM_CATEGORY_ID, label: '보석', group: null, count: gemCount })
+  }
+  return leaves
 }
 
 /** Items belonging to the selected leaf (empty array when the id is unknown). */

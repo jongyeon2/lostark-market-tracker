@@ -19,6 +19,12 @@ import { groupIconUrl, type Category, type CategoryGroup } from './categories'
   Both groups wear an icon, from whichever source can honestly supply one: 각인서 uses its real game
   icon (groupIconUrl — all 18 books share it), while 재료 has no such shared icon (every material's art
   differs) and wears a drawn Hammer glyph instead. GROUP_GLYPH holds that fallback.
+
+  STANDALONE leaves (group: null) render after the groups with no header of their own (Phase 28) —
+  보석 is the only one. It has no sub-division to head (사용자 결정: no level sub-categories, all six at
+  once), and a header repeating its single child's name ("보석 > 보석") would be noise. The existing
+  space-y-4 between blocks already separates it. The mobile chip row needs ZERO change: it always
+  ignored groups and rendered leaves flat, so the gem chip joins automatically.
 */
 
 const GROUP_ORDER: readonly CategoryGroup[] = ['각인서', '재료']
@@ -40,7 +46,7 @@ export function CategoryNav({
 }) {
   return (
     <nav aria-label="카테고리" className="lg:sticky lg:top-6 lg:self-start">
-      {/* 데스크톱(lg+) — 2단계 그룹 세로 nav. */}
+      {/* 데스크톱(lg+) — 2단계 그룹 세로 nav + 그룹 없는 단독 leaf. */}
       <div className="hidden lg:block">
         <div className="space-y-4">
           {GROUP_ORDER.map((group) => {
@@ -69,10 +75,23 @@ export function CategoryNav({
               </div>
             )
           })}
+
+          {/* 단독 leaf(group: null) — 헤더 없이, 그룹 leaf와 같은 들여쓰기·같은 NavLeaf. */}
+          {categories.some((c) => c.group === null) && (
+            <ul className="space-y-0.5">
+              {categories
+                .filter((c) => c.group === null)
+                .map((cat) => (
+                  <li key={cat.id}>
+                    <NavLeaf cat={cat} active={cat.id === selectedId} onSelect={onSelect} />
+                  </li>
+                ))}
+            </ul>
+          )}
         </div>
       </div>
 
-      {/* 모바일(<lg) — 가로 스크롤 칩(그룹 헤더 생략, leaf만). */}
+      {/* 모바일(<lg) — 가로 스크롤 칩(그룹 헤더 생략, leaf만). 단독 leaf도 자동 포함. */}
       <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 lg:hidden">
         {categories.map((cat) => (
           <Chip key={cat.id} cat={cat} active={cat.id === selectedId} onSelect={onSelect} />

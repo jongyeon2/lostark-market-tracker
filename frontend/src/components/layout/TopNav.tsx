@@ -2,14 +2,21 @@ import { NavLink } from 'react-router-dom'
 
 import { cn } from '@/lib/utils'
 
-// FND-03: the top-level routes as text labels (UI-SPEC nav copy). '보석' joined in Phase 26 — gems get
-// their own route because they carry no id and no time series, so they cannot live in the dashboard's
-// item grid (whose cards deep-link to /timeline).
+/*
+  FND-03: the top-level routes as text labels (UI-SPEC nav copy).
+
+  Phase 28 dropped TWO entries into the dashboard (DASH-01/DASH-02):
+  - '보석' got its own route in Phase 26 because gems carry no id and no time series, so they could not
+    live in a grid whose cards deep-link to /timeline. That reasoning expired — the cards are no longer
+    links (28-02 made the card a selector with a separate 차트 link), so a non-navigating gem card fits
+    fine. Six values never justified a route.
+  - '이벤트 영향' made you navigate away and re-pick, with a selector, the item you were already looking
+    at. It now renders under the item you click.
+  Both paths still resolve (main.tsx redirects them) — only the nav entries are gone.
+*/
 const navItems = [
   { to: '/dashboard', label: '대시보드' },
   { to: '/timeline', label: '품목 타임라인' },
-  { to: '/impact', label: '이벤트 영향' },
-  { to: '/gems', label: '보석' },
 ]
 
 /*
