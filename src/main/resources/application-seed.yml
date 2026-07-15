@@ -9,3 +9,8 @@
 # synthetic data is the sole source and no outbound API call / API key is needed.
 collection:
   initial-delay-ms: 3600000
+
+# The gem price recorder is pushed out for the same reason: it calls 경매장 live, which would need a
+# LOSTARK_API_KEY and defeat the "clone and demo without a key" promise above.
+gem:
+  initial-delay-ms: 3600000

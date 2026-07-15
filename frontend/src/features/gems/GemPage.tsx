@@ -19,11 +19,6 @@ import type { GemPrice } from '@/lib/schemas'
   - 6종은 항상 6행. 가격이 없으면 행을 숨기지 않고 없다고 말한다(0골드·마지막 값 재사용 금지).
 */
 
-const SERIES_LABEL: Record<string, string> = {
-  겁화: '겁화 (딜러)',
-  작열: '작열 (서포터)',
-}
-
 export function GemPage() {
   const { status, data, refetch } = useGems()
   const gems = data?.gems ?? []
@@ -61,8 +56,13 @@ export function GemPage() {
 function GemGroup({ series, gems }: { series: string; gems: GemPrice[] }) {
   return (
     <section className="space-y-1">
+      {/*
+        계열명을 백엔드가 준 그대로 쓴다. 여기엔 원래 '겁화 (딜러)'로 번역하는 SERIES_LABEL 맵이 있었는데,
+        번역할 내용이 틀린 추측이었다 — 보석은 역할로 나눠 쓰지 않고 레벨로 사서 실링으로 돌려 낀다
+        (사용자 정정 2026-07-15, 24-SPIKE-FINDINGS §정정). 맵을 지우니 하드코딩도 같이 사라졌다.
+      */}
       <h2 className="border-border text-muted-foreground border-b px-2 pb-1.5 text-sm font-semibold tracking-wide">
-        {SERIES_LABEL[series] ?? series}
+        {series}
       </h2>
       <ul>
         {gems.map((gem) => (

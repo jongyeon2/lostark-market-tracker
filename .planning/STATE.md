@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: 보석 기록 + 대시보드 통합
 status: "**v1.5 완료(4/4)** — Phase 20(이벤트 +3)·21(재련재료 스파이크)·22(추적 편입)·23(대시보드 3열) 완료 + quick-260714 교정. 워치리스트 **49종**: 강화재료 2·재련재료 9·상급재련 8(장인 야금술/재봉술 1~4단계)·재련보조 6(숨결 2+업화 4)·아크그리드젬 6·각인서 18(item_group 6종, role=MATERIAL 31/DEALER 11/SUPPORT 7). **Phase 23**: 대시보드 2열→3열(좌 CategoryNav 2단계 그룹 필터 / 중앙 물품 / 우 소식), 신규 CategoryNav+categories.ts, ItemCard/NewsPanel 무변경, 기존 토큰 재사용(신규 0). 라이브 Playwright QA 통과(데스크톱 3열·필터·모바일 칩·빈 카테고리 숨김). 수집/캐시/event-impact 로직 0줄. Phase 24(경매장 보석)=v1.6 후보. v1.4 완료·라이브 검증됨."
-stopped_at: v1.8 Phase 27 계획 완료(27-01 기록 파이프라인 / 27-02 화면·문서 정정), 미실행. v1.7(24·26)은 완료·미푸시. ⚠️ 보고사항: 공유 토큰버킷(용량90+리필90/분)이 서버 한도 100/분을 넘길 수 있음 — Phase 2부터의 성질, 미수정(Core Value 코드라 별도 판단 필요)
+stopped_at: v1.8 Phase 27 완료(기록 폴러 + 라벨 정정), 라이브 실증 완료·미푸시. 다음 = Phase 28 UI-SPEC(대시보드 통합). 사용자 방침 = 28까지 다 끝내고 1회 push로 배포. ⚠️ 보고사항 유지: 공유 토큰버킷(용량90+리필90/분)이 서버 한도 100/분 초과 가능 — Phase 2부터의 성질, 미수정
 last_updated: "2026-07-15T17:10:00.000Z"
-last_activity: 2026-07-15 -- v1.8 착수·Phase 27 계획. 사용자 정정 2건 반영: (a) 보석의 딜러/서포터 라벨은 측정된 적 없는 추측 → 제거(findings 문서 포함), (b) 기록 주기 1시간 확정. "보석 시계열 미기록"(v1.7 제약)을 산수 근거로 해제 — 1h = 하루 144행/144콜 = price_snapshot의 2%, 분당 0.1콜
+last_activity: 2026-07-15 -- Phase 27 완료: 보석 1시간 기록 폴러(V9 gem_price_snapshot) + 역할 라벨 제거. 라이브: 6행 기록·재기동 멱등(0 rows inserted)·캐시 미오염 실증. IT 16/16. grep 검증이 GemDtos javadoc 누락을 잡아냄
 progress:
   total_phases: 13
-  completed_phases: 8
+  completed_phases: 9
   total_plans: 25
-  completed_plans: 23
-  percent: 62
+  completed_plans: 25
+  percent: 69
 ---
 
 # Project State
@@ -25,8 +25,11 @@ See: .planning/PROJECT.md (updated 2026-07-01 for v1.3 milestone)
 
 ## Current Position
 
-Milestone: v1.8 보석 기록 + 대시보드 통합 — Phase 27 **계획 완료(0/2 실행)**, Phase 28 **UI-SPEC 대기**. 직전 v1.7(Phase 24·26) 완료
-Next: **Phase 27 실행**(27-01 기록 파이프라인 → 27-02 라벨 제거) → **Phase 28 UI-SPEC**(대시보드 통합).
+Milestone: v1.8 보석 기록 + 대시보드 통합 — Phase 27 ✅ **완료(2/2)**, Phase 28 **UI-SPEC 대기**. 직전 v1.7(Phase 24·26) 완료
+Next: **Phase 28 UI-SPEC**(대시보드 통합) → 계획 → 실행 → **그 뒤 사용자가 1회 push로 배포**(사용자 방침: main push = 자동 배포이므로 다 끝내고 한 번에).
+
+**Phase 27 잠금**: `gem_price_snapshot`(V9) — 키 = **(series, level, hour_slot)**, `tracked_item` FK 없음(보석은 Id 없음). `recorded_at`=실측 순간 / `hour_slot`=절삭(멱등 키 전용). **답받은 것만 기록**: 매물없음=`min_buy_price` null 행 / 실패·레이트리밋=**행 없음**(행 부재 = 못 물어봄) → status 컬럼 불요. `ON CONFLICT DO NOTHING`(먼저 온 표본이 이김 — 각 표본은 그 순간의 사실이라 나중 값이 더 옳지 않다). 폴러 1시간(`gem.poll-interval-ms`), test·seed 프로파일은 initial-delay를 밀어 실호출 차단. **`GemPriceFetcher`가 토큰버킷 획득의 유일한 집**(Phase 26 실버그 재발 자리 제거). 폴러는 `gem:latest`를 **안 건드림** — 서빙은 여전히 ≤5분·무방문 0콜.
+**라이브 실증**: 부팅 기록 6행(slot 12:00Z) → 같은 시간대 재기동 `0 rows inserted`·6행 유지(멱등). 기록 12:52:37 vs API `updatedAt` 12:54:00 = 캐시 미오염. 429 0건. IT 16/16(`GemServiceIT` 9/9는 **무수정** 통과 = fetcher 추출이 서빙 무변경).
 
 ### 🔑 사용자 재설계 (2026-07-15) — Phase 28
 

@@ -44,6 +44,15 @@ news:
   poll-interval-ms: ${NEWS_POLL_INTERVAL_MS:21600000}   # 6h between refreshes (fixedDelay)
   initial-delay-ms: ${NEWS_INITIAL_DELAY_MS:0}          # boot-time refresh; tests push this out
 
+# 보석 시세 기록 (GEM-03) — hourly sample into gem_price_snapshot. NOT the /api/gems serving path,
+# which stays on-demand cache-aside (GemService). 6 calls/hour = 0.1/min against the SHARED 100/min
+# budget (Phase 24 §H2) = 2% of the collector's spend; every call still passes the shared token bucket.
+# Recording exists because 경매장 has no history endpoint and gems have no Id (Phase 24 §H5) — an
+# unrecorded hour is lost forever, unlike 거래소 items which Stats[] can backfill (Phase 17.4).
+gem:
+  poll-interval-ms: ${GEM_POLL_INTERVAL_MS:3600000}     # 1h between records (fixedDelay)
+  initial-delay-ms: ${GEM_INITIAL_DELAY_MS:0}           # boot-time record; tests/seed push this out
+
 # Shared secret guarding /api/admin/** (X-Admin-Secret header). From env only, never committed
 # (mirrors lostark.api.key). Blank/unset => the admin gate fails CLOSED (every /api/admin/** is 401)
 # while the public read surface and the collection pipeline keep running.

@@ -1,36 +1,35 @@
 package com.lostark.tracker.gem;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.lostark.tracker.gem.GemDtos.GemPrice;
 import com.lostark.tracker.gem.GemDtos.GemPriceStatus;
 import com.lostark.tracker.gem.GemDtos.GemsResponse;
-import com.lostark.tracker.ratelimit.RedisTokenBucket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
 /**
- * Cache-aside serving layer for 보석 현재가 (GEM-02). One JSON snapshot lives at {@code gem:latest}
- * (TTL {@link #CACHE_TTL}) — Redis only, never PostgreSQL: gems are a browse-only view and are
- * deliberately NOT recorded as a time series (scope boundary — 거래소 시계열 수집 stays uncontaminated).
+ * Cache-aside SERVING layer for 보석 현재가 (GEM-02). One JSON snapshot lives at {@code gem:latest}
+ * (TTL {@link #CACHE_TTL}) — Redis only, never PostgreSQL.
  *
- * <p><b>Why on-demand and not a poller (unlike {@code NewsService}'s 6h schedule):</b> 경매장 shares the
- * per-key rate-limit budget with the 10분 수집 tick (Phase 24 §H2), so every gem call is taken straight
- * out of the collector's allowance. News is on the dashboard, so every visitor sees it and a poller
- * pays for itself; gems live on their own page. A 5분 poller would spend ~1.2 calls/min forever —
- * including all the hours nobody is looking. Cache-aside costs ZERO when the page is unvisited.
+ * <p><b>Why serving stays on-demand and grows no poller</b> (unlike {@code NewsService}'s 6h schedule):
+ * 경매장 shares the per-key rate-limit budget with the 10분 수집 tick (Phase 24 §H2), so every gem call is
+ * taken straight out of the collector's allowance. Cache-aside costs ZERO when nobody is looking.
  *
- * <p>Consequence for copy: this is NOT "5분마다 갱신". It is "a snapshot at most {@link #CACHE_TTL} old,
- * built when someone last looked" — which is why the response carries {@code updatedAt} and the page
- * shows 기준 시각 instead of promising a refresh cadence (UI-SPEC §갱신 시각).
+ * <p><b>There IS a poller now — but not for this path</b> (Phase 27, GEM-03). {@link GemPriceRecorder}
+ * records a sample hourly into {@code gem_price_snapshot}, because 경매장 offers no history endpoint and
+ * gems have no {@code Id} (Phase 24 §H5), so the record is the ONLY way gem history can ever exist.
+ * It deliberately does NOT warm {@code gem:latest}: an hourly refresh would make this screen serve a
+ * value up to an hour old, when it currently serves one at most {@link #CACHE_TTL} old. Recording and
+ * serving want opposite things — an hourly heartbeat vs. the freshest possible answer — so they stay
+ * separate paths over one {@link GemPriceFetcher}.
+ *
+ * <p>Consequence for copy: this is NOT "5분마다 갱신" and it is NOT "1시간마다 갱신" either. It is
+ * "a snapshot at most {@link #CACHE_TTL} old, built when someone last looked" — which is why the
+ * response carries {@code updatedAt} and the screen shows 기준 시각 rather than promising a cadence.
  */
 @Service
 public class GemService {
@@ -41,17 +40,14 @@ public class GemService {
     /** Short TTL: gem prices move, and a miss costs only 6 calls. Long enough to absorb a page refresh. */
     static final Duration CACHE_TTL = Duration.ofMinutes(5);
 
-    private final LostarkAuctionClient client;
-    private final RedisTokenBucket rateLimiter;
+    private final GemPriceFetcher fetcher;
     private final StringRedisTemplate redis;
     private final ObjectMapper objectMapper;
 
-    public GemService(LostarkAuctionClient client,
-                      RedisTokenBucket rateLimiter,
+    public GemService(GemPriceFetcher fetcher,
                       StringRedisTemplate redis,
                       ObjectMapper objectMapper) {
-        this.client = client;
-        this.rateLimiter = rateLimiter;
+        this.fetcher = fetcher;
         this.redis = redis;
         this.objectMapper = objectMapper;
     }
@@ -66,7 +62,7 @@ public class GemService {
         if (cached != null) {
             return cached;
         }
-        GemsResponse fresh = new GemsResponse(fetchAll(), Instant.now().toString());
+        GemsResponse fresh = new GemsResponse(fetcher.fetchAll(), Instant.now().toString());
         if (isCacheable(fresh)) {
             writeCache(fresh);
         }
@@ -84,58 +80,6 @@ public class GemService {
      */
     private static boolean isCacheable(GemsResponse snapshot) {
         return snapshot.gems().stream().noneMatch(g -> g.status() == GemPriceStatus.RATE_LIMITED);
-    }
-
-    /**
-     * One call per gem — 경매장 offers no batch lookup, and each gem is isolated by an exact ItemName
-     * (Phase 24: the level exists only in the name, there is no numeric level filter).
-     *
-     * <p>A single gem's failure is swallowed into a {@code FETCH_FAILED} row so it can never blank the
-     * other five — the same per-row isolation {@code ItemCard} applies to a 404 latest-price.
-     */
-    private List<GemPrice> fetchAll() {
-        List<GemPrice> gems = new ArrayList<>(GemCatalog.ENTRIES.size());
-        for (GemCatalog.Entry entry : GemCatalog.ENTRIES) {
-            gems.add(fetchOne(entry));
-        }
-        return gems;
-    }
-
-    private GemPrice fetchOne(GemCatalog.Entry entry) {
-        // The SAME global bucket the collector spends from — "one API key, one bucket" (D-03). 경매장 and
-        // 거래소 share one server-side per-key quota (Phase 24 §H2), so a gem call that skipped this
-        // limiter would spend budget the app never accounted for and race the 10분 틱 into a real 429 —
-        // which is exactly what happened on the first live run (겁화 3 OK, 작열 3 × TooManyRequests).
-        // Yielding here keeps the collector whole: Core Value outranks this page.
-        if (!rateLimiter.tryAcquire()) {
-            return row(entry, null, GemPriceStatus.RATE_LIMITED);
-        }
-        try {
-            Optional<Long> lowest = client.findLowestBuyPrice(entry.searchName());
-            // empty = 매물은 있으나 즉시구매를 건 것이 없음(입찰 전용) → 값을 지어내지 않고 상태로 말한다.
-            return lowest
-                    .map(price -> row(entry, price, GemPriceStatus.OK))
-                    .orElseGet(() -> row(entry, null, GemPriceStatus.NO_BUYOUT));
-        } catch (HttpClientErrorException.TooManyRequests e) {
-            // The bucket granted a token but the server refused anyway — the app's 90-token bucket can
-            // legitimately outrun the real 100/min window (a full bucket plus a minute of refill is up to
-            // 180 calls), and dev startup fires the 49-item tick and the backfill runner at once. This is
-            // pre-existing shared-limiter behaviour (Phase 2), NOT something gems can fix without editing
-            // Core Value code — the collector already absorbs 429 via Retry-After. Gems just tell the truth:
-            // same meaning as a local throttle (설계된 양보, 곧 회복), so same status and same no-cache rule.
-            log.warn("gem price throttled by API (429) for level {} {} — row marked RATE_LIMITED",
-                    entry.level(), entry.series());
-            return row(entry, null, GemPriceStatus.RATE_LIMITED);
-        } catch (Exception e) {
-            // Log the class only — never the key/secret (NewsService precedent).
-            log.warn("gem price fetch failed for level {} {} ({}) — row marked FETCH_FAILED",
-                    entry.level(), entry.series(), e.getClass().getSimpleName());
-            return row(entry, null, GemPriceStatus.FETCH_FAILED);
-        }
-    }
-
-    private static GemPrice row(GemCatalog.Entry entry, Long price, GemPriceStatus status) {
-        return new GemPrice(entry.series(), entry.level(), entry.displayName(), entry.iconUrl(), price, status);
     }
 
     private GemsResponse readCache() {

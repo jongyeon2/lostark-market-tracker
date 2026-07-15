@@ -51,8 +51,8 @@ class GemServiceIT extends PostgresRedisContainers {
     @Autowired
     RedisConnectionFactory redisConnectionFactory;
 
-    private static final String LV8_DEALER = "8레벨 겁화의 보석";
-    private static final String LV10_SUPPORT = "10레벨 작열의 보석";
+    private static final String LV8_GEOPHWA = "8레벨 겁화의 보석";
+    private static final String LV10_JAKYEOL = "10레벨 작열의 보석";
 
     @BeforeEach
     void flush() {
@@ -138,11 +138,11 @@ class GemServiceIT extends PostgresRedisContainers {
     @Test
     void gemWithNoBuyoutListingReportsNoBuyoutAndNullPrice() {
         when(client.findLowestBuyPrice(anyString())).thenReturn(Optional.of(500L));
-        when(client.findLowestBuyPrice(LV10_SUPPORT)).thenReturn(Optional.empty());
+        when(client.findLowestBuyPrice(LV10_JAKYEOL)).thenReturn(Optional.empty());
 
         GemsResponse response = gemService.getAll();
 
-        GemPrice noBuyout = findByName(response, 10, GemCatalog.SERIES_SUPPORT);
+        GemPrice noBuyout = findByName(response, 10, GemCatalog.SERIES_JAKYEOL);
         assertThat(noBuyout.status()).isEqualTo(GemPriceStatus.NO_BUYOUT);
         assertThat(noBuyout.minBuyPrice()).isNull();
         // 나머지 5행은 멀쩡하다
@@ -157,7 +157,7 @@ class GemServiceIT extends PostgresRedisContainers {
     @Test
     void serverSideTooManyRequestsIsReportedAsRateLimitedNotFailure() {
         when(client.findLowestBuyPrice(anyString())).thenReturn(Optional.of(500L));
-        when(client.findLowestBuyPrice(LV8_DEALER))
+        when(client.findLowestBuyPrice(LV8_GEOPHWA))
                 .thenThrow(HttpClientErrorException.create(
                         org.springframework.http.HttpStatus.TOO_MANY_REQUESTS,
                         "Too Many Requests", org.springframework.http.HttpHeaders.EMPTY,
@@ -165,7 +165,7 @@ class GemServiceIT extends PostgresRedisContainers {
 
         GemsResponse response = gemService.getAll();
 
-        assertThat(findByName(response, 8, GemCatalog.SERIES_DEALER).status())
+        assertThat(findByName(response, 8, GemCatalog.SERIES_GEOPHWA).status())
                 .isEqualTo(GemPriceStatus.RATE_LIMITED);
         assertThat(response.gems()).filteredOn(g -> g.status() == GemPriceStatus.OK).hasSize(5);
     }
@@ -174,13 +174,13 @@ class GemServiceIT extends PostgresRedisContainers {
     @Test
     void oneGemFailureIsIsolatedToItsOwnRow() {
         when(client.findLowestBuyPrice(anyString())).thenReturn(Optional.of(500L));
-        when(client.findLowestBuyPrice(LV8_DEALER))
+        when(client.findLowestBuyPrice(LV8_GEOPHWA))
                 .thenThrow(new org.springframework.web.client.RestClientException("boom"));
 
         GemsResponse response = gemService.getAll();
 
         assertThat(response.gems()).hasSize(6);
-        GemPrice failed = findByName(response, 8, GemCatalog.SERIES_DEALER);
+        GemPrice failed = findByName(response, 8, GemCatalog.SERIES_GEOPHWA);
         assertThat(failed.status()).isEqualTo(GemPriceStatus.FETCH_FAILED);
         assertThat(failed.minBuyPrice()).isNull();
         assertThat(response.gems()).filteredOn(g -> g.status() == GemPriceStatus.OK).hasSize(5);
@@ -194,7 +194,7 @@ class GemServiceIT extends PostgresRedisContainers {
     @Test
     void partialFailureIsStillCachedSoItDoesNotRefetchOnEveryRequest() {
         when(client.findLowestBuyPrice(anyString())).thenReturn(Optional.of(500L));
-        when(client.findLowestBuyPrice(LV8_DEALER))
+        when(client.findLowestBuyPrice(LV8_GEOPHWA))
                 .thenThrow(new org.springframework.web.client.RestClientException("boom"));
         gemService.getAll();
 
@@ -202,7 +202,7 @@ class GemServiceIT extends PostgresRedisContainers {
         GemsResponse second = gemService.getAll();
 
         verify(client, never()).findLowestBuyPrice(anyString());
-        assertThat(findByName(second, 8, GemCatalog.SERIES_DEALER).status())
+        assertThat(findByName(second, 8, GemCatalog.SERIES_GEOPHWA).status())
                 .isEqualTo(GemPriceStatus.FETCH_FAILED);
     }
 

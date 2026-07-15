@@ -36,7 +36,8 @@ public final class GemDtos {
      * One gem row. {@code minBuyPrice} is non-null ONLY when {@code status == OK} — the two fields move
      * together so the frontend cannot read a null as 0.
      *
-     * @param series      계열 — 겁화(딜러) / 작열(서포터)
+     * @param series      계열 — 겁화 / 작열. 역할 주석은 붙이지 않는다: 보석은 역할로 나눠 쓰지 않고
+     *                    레벨로 사서 실링으로 원하는 스킬에 돌려 낀다(Phase 27 GEM-04, 24-SPIKE §정정)
      * @param level       보석 레벨 8·9·10. NOTE: this is NOT the auction response's {@code Level} field,
      *                    which is the 아이템 레벨 (1640 for every gem, Phase 24 §H-Level). The gem's own
      *                    level exists only inside its name.
