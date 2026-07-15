@@ -89,17 +89,29 @@ class WatchlistSeederIT extends PostgresRedisContainers {
         // Every entry carries CDN-prefixed enrichment from one of the item groups.
         assertThat(items).allSatisfy(item -> {
             assertThat(item.getIconUrl()).startsWith(ICON_BASE);
-            assertThat(item.getItemGroup()).isIn("강화재료", "재련재료", "상급재련", "재련보조", "아크그리드젬", "각인서");
+            assertThat(item.getItemGroup()).isIn("재련재료", "상급재련", "재련보조", "아크그리드젬", "각인서");
         });
+
+        // quick-260715: 강화재료 그룹 폐지 — 융화 2종이 재련기본 9종과 합쳐져 재련재료 11. 대시보드의
+        // 재료 leaf는 item_group에서 그대로 파생되므로, 이 카운트가 곧 사용자가 보는 카테고리다.
+        Map<String, Long> byGroup = items.stream()
+                .collect(Collectors.groupingBy(TrackedItem::getItemGroup, Collectors.counting()));
+        assertThat(byGroup).doesNotContainKey("강화재료")
+                .containsEntry("재련재료", 11L)
+                .containsEntry("상급재련", 8L)
+                .containsEntry("재련보조", 6L)
+                .containsEntry("아크그리드젬", 6L)
+                .containsEntry("각인서", 18L);
 
         Map<String, TrackedItem> byId = items.stream()
                 .collect(Collectors.toMap(TrackedItem::getExternalItemId, Function.identity()));
 
-        // Sample fusion material: distinct icon, MATERIAL/강화재료, category 50010.
+        // Sample fusion material: distinct icon, MATERIAL/재련재료, category 50010. quick-260715: 융화재료는
+        // 재련에 반드시 들어가므로 '강화재료' 그룹을 폐지하고 재련재료로 통합했다(기존 행은 V7이 이관).
         TrackedItem fusion = byId.get("6861012");
         assertThat(fusion).isNotNull();
         assertThat(fusion.getIconUrl()).isEqualTo(ICON_BASE + "use_12_86.png");
-        assertThat(fusion.getItemGroup()).isEqualTo("강화재료");
+        assertThat(fusion.getItemGroup()).isEqualTo("재련재료");
         assertThat(fusion.getRoleGroup()).isEqualTo("MATERIAL");
         assertThat(fusion.getCategory()).isEqualTo("50010");
 

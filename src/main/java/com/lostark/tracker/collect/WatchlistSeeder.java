@@ -22,7 +22,7 @@ import java.util.List;
  *
  * <p>Beyond the collection identity, each entry carries the read-path enrichment locked by the
  * Phase 12 + 17.1 + 21 + quick-260714 API spikes (12-/17.1-/21-SPIKE-FINDINGS.md): {@code iconUrl}
- * (CDN base + measured filename), {@code itemGroup} (강화재료/재련재료/상급재련/재련보조/아크그리드젬/각인서),
+ * (CDN base + measured filename), {@code itemGroup} (재련재료/상급재련/재련보조/아크그리드젬/각인서),
  * and {@code roleGroup} ({@code MATERIAL}/{@code DEALER}/{@code SUPPORT}). All 49 entries below carry
  * a real, spike-verified {@code Id} and {@code Icon} — no placeholders. The 18 relic engraving recipes
  * share {@code use_9_25.png} (grade-single glyph, not per-engraving), so Phase 14 always labels them by
@@ -55,13 +55,16 @@ public class WatchlistSeeder implements ApplicationRunner {
     }
 
     // Spike-verified curation of 49 (12-/17.1-/21-/22b-/quick-260714-SPIKE-FINDINGS): 31 materials
-    // (융화 2 + 재련기본 9 + 상급재련 8 + 재련보조 6 + 아크그리드젬 6) + 11 dealer + 7 supporter engravings.
-    // Current T4 meta — high-volatility, high-value 스펙업 picks across all 3 role groups — judgment, not a dump.
+    // (재련재료 11 [융화 2 + 재련기본 9] + 상급재련 8 + 재련보조 6 + 아크그리드젬 6) + 11 dealer + 7 supporter
+    // engravings. Current T4 meta — high-volatility, high-value 스펙업 picks across all 3 role groups —
+    // judgment, not a dump.
     private static final List<SeedItem> WATCHLIST = List.of(
             // 재료 4 (role_group=MATERIAL, category=50010) — distinct icons. 융화재료 2 (아비도스) +
-            // 재련 재료 2 (운명 결정 — 17.1-SPIKE-FINDINGS §2).
-            new SeedItem("6861012", "아비도스 융화 재료", "50010", ICON_BASE + "use_12_86.png", "강화재료", "MATERIAL"),
-            new SeedItem("6861013", "상급 아비도스 융화 재료", "50010", ICON_BASE + "use_13_252.png", "강화재료", "MATERIAL"),
+            // 재련 재료 2 (운명 결정 — 17.1-SPIKE-FINDINGS §2). NOTE(domain, quick-260715): 융화재료는 재련에
+            // 반드시 들어가므로 별도 '강화재료' 그룹을 폐지하고 재련재료에 통합했다(V7이 기존 행을 이관 —
+            // 이 시더는 insert-only라 소스 수정만으론 기존 DB가 바뀌지 않는다).
+            new SeedItem("6861012", "아비도스 융화 재료", "50010", ICON_BASE + "use_12_86.png", "재련재료", "MATERIAL"),
+            new SeedItem("6861013", "상급 아비도스 융화 재료", "50010", ICON_BASE + "use_13_252.png", "재련재료", "MATERIAL"),
             new SeedItem("66102007", "운명의 파괴석 결정", "50010", ICON_BASE + "use_13_249.png", "재련재료", "MATERIAL"),
             new SeedItem("66102107", "운명의 수호석 결정", "50010", ICON_BASE + "use_13_250.png", "재련재료", "MATERIAL"),
             // ── v1.5(MKT-02) 신규 스펙업 재련 재료 17 (21-SPIKE-FINDINGS 비준). 전부 role_group=MATERIAL,
