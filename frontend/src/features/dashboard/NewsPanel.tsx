@@ -12,8 +12,9 @@ import type { Coupon, NewsEvent, NewsNotice } from '@/lib/schemas'
   Loading/Empty/Error and NEVER blanks the item grid in the left column — per-widget isolation, the
   same discipline as HealthCard.
 
-  진행중 이벤트 renders loawa.com-style: the event's banner THUMBNAIL with the title (+기간) in small
-  text beneath it (vertical cards, 1-column to fit the ~320px sidebar). 공지사항 is a compact list —
+  진행중인 이벤트 renders loawa.com-style: the event's banner THUMBNAIL with the title (+기간) in
+  small text beneath it (vertical cards, 1-column to fit the ~320px sidebar). 종료된 이벤트는 백엔드가 KST
+  기준으로 걸러 보내므로(NewsService.getLatest) 여기선 만료 판정을 하지 않는다. 공지사항 is a compact list —
   타입 뱃지 · 제목(폭에 맞춰 2줄, 넘치면 … 말줄임) · 날짜. Each card/row opens the official Lostark
   link in a NEW TAB with rel="noopener noreferrer" (tabnabbing guard). The frontend calls only
   /api/news — never Lostark directly (D-06).
@@ -55,8 +56,9 @@ export function NewsPanel() {
 /*
   쿠폰 섹션 — 관리자가 등록한 미만료 쿠폰(GET /api/coupons, 17.3-02 useCoupons). 백엔드가 이미
   만료임박순으로 정렬·만료분 제외(17.3-01)하므로 여기선 방어적 ≤6 slice만. useNews와 독립된 자체
-  <AsyncBoundary>라 쿠폰 로딩 실패가 이벤트/공지를 가리지 않는다(COUPON-03). 각 행은 code(강조)·reward·
-  만료일(newsDate, date-only YYYY.MM.DD — formatKst 금지) + 원클릭 복사 버튼(D-03).
+  <AsyncBoundary>라 쿠폰 로딩 실패가 이벤트/공지를 가리지 않는다(COUPON-03). 각 행은 code(강조) +
+  만료일(newsDate, date-only YYYY.MM.DD — formatKst 금지) + 원클릭 복사 버튼(D-03). reward는 응답에
+  그대로 있지만 표시하지 않는다 — 쿠폰 행에서 필요한 건 "무엇을 입력하는가(code)"와 "언제까지인가"뿐.
 */
 function CouponSection() {
   const couponsQuery = useCoupons()
@@ -91,8 +93,8 @@ function CouponSection() {
               <div className="flex items-center gap-2 rounded-md px-2 py-1.5">
                 <div className="min-w-0 flex-1 space-y-0.5">
                   <p className="truncate text-sm font-semibold tabular-nums">{coupon.code}</p>
-                  <p className="text-muted-foreground text-xs">
-                    {coupon.reward} · <span className="tabular-nums">{newsDate(coupon.expiresAt)}</span>
+                  <p className="text-muted-foreground text-xs tabular-nums">
+                    {newsDate(coupon.expiresAt)}
                   </p>
                 </div>
                 <Button
@@ -119,9 +121,9 @@ function CouponSection() {
 function EventSection({ events }: { events: NewsEvent[] }) {
   return (
     <section className="space-y-2">
-      <SectionHeading>진행중 이벤트</SectionHeading>
+      <SectionHeading>진행중인 이벤트</SectionHeading>
       {events.length === 0 ? (
-        <EmptyLine>진행중 이벤트가 없어요</EmptyLine>
+        <EmptyLine>진행중인 이벤트가 없어요</EmptyLine>
       ) : (
         <ul className="space-y-3">
           {events.map((event) => (
