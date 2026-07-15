@@ -45,9 +45,9 @@ class CouponControllerIT extends PostgresRedisContainers {
     void publicListReturnsOnlyUnexpiredSoonestFirst() {
         LocalDate today = LocalDate.now(KST);
         // Expiry-day itself is still valid (D-01): today is included; yesterday is excluded.
-        couponRepository.save(new Coupon("VALID-TODAY", "오늘 만료", today));
-        couponRepository.save(new Coupon("VALID-LATER", "10일 후 만료", today.plusDays(10)));
-        couponRepository.save(new Coupon("EXPIRED", "어제 만료", today.minusDays(1)));
+        couponRepository.save(new Coupon("VALID-TODAY", "오늘 만료", null, today));
+        couponRepository.save(new Coupon("VALID-LATER", "10일 후 만료", today.minusDays(3), today.plusDays(10)));
+        couponRepository.save(new Coupon("EXPIRED", "어제 만료", null, today.minusDays(1)));
 
         ResponseEntity<CouponResponse[]> resp =
                 rest.getForEntity("/api/coupons", CouponResponse[].class);

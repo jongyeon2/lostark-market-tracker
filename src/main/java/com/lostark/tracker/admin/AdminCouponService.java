@@ -27,7 +27,7 @@ public class AdminCouponService {
 
     public Coupon create(CouponRequest request) {
         return couponRepository.save(new Coupon(
-                request.code(), request.reward(), request.expiresAt()));
+                request.code(), request.reward(), request.startsAt(), request.expiresAt()));
     }
 
     public List<Coupon> list() {
@@ -37,7 +37,7 @@ public class AdminCouponService {
     public Coupon replace(long id, CouponRequest request) {
         Coupon coupon = couponRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Coupon " + id + " not found"));
-        coupon.replace(request.code(), request.reward(), request.expiresAt());
+        coupon.replace(request.code(), request.reward(), request.startsAt(), request.expiresAt());
         return couponRepository.save(coupon);
     }
 

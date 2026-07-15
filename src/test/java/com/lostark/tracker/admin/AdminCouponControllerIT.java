@@ -56,7 +56,7 @@ class AdminCouponControllerIT extends PostgresRedisContainers {
 
     @Test
     void createReturns201AndEntityStampsTimestamps() {
-        CouponRequest request = new CouponRequest("SUMMER2026", "골드 10000", JAN);
+        CouponRequest request = new CouponRequest("SUMMER2026", "골드 10000", null, JAN);
 
         ResponseEntity<CouponResponse> created = rest.exchange(
                 "/api/admin/coupons", HttpMethod.POST, AdminAuth.entity(request, adminSecret), CouponResponse.class);
@@ -76,9 +76,9 @@ class AdminCouponControllerIT extends PostgresRedisContainers {
 
     @Test
     void listReturnsCouponsOrderedByExpiresAtAsc() {
-        create(new CouponRequest("C-JAN", "보상1", JAN));
-        create(new CouponRequest("C-MAR", "보상3", MAR));
-        create(new CouponRequest("C-FEB", "보상2", FEB));
+        create(new CouponRequest("C-JAN", "보상1", null, JAN));
+        create(new CouponRequest("C-MAR", "보상3", null, MAR));
+        create(new CouponRequest("C-FEB", "보상2", null, FEB));
 
         ResponseEntity<CouponResponse[]> listed = rest.exchange(
                 "/api/admin/coupons", HttpMethod.GET, AdminAuth.entity(adminSecret), CouponResponse[].class);
@@ -93,10 +93,10 @@ class AdminCouponControllerIT extends PostgresRedisContainers {
 
     @Test
     void putFullReplaceChangesAllFieldsAndAdvancesUpdatedAt() {
-        Long id = create(new CouponRequest("OLD", "원래 보상", JAN)).id();
+        Long id = create(new CouponRequest("OLD", "원래 보상", null, JAN)).id();
         OffsetDateTime createdAt = couponRepository.findById(id).orElseThrow().getCreatedAt();
 
-        CouponRequest replacement = new CouponRequest("NEW", "정정 보상", MAR);
+        CouponRequest replacement = new CouponRequest("NEW", "정정 보상", null, MAR);
         ResponseEntity<CouponResponse> replaced = rest.exchange(
                 "/api/admin/coupons/" + id, HttpMethod.PUT, AdminAuth.entity(replacement, adminSecret),
                 CouponResponse.class);
@@ -117,7 +117,7 @@ class AdminCouponControllerIT extends PostgresRedisContainers {
 
     @Test
     void deleteReturns204AndRemovesFromList() {
-        Long id = create(new CouponRequest("DEL", "삭제 대상", JAN)).id();
+        Long id = create(new CouponRequest("DEL", "삭제 대상", null, JAN)).id();
 
         ResponseEntity<Void> deleted = rest.exchange(
                 "/api/admin/coupons/" + id, HttpMethod.DELETE, AdminAuth.entity(adminSecret), Void.class);
@@ -129,7 +129,7 @@ class AdminCouponControllerIT extends PostgresRedisContainers {
 
     @Test
     void putOnMissingIdReturns404Contract() {
-        CouponRequest request = new CouponRequest("NOPE", "없음", JAN);
+        CouponRequest request = new CouponRequest("NOPE", "없음", null, JAN);
 
         ResponseEntity<ApiErrorResponse> resp = rest.exchange(
                 "/api/admin/coupons/999999", HttpMethod.PUT, AdminAuth.entity(request, adminSecret),
@@ -148,12 +148,58 @@ class AdminCouponControllerIT extends PostgresRedisContainers {
 
     @Test
     void postWithBlankCodeReturns400Contract() {
-        assertContract(post(new CouponRequest("  ", "보상", JAN)), HttpStatus.BAD_REQUEST);
+        assertContract(post(new CouponRequest("  ", "보상", null, JAN)), HttpStatus.BAD_REQUEST);
     }
 
     @Test
     void postWithNullExpiresAtReturns400Contract() {
-        assertContract(post(new CouponRequest("CODE", "보상", null)), HttpStatus.BAD_REQUEST);
+        assertContract(post(new CouponRequest("CODE", "보상", null, null)), HttpStatus.BAD_REQUEST);
+    }
+
+    /* ── 시작일 (V8) ───────────────────────────────────────────────────────────────────────── */
+
+    @Test
+    void createRoundTripsStartsAt() {
+        CouponResponse created = create(new CouponRequest("PERIOD", "보상", JAN, MAR));
+
+        assertThat(created.startsAt()).isEqualTo(JAN);
+        assertThat(created.expiresAt()).isEqualTo(MAR);
+        assertThat(couponRepository.findById(created.id()).orElseThrow().getStartsAt()).isEqualTo(JAN);
+    }
+
+    @Test
+    void startsAtIsOptional() {
+        // 시작일을 모르는 쿠폰은 없는 날짜를 지어내지 않고 그대로 등록된다 — 화면은 "~ 만료일"로 렌더한다.
+        CouponResponse created = create(new CouponRequest("NO-START", "보상", null, JAN));
+
+        assertThat(created.startsAt()).isNull();
+        assertThat(created.expiresAt()).isEqualTo(JAN);
+    }
+
+    @Test
+    void postWithStartsAtAfterExpiresAtReturns400Contract() {
+        assertContract(post(new CouponRequest("REVERSED", "보상", MAR, JAN)), HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    void startsAtEqualToExpiresAtIsAccepted() {
+        // 하루짜리 쿠폰 — 경계는 유효하다.
+        assertThat(create(new CouponRequest("ONE-DAY", "보상", JAN, JAN)).startsAt()).isEqualTo(JAN);
+    }
+
+    @Test
+    void replaceCanClearStartsAt() {
+        // PUT은 full-replace다 — startsAt 생략은 "그대로 두기"가 아니라 "지우기"를 뜻한다.
+        Long id = create(new CouponRequest("HAS-START", "보상", JAN, MAR)).id();
+
+        ResponseEntity<CouponResponse> replaced = rest.exchange(
+                "/api/admin/coupons/" + id, HttpMethod.PUT,
+                AdminAuth.entity(new CouponRequest("HAS-START", "보상", null, MAR), adminSecret),
+                CouponResponse.class);
+
+        assertThat(replaced.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(replaced.getBody()).isNotNull();
+        assertThat(replaced.getBody().startsAt()).isNull();
     }
 
     @Test
@@ -161,7 +207,7 @@ class AdminCouponControllerIT extends PostgresRedisContainers {
         // No X-Admin-Secret header at all — the /api/admin/** gate must reject with the 401 contract.
         ResponseEntity<ApiErrorResponse> resp = rest.exchange(
                 "/api/admin/coupons", HttpMethod.POST,
-                new HttpEntity<>(new CouponRequest("NOSECRET", "보상", JAN)),
+                new HttpEntity<>(new CouponRequest("NOSECRET", "보상", null, JAN)),
                 ApiErrorResponse.class);
 
         // Explicitly 401, never 403.

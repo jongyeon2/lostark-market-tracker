@@ -14,11 +14,16 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 
 /**
- * An admin-registered coupon (code + reward + expiry). Mirrors {@link GameEvent}'s shape so the
+ * An admin-registered coupon (code + reward + 기간). Mirrors {@link GameEvent}'s shape so the
  * admin CRUD and public read stacks reuse the same pattern (COUPON-01). {@code expiresAt} is a
  * date-only {@link LocalDate} (D-01) — no instant/timezone conversion — and validity is judged on
  * the server's KST date so the expiry day stays valid until its end (23:59 KST). {@code code} carries
  * no unique constraint (D-04): the same code may be re-registered freely.
+ *
+ * <p>{@code startsAt} is NULLABLE (V8): coupons registered before the column existed have no start
+ * date, and inventing one would be fabricating a value the admin never entered. A null simply means
+ * "시작일 미상" and the panel renders "~ 만료일" instead. Ordering ({@code startsAt <= expiresAt}) is
+ * enforced at the request boundary, not here.
  */
 @Entity
 @Table(name = "coupon")
@@ -34,6 +39,10 @@ public class Coupon {
     @Column(name = "reward", nullable = false, length = 300)
     private String reward;
 
+    /** 시작일 — nullable by design (V8): unknown for pre-V8 coupons, and never invented. */
+    @Column(name = "starts_at")
+    private LocalDate startsAt;
+
     @Column(name = "expires_at", nullable = false)
     private LocalDate expiresAt;
 
@@ -46,9 +55,10 @@ public class Coupon {
     protected Coupon() {
     }
 
-    public Coupon(String code, String reward, LocalDate expiresAt) {
+    public Coupon(String code, String reward, LocalDate startsAt, LocalDate expiresAt) {
         this.code = code;
         this.reward = reward;
+        this.startsAt = startsAt;
         this.expiresAt = expiresAt;
     }
 
@@ -67,14 +77,16 @@ public class Coupon {
     }
 
     /**
-     * Full-replace mutation for {@code PUT /api/admin/coupons/{id}}: overwrites the three mutable
-     * fields ({@code code}, {@code reward}, {@code expiresAt}). The timestamp columns are intentionally
-     * untouched here: {@code @PreUpdate} stamps {@code updatedAt} on flush. No raw setters exist for the
-     * timestamp fields.
+     * Full-replace mutation for {@code PUT /api/admin/coupons/{id}}: overwrites the four mutable
+     * fields ({@code code}, {@code reward}, {@code startsAt}, {@code expiresAt}). A null
+     * {@code startsAt} CLEARS the start date — this is a full replace, not a patch. The timestamp
+     * columns are intentionally untouched here: {@code @PreUpdate} stamps {@code updatedAt} on flush.
+     * No raw setters exist for the timestamp fields.
      */
-    public void replace(String code, String reward, LocalDate expiresAt) {
+    public void replace(String code, String reward, LocalDate startsAt, LocalDate expiresAt) {
         this.code = code;
         this.reward = reward;
+        this.startsAt = startsAt;
         this.expiresAt = expiresAt;
     }
 
@@ -88,6 +100,10 @@ public class Coupon {
 
     public String getReward() {
         return reward;
+    }
+
+    public LocalDate getStartsAt() {
+        return startsAt;
     }
 
     public LocalDate getExpiresAt() {
