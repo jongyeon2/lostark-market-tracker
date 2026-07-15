@@ -39,14 +39,14 @@ import { NewsPanel } from './NewsPanel'
 */
 
 /*
-  물품 카드 박스 높이 = 416px(26rem). 사용자 요청은 "우측 소식 박스 위 선 ~ 첫 진행중 이벤트 카드
-  아래"였고 라이브 실측이 417px이었다(2026-07-15). 그 지점을 CSS로 추적할 수는 없다 — 소식 패널 맨
-  위가 쿠폰이라 관리자가 쿠폰을 6개 등록하면 그 지점이 ~637px로 밀리고, "옆 컬럼 특정 요소의 아래"를
-  가리키는 CSS는 없다(subgrid로도 다른 컬럼 내부 요소는 못 잡는다). JS 측정은 리사이즈·데이터 변경마다
-  재측정하는 레이아웃 코드를 부른다. 고정값이라 쿠폰 수가 바뀌면 어긋나지만, 어긋남은 우측 패널
-  안에서만 보이고 중앙 박스 높이는 항상 같아 화면이 흔들리지 않는다 (사용자 승인 2026-07-15).
+  물품 카드 박스 높이 = 468px = 카드 6장 + 그 사이 간격 5개 (6×68 + 5×12, 실측 2026-07-15).
+  카드가 잘리지 않고 정확히 6장이 보이는 값이다 — 처음엔 우측 소식 패널의 첫 이벤트 카드 아래에
+  맞춰 416px로 잡았는데, 그러면 6번째 카드가 중간에서 잘려 나갔다(5.2장). 옆 컬럼에 맞추는 것보다
+  이쪽 콘텐츠의 배수로 끊는 게 낫다: 소식 패널의 그 지점은 관리자가 등록한 쿠폰 수에 따라 움직이지만
+  (쿠폰 1개=417px / 2개=469px로 실측) 카드 높이는 고정이라 이 값은 안 흔들린다.
+  rem(29.25rem) 대신 px로 두는 건 저 계산식이 그대로 읽히기 때문이다.
 */
-const ITEM_BOX_HEIGHT = 'lg:h-[26rem] lg:overflow-y-auto'
+const ITEM_BOX_HEIGHT = 'lg:h-[468px] lg:overflow-y-auto'
 export function DashboardPage() {
   const { status, data, refetch } = useItems()
   const gemsQuery = useGems()
@@ -64,11 +64,9 @@ export function DashboardPage() {
 
   // 이벤트 영향 대상. 기본은 없음 — 카드를 눌러야 뜬다.
   const [selectedItemId, setSelectedItemId] = useState<number | null>(null)
-  const [impactWindow, setImpactWindow] = useState(24)
 
   const isGems = selectedId === GEM_CATEGORY_ID
   const visible = selectedId && !isGems ? filterByCategory(sorted, selectedId) : []
-  const selectedItem = sorted.find((i) => i.id === selectedItemId)
 
   /*
     카테고리를 바꾸면 선택을 버린다. 안 그러면 재료를 보고 있는데 아래엔 각인서의 이벤트 영향이 남아
@@ -80,7 +78,9 @@ export function DashboardPage() {
   }
 
   return (
-    <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-[11rem_minmax(0,1fr)_20rem]">
+    // 자체 max-w 없음 — 폭은 AppLayout <main>이 소유한다. 여기에도 max-w를 두면 같은 매직넘버가
+    // 두 곳이 되고, 실제로 그래서 껍데기만 넓혔을 때 그리드가 옛 값에서 다시 잘렸다(2026-07-15).
+    <div className="grid grid-cols-1 gap-8 lg:grid-cols-[11rem_minmax(0,1fr)_20rem]">
       {/* 좌(lg) / 상단(모바일) — 카테고리 필터. 로딩 중엔 leaf가 없어 자연 축소. */}
       <CategoryNav
         categories={categories}
@@ -116,12 +116,7 @@ export function DashboardPage() {
 
             {/* 보석 카테고리에선 렌더조차 안 한다 — 보석은 선택이 불가능하므로 안내 문구도 거짓이 된다. */}
             {selectedItemId != null ? (
-              <ItemImpactSection
-                itemId={selectedItemId}
-                displayName={selectedItem?.displayName ?? ''}
-                window={impactWindow}
-                onWindowChange={setImpactWindow}
-              />
+              <ItemImpactSection itemId={selectedItemId} />
             ) : (
               <p className="text-muted-foreground text-sm">
                 물품을 선택하면 이벤트 전후 시세 변화가 여기에 표시됩니다.

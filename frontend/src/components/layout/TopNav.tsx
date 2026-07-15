@@ -27,7 +27,8 @@ const navItems = [
 export function TopNav() {
   return (
     <header className="bg-card sticky top-0 z-40 h-14 border-b">
-      <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-8">
+      {/* max-w는 AppLayout <main>과 반드시 같아야 브랜드·메뉴가 본문과 정렬된다. 함께 바꿀 것. */}
+      <div className="mx-auto flex h-full max-w-[90rem] items-center justify-between px-8">
         <span className="text-base font-semibold">로스트아크 시세 트래커</span>
         <nav className="flex items-center gap-6">
           {navItems.map((item) => (
