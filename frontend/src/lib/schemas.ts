@@ -257,3 +257,34 @@ export type AdminCouponRequest = {
   startsAt: string | null
   expiresAt: string
 }
+
+// ---- 보석 현재가 read DTO (Phase 26, GEM-02) ----
+// GET /api/gems — 티어4 보석 6종(겁화·작열 × 8/9/10)의 최저 즉시구매가, 백엔드 Redis 스냅샷에서 서빙.
+// 프론트는 이 계약만 소비하고 경매장을 직접 호출하지 않는다(D-06).
+//
+// 거래소 DTO와 다른 점(Phase 24 실측): 보석엔 id가 없다 — 경매장 응답에 Id 필드 자체가 부재해서
+// series+level이 키다. 그래서 시계열도 없고 타임라인 딥링크도 없다(행이 링크가 아닌 이유).
+// updatedAt은 스냅샷을 만든 UTC 순간('...Z') — formatKst로 표시한다(뉴스/쿠폰의 오프셋 없는 로컬
+// 문자열과 반대). 캐시 없이 fail-open으로 서빙되면 null일 수 있다.
+// RATE_LIMITED는 고장이 아니라 설계된 양보다 — 경매장이 10분 수집과 레이트리밋 버킷을 공유하므로
+// (Phase 24 §H2) 수집이 예산을 쓰는 중이면 보석이 조회를 포기한다. FETCH_FAILED와 분리해 안내 문구를
+// 다르게 준다("잠시 후 다시" vs "불러오지 못함").
+export const gemPriceStatusSchema = z.enum(['OK', 'NO_BUYOUT', 'RATE_LIMITED', 'FETCH_FAILED'])
+export type GemPriceStatus = z.infer<typeof gemPriceStatusSchema>
+
+export const gemPriceSchema = z.object({
+  series: z.string(), // 겁화 | 작열 — 그룹 헤더용. 자유 문자열(계열 추가에 열려 있음)
+  level: z.number(), // 보석 레벨 8·9·10 (경매장 응답의 Level=1640 아이템레벨이 아님)
+  displayName: z.string(), // "8레벨" — 계열은 그룹 헤더가 말하므로 레벨만
+  iconUrl: z.string(),
+  // OK일 때만 non-null. status와 함께 움직여 null이 0인 척할 수 없다(insufficient_data 선례).
+  minBuyPrice: z.number().nullable(),
+  status: gemPriceStatusSchema, // z.enum → 미지의 상태는 .parse에서 loud-fail (roleGroup 선례)
+})
+export type GemPrice = z.infer<typeof gemPriceSchema>
+
+export const gemsResponseSchema = z.object({
+  gems: z.array(gemPriceSchema),
+  updatedAt: z.string().nullable(),
+})
+export type GemsResponse = z.infer<typeof gemsResponseSchema>

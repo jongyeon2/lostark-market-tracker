@@ -15,6 +15,7 @@ import {
   addAdminItem,
   deactivateAdminItem,
   getCoupons,
+  getGems,
   getAdminCoupons,
   createAdminCoupon,
   replaceAdminCoupon,
@@ -161,6 +162,17 @@ const COUPONS_KEY = ['coupons'] as const
 
 export function useCoupons() {
   return useQuery({ queryKey: COUPONS_KEY, queryFn: getCoupons, staleTime: 5 * 60 * 1000 })
+}
+
+/*
+  보석 현재가 (Phase 26, GEM-02). staleTime은 백엔드 캐시 TTL(5분)과 맞춘다 — 그보다 자주 물어봐야
+  같은 스냅샷이 돌아올 뿐이고, 경매장은 10분 수집과 레이트리밋 버킷을 공유하므로(Phase 24 §H2)
+  불필요한 왕복을 만들 이유가 없다. 폴링 없음(useNews와 동일 — read-only 화면).
+*/
+const GEMS_KEY = ['gems'] as const
+
+export function useGems() {
+  return useQuery({ queryKey: GEMS_KEY, queryFn: getGems, staleTime: 5 * 60 * 1000 })
 }
 
 const ADMIN_COUPONS_KEY = ['admin-coupons'] as const

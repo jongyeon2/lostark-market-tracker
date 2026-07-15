@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.7
 milestone_name: 경매장 보석 현재가
 status: "**v1.5 완료(4/4)** — Phase 20(이벤트 +3)·21(재련재료 스파이크)·22(추적 편입)·23(대시보드 3열) 완료 + quick-260714 교정. 워치리스트 **49종**: 강화재료 2·재련재료 9·상급재련 8(장인 야금술/재봉술 1~4단계)·재련보조 6(숨결 2+업화 4)·아크그리드젬 6·각인서 18(item_group 6종, role=MATERIAL 31/DEALER 11/SUPPORT 7). **Phase 23**: 대시보드 2열→3열(좌 CategoryNav 2단계 그룹 필터 / 중앙 물품 / 우 소식), 신규 CategoryNav+categories.ts, ItemCard/NewsPanel 무변경, 기존 토큰 재사용(신규 0). 라이브 Playwright QA 통과(데스크톱 3열·필터·모바일 칩·빈 카테고리 숨김). 수집/캐시/event-impact 로직 0줄. Phase 24(경매장 보석)=v1.6 후보. v1.4 완료·라이브 검증됨."
-stopped_at: Phase 24(경매장 보석 스파이크) 실행·검증 완료. 🚦 휴먼 비준 대기 — (a) 보석 6종 카탈로그, (b) "현재가=최저 즉시구매가" 채택. 비준 후 GEM-02(구현) 계획(UI-SPEC 선행). 🔐 API 키 재발급 권고(실행 중 콘솔 노출, 산출물엔 미기재)
-last_updated: "2026-07-15T15:35:00.000Z"
-last_activity: 2026-07-15 -- Phase 24 완료(경매장 보석 카탈로그 스파이크) — 보석 6종 잠금 · "현재가"=min(BuyPrice) 정의 잠금 · 레이트리밋 버킷 거래소와 공유 확정(캐시 필수). v1.6 배포 확인 완료(V7·V8 반영)
+stopped_at: v1.7 완료(Phase 24 스파이크 + Phase 26 /gems 구현). 라이브 6/6 OK. 미푸시. ⚠️ 보고사항: 공유 토큰버킷(용량90+리필90/분)이 서버 한도 100/분을 넘길 수 있음 — Phase 2부터의 성질, 미수정(Core Value 코드라 별도 판단 필요)
+last_updated: "2026-07-15T16:20:00.000Z"
+last_activity: 2026-07-15 -- v1.7 완료: Phase 24(보석 스파이크) + Phase 26(/gems 구현). 라이브 6/6 OK, 캐시 증명(0.70s→0.04s). 실버그 1건: 보석이 공유 토큰버킷 우회 → 429 → 같은 버킷 편입 후 해소
 progress:
   total_phases: 12
   completed_phases: 8
@@ -21,17 +21,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-01 for v1.3 milestone)
 
 **Core value:** 레이트리밋이 걸린 외부 마켓 API에서 시세를 빠짐없이 수집해 시계열로 쌓고, 캐시로 안정적으로 서빙한다
-**Current focus:** 🚧 **v1.7 경매장 보석 현재가 착수(2026-07-15)** — v2로 미뤄둔 `SRC-V2-01`(경매장/보석 소스 확장) 실현. 스코프 **티어4 8~10레벨 보석만**(사용자 확정). Phase 24=Stage 0 스파이크(계획 완료, 실행 대기). v1.6(Phase 25)·v1.5(20–23) 완료·배포 검증됨.
+**Current focus:** ✅ **v1.7 경매장 보석 현재가 완료(2026-07-15)** — v2로 미뤄둔 `SRC-V2-01`(경매장/보석 소스 확장) 실현. 스코프 **티어4 8~10레벨 보석만**(사용자 확정·비준). Phase 24(스파이크·잠금) + Phase 26(`/gems` 구현) 완료, 라이브 6/6 OK. v1.6(Phase 25)·v1.5(20–23) 완료·배포 검증됨.
 
 ## Current Position
 
-Milestone: v1.7 경매장 보석 현재가 (Phase 24–) — **Phase 24 완료(1/1)**. 직전 v1.6(Phase 25)·v1.5(20–23) 완료
-Next: 🚦 **휴먼 비준** 후 **GEM-02(구현) 계획** — 신규 화면이므로 `/gsd-ui-phase` 선행. 비준 항목: (a) 티어4 보석 6종(겁화 8/9/10 + 작열 8/9/10), (b) "현재가 = `min(BuyPrice)` 최저 즉시구매가" 채택.
-**스파이크 실측 잠금**(`24-SPIKE-FINDINGS.md`): 보석=CategoryCode **210000**(leaf) · 응답에 **`Id` 없음**(이름 키) · **`Level`은 아이템레벨(1640)**이고 보석 레벨은 이름 안에만 있음(숫자 레벨 필터 부재) · 아이콘 거래소와 동일 CDN·**전부 distinct** · `PageNo` 1-based·`PageSize` 10 · **ASC만 사용**(DESC는 BuyPrice null이 선두) · 전수 증명 겁화 1083+작열 1136=2219=티어4 전체.
-🔑 **레이트리밋 버킷 거래소와 공유 확정** → 보석 조회가 10분 수집 예산을 깎음 → **GEM-02 캐시 필수**(6콜/refresh). 1차 측정은 운영 수집기 간섭으로 노이즈였고 통제 측정으로 재판정.
-🔐 **후속**: API 키 재발급 권고 — 스파이크 실행 중 `. ./.env` 소싱 실패로 키 일부가 콘솔 노출(문서·커밋엔 미기재). `.env` 키 값에 **공백 포함**(앱은 `replaceAll("\\s","")`로 정상 동작).
-Status: ✅ **Phase 25 완료** — event-impact가 스냅샷 없으면 백필 일평균으로 폴백(`anchorSource=DAILY_AVG`, 화면 "일별 평균 기준"), min(호가)/avg(체결) 혼합 금지·기존 ok 행 값 불변. 워치리스트 item_group 5종(강화재료 폐지→재련재료 11, V7). v1.5 4/4 완료 + quick-260714 교정. Phase 23(대시보드 3열) 코드+라이브 Playwright QA 통과(데스크톱 3열·필터·모바일 칩). 워치리스트 **49**(MATERIAL 31/DEALER 11/SUPPORT 7), item_group 6종. 수집 로직 0줄. 설계: `docs/superpowers/specs/2026-07-14-v1.5-market-scope-ux-design.md`
-Last activity: 2026-07-15 -- quick-260715-g98 완료(재료 망치 아이콘 + 쿠폰 시작일~만료일, V8). 같은 날: Phase 25(event-impact 백필 폴백 — 차원술사×타격의 대가 "데이터 부족"→+40.6%), quick-260715-eeg(소식 패널 만료 필터), quick-260715-nav(강화재료 폐지→재련재료 V7). 사용자 요청 5+2건 전부 반영. 다음: 사용자가 직접 push(배포 시 **V7·V8 마이그레이션** 실행) 또는 Phase 24(경매장 보석) 착수 결정
+Milestone: v1.7 경매장 보석 현재가 — ✅ **완료(Phase 24·26, 2/2)**. 직전 v1.6(Phase 25)·v1.5(20–23) 완료
+Next: **push로 배포 반영**(사용자가 직접) — 마이그레이션 **없음**(보석은 DB 미사용), Caddy SPA fallback이 있어 `/gems` 라우트 추가 설정 불요, CSP 무변경.
+**Phase 26 잠금**: `GET /api/gems` → 보석 6종 최저 즉시구매가(`min(BuyPrice)`), Redis `gem:latest` TTL 5분 **캐시-어사이드**(폴러 없음 → 무방문 시 경매장 호출 0). 행 상태 4값 `OK`/`NO_BUYOUT`/`RATE_LIMITED`/`FETCH_FAILED` — 가격 없으면 값을 지어내지 않고 행 단위 문구. `/gems` 행은 **링크 아님**(보석은 Id·시계열 없음 → 갈 곳 없음).
+🔑 **실버그(수정 완료)**: 보석이 프로젝트 공유 `RedisTokenBucket`("one API key, one bucket" D-03)을 우회해 첫 라이브에서 429(겁화 3 OK/작열 3 실패). 같은 버킷 편입 후 6/6 OK. IT 9/9.
+⚠️ **미수정 보고사항**: 버킷 용량 90 + 리필 90/분 → 가득 찬 상태면 1분 최대 180콜 가능한데 서버 한도 100/분. 리미터를 지켜도 429 가능(dev 기동 시 수집49+백필49 동시 발화로 더 쉬움). Phase 2부터의 성질이고 수집기는 Retry-After로 흡수 → **Core Value 코드라 손대지 않음**, 별도 판단 필요.
 
 ## Performance Metrics
 

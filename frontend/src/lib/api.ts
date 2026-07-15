@@ -10,6 +10,7 @@ import {
   newsResponseSchema,
   couponSchema,
   couponsSchema,
+  gemsResponseSchema,
   type CollectionHealth,
   type TrackedItem,
   type TrackedItems,
@@ -24,6 +25,7 @@ import {
   type Coupon,
   type Coupons,
   type AdminCouponRequest,
+  type GemsResponse,
 } from '@/lib/schemas'
 import { getAdminSecret } from '@/features/admin/auth/adminSecret'
 
@@ -198,6 +200,14 @@ export async function deactivateAdminItem(id: number): Promise<void> {
 
 export async function getCoupons(): Promise<Coupons> {
   return couponsSchema.parse(await request('/api/coupons'))
+}
+
+// ---- 보석 현재가 read (Phase 26, GEM-02) ----
+// GET /api/gems — 백엔드가 경매장을 조회·캐시해 서빙한다. 프론트는 경매장을 직접 호출하지 않는다(D-06):
+// 실 키는 서버 env에만 있고, 경매장은 10분 수집과 레이트리밋 버킷을 공유하므로(Phase 24 §H2) 호출
+// 예산 관리는 백엔드 캐시의 책임이다.
+export async function getGems(): Promise<GemsResponse> {
+  return gemsResponseSchema.parse(await request('/api/gems'))
 }
 
 export async function getAdminCoupons(): Promise<Coupons> {

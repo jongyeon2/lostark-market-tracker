@@ -82,8 +82,8 @@ v1.0에서 v2로 연기했던 `DEPLOY-V2-01`(무료 호스팅 데모 배포)을 
 
 v1.0에서 v2로 연기했던 `SRC-V2-01`(경매장(AUCTIONS)/보석 소스 확장)을 v1.7에서 실현. **PROJECT.md의 "데이터 소스=거래소만" 경계를 의도적으로 넓히는 것**이라 별도 마일스톤으로 분리. 스코프는 **티어4 보석 8·9·10레벨만**(사용자 확정 2026-07-15), 클래스 무관. 보석은 **"현재가 둘러보기"(온디맨드+캐시)로 한정하고 시계열 미기록** — 거래소 10분 수집(Core Value)을 오염시키지 않는다. 아크그리드젬은 Phase 21 스파이크에서 거래소(230000)로 판명나 Phase 22에서 이미 추적 편입 → v1.7은 보석만.
 
-- [ ] **GEM-01**: 경매장 API(`GET /auctions/options`·`POST /auctions/items`)를 실호출로 검증해 티어4 8~10레벨 보석의 실 카탈로그(Id·이름·아이콘)와 **"현재가"의 정의**(`BuyPrice` 즉시구매 vs `BidStartPrice` 입찰시작 vs `AuctionInfo`)를 잠그고, 기존 JWT 키·레이트리밋 버킷 공유 여부를 판정해 `24-SPIKE-FINDINGS.md`에 기록한다 (공개 메타데이터만·가격 원문/키 미기재, `spike` 프로파일 한정이라 일반 실행·CI 미개입)
-- [ ] **GEM-02**: *(GEM-01 findings 확정 후 계획)* 티어4 8~10레벨 보석의 현재가를 온디맨드로 조회·캐시해 서빙하고 화면에 표시한다 — 시계열 미기록, 프론트는 백엔드만 소비(로아 직접 호출 금지), 수집/캐시/event-impact 로직 0줄
+- [x] **GEM-01**: 경매장 API(`GET /auctions/options`·`POST /auctions/items`)를 실호출로 검증해 티어4 8~10레벨 보석의 실 카탈로그(Id·이름·아이콘)와 **"현재가"의 정의**(`BuyPrice` 즉시구매 vs `BidStartPrice` 입찰시작 vs `AuctionInfo`)를 잠그고, 기존 JWT 키·레이트리밋 버킷 공유 여부를 판정해 `24-SPIKE-FINDINGS.md`에 기록한다 (공개 메타데이터만·가격 원문/키 미기재, `spike` 프로파일 한정이라 일반 실행·CI 미개입)
+- [x] **GEM-02**: 티어4 8~10레벨 보석의 현재가를 온디맨드로 조회·캐시해 서빙하고 화면에 표시한다 — 시계열 미기록, 프론트는 백엔드만 소비(로아 직접 호출 금지), 수집/캐시/event-impact 로직 0줄
 
 ## v2 Requirements
 
@@ -133,6 +133,8 @@ v1.0에서 v2로 연기했던 `SRC-V2-01`(경매장(AUCTIONS)/보석 소스 확�
 | COUPON-01..03 | Phase 17.3 | Complete |
 | BACKFILL-01..04 | Phase 17.4 | Complete |
 | DEPLOY-01..04 | Phase 18 | Pending |
+| GEM-01 | Phase 24 | Complete |
+| GEM-02 | Phase 26 | Complete |
 
 **Coverage:**
 - v1.3 requirements: 30 total

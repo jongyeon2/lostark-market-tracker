@@ -2,11 +2,14 @@ import { NavLink } from 'react-router-dom'
 
 import { cn } from '@/lib/utils'
 
-// FND-03: the three top-level routes as text labels (UI-SPEC nav copy).
+// FND-03: the top-level routes as text labels (UI-SPEC nav copy). '보석' joined in Phase 26 — gems get
+// their own route because they carry no id and no time series, so they cannot live in the dashboard's
+// item grid (whose cards deep-link to /timeline).
 const navItems = [
   { to: '/dashboard', label: '대시보드' },
   { to: '/timeline', label: '품목 타임라인' },
   { to: '/impact', label: '이벤트 영향' },
+  { to: '/gems', label: '보석' },
 ]
 
 /*
