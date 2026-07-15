@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.5
-milestone_name: 시세 범위 확장 + UX
+milestone: v1.6
+milestone_name: 이벤트 영향 신뢰성
 status: "**v1.5 완료(4/4)** — Phase 20(이벤트 +3)·21(재련재료 스파이크)·22(추적 편입)·23(대시보드 3열) 완료 + quick-260714 교정. 워치리스트 **49종**: 강화재료 2·재련재료 9·상급재련 8(장인 야금술/재봉술 1~4단계)·재련보조 6(숨결 2+업화 4)·아크그리드젬 6·각인서 18(item_group 6종, role=MATERIAL 31/DEALER 11/SUPPORT 7). **Phase 23**: 대시보드 2열→3열(좌 CategoryNav 2단계 그룹 필터 / 중앙 물품 / 우 소식), 신규 CategoryNav+categories.ts, ItemCard/NewsPanel 무변경, 기존 토큰 재사용(신규 0). 라이브 Playwright QA 통과(데스크톱 3열·필터·모바일 칩·빈 카테고리 숨김). 수집/캐시/event-impact 로직 0줄. Phase 24(경매장 보석)=v1.6 후보. v1.4 완료·라이브 검증됨."
-stopped_at: v1.5 완료(4/4) — Phase 23(대시보드 3열) 구현+라이브 QA 통과. 다음: v1.5 마일스톤 마감 또는 Phase 24(경매장, v1.6) 착수 결정
-last_updated: "2026-07-14T13:10:00.000Z"
-last_activity: 2026-07-14 -- Phase 23 완료(대시보드 3열 카테고리 레이아웃, UX-01/UX-02) — 코드+라이브 Playwright QA 통과. v1.5 4/4
+stopped_at: Phase 25(event-impact 백필 폴백 앵커) 완료 + 사용자 요청 5건 전부 반영(quick-260715-eeg·nav 포함). 다음: push로 배포 반영(V7 포함) 또는 Phase 24(경매장 보석) 착수 결정
+last_updated: "2026-07-15T02:40:00.000Z"
+last_activity: 2026-07-15 -- Phase 25 완료(event-impact 백필 폴백 앵커) — 차원술사×타격의 대가 "데이터 부족"→+40.6%. 사용자 요청 5건 전부 반영
 progress:
   total_phases: 12
   completed_phases: 8
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-01 for v1.3 milestone)
 
 **Core value:** 레이트리밋이 걸린 외부 마켓 API에서 시세를 빠짐없이 수집해 시계열로 쌓고, 캐시로 안정적으로 서빙한다
-**Current focus:** v1.5 시세 범위 확장 + UX **진행(1/4)** — ✅ Phase 20(이벤트 카테고리 +3) 완료. 다음: **Phase 21(재련 재료 스파이크 Stage 0)** — 거래소 재련재료 실측·잠금. (v1.4 CI/CD 자동화는 완료·라이브 검증됨.)
+**Current focus:** ✅ **v1.6 이벤트 영향 신뢰성(Phase 25) 완료** — 이벤트 영향이 백필 일평균으로 폴백해, 수집 시작(7/10) 이전 이벤트가 구조적으로 "데이터 부족"이던 문제 해소. v1.5(20–23)도 완료.
 
 ## Current Position
 
-Milestone: v1.5 시세 범위 확장 + UX (Phases 20–24) — ✅ 완료(4/4: Phase 20·21·22·23). Phase 24(경매장)=v1.6 후보
-Next: **v1.5 마감 또는 Phase 24(경매장 보석, v1.6) 착수 결정.** 배포 반영은 push 시 CI가 프론트 빌드→GHCR 재배포(워치리스트 49종 재시드).
-Status: ✅ **v1.5 4/4 완료** + quick-260714 교정. Phase 23(대시보드 3열) 코드+라이브 Playwright QA 통과(데스크톱 3열·필터·모바일 칩). 워치리스트 **49**(MATERIAL 31/DEALER 11/SUPPORT 7), item_group 6종. 수집 로직 0줄. 설계: `docs/superpowers/specs/2026-07-14-v1.5-market-scope-ux-design.md`
-Last activity: 2026-07-15 -- quick-260715-nav 완료(대시보드 카테고리: 강화재료 폐지→재련재료 통합 V7, 각인서 구분선+아이콘). 직전: quick-260715-eeg(소식 패널 만료 이벤트 필터). 다음: Phase 24(event-impact 백필 폴백 앵커 — 수집 시작 7/10 이전 이벤트가 구조적으로 "데이터 부족"인 문제)
+Milestone: v1.6 이벤트 영향 신뢰성 (Phase 25) — ✅ 완료(1/1). 직전 v1.5(Phases 20–23) 완료. Phase 24(경매장 보석)=미착수 후보
+Next: **push로 배포 반영** — CI가 프론트 빌드→GHCR 재배포. 이번 배포엔 **Flyway V7**(강화재료→재련재료 이관)이 포함되므로 운영 DB의 아비도스 2종이 재련재료로 옮겨진다. 이후 Phase 24(경매장 보석) 착수 여부 결정.
+Status: ✅ **Phase 25 완료** — event-impact가 스냅샷 없으면 백필 일평균으로 폴백(`anchorSource=DAILY_AVG`, 화면 "일별 평균 기준"), min(호가)/avg(체결) 혼합 금지·기존 ok 행 값 불변. 워치리스트 item_group 5종(강화재료 폐지→재련재료 11, V7). v1.5 4/4 완료 + quick-260714 교정. Phase 23(대시보드 3열) 코드+라이브 Playwright QA 통과(데스크톱 3열·필터·모바일 칩). 워치리스트 **49**(MATERIAL 31/DEALER 11/SUPPORT 7), item_group 6종. 수집 로직 0줄. 설계: `docs/superpowers/specs/2026-07-14-v1.5-market-scope-ux-design.md`
+Last activity: 2026-07-15 -- **Phase 25 완료**(event-impact 백필 폴백 앵커) — 차원술사×타격의 대가가 "데이터 부족"→+40.6%. 같은 날 quick-260715-eeg(소식 패널 만료 이벤트 필터)·quick-260715-nav(강화재료 폐지→재련재료 V7, 각인서 구분선/아이콘) 완료. 사용자 요청 5건 전부 반영. 다음: push로 배포 반영(V7 마이그레이션 포함) 또는 Phase 24(경매장 보석, v1.6 후보)
 
 ## Performance Metrics
 
