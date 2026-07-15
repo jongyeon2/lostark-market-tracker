@@ -31,6 +31,14 @@ public record EventImpactItem(
         OffsetDateTime postAnchorAt,
         Long prePrice,
         Long postPrice,
-        BigDecimal changeRate
+        BigDecimal changeRate,
+        /**
+         * Which measurement {@code changeRate} was computed from, or {@code null} when there is no rate
+         * (Phase 25). {@code SNAPSHOT_MIN} = 10-minute 최저 호가 anchors (the default, unchanged since
+         * Phase 5); {@code DAILY_AVG} = the backfilled daily 체결 평균가, used ONLY when snapshot anchors
+         * are absent. The two are never mixed inside one rate — this field tells the client which lens
+         * a row was measured through so it can say so out loud rather than implying they are the same.
+         */
+        AnchorSource anchorSource
 ) {
 }
