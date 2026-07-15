@@ -13,7 +13,7 @@ import { NewsPanel } from './NewsPanel'
   DashboardPage — the client dashboard, a maplanet-style 3-column layout (Phase 23, UX-01/UX-02):
   좌 CategoryNav(카테고리 필터) / 중앙 선택 카테고리 물품 / 우 NewsPanel. useItems() is client-sorted
   by role via sortByRole (backend stays 0-line); deriveCategories groups the sorted items into
-  non-empty leaves (각인 딜러/서포터 + 재료 5 itemGroup — categories.ts is the single source). Picking a
+  non-empty leaves (각인서 딜러/서포터 + 재료 4 itemGroup — categories.ts is the single source). Picking a
   leaf filters the center list; selection is local useState only (A4 — YAGNI, no URL/router state).
 
   The center item list and the news panel each keep their OWN AsyncBoundary so one side failing never
@@ -39,7 +39,12 @@ export function DashboardPage() {
   return (
     <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-[11rem_minmax(0,1fr)_20rem]">
       {/* 좌(lg) / 상단(모바일) — 카테고리 필터. 로딩 중엔 leaf가 없어 자연 축소. */}
-      <CategoryNav categories={categories} selectedId={selectedId} onSelect={setPicked} />
+      <CategoryNav
+        categories={categories}
+        items={sorted}
+        selectedId={selectedId}
+        onSelect={setPicked}
+      />
 
       {/* 중앙 — 선택 카테고리 물품. 기존 물품 AsyncBoundary 유지(pending/error/0건 판정은 원본 data 길이). */}
       <AsyncBoundary status={status} isEmpty={(data?.length ?? 0) === 0} onRetry={() => refetch()}>

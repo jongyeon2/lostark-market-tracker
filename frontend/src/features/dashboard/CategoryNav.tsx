@@ -1,6 +1,7 @@
 import { cn } from '@/lib/utils'
+import type { TrackedItem } from '@/lib/schemas'
 
-import type { Category, CategoryGroup } from './categories'
+import { groupIconUrl, type Category, type CategoryGroup } from './categories'
 
 /*
   CategoryNav — the dashboard's category filter (Phase 23, UX-01/UX-02). Stateless: it renders the
@@ -8,17 +9,24 @@ import type { Category, CategoryGroup } from './categories'
   component, two responsive faces — a grouped vertical nav on lg+, a horizontal scrollable chip row
   below lg (same leaves, same order). Active state is never color-alone: it pairs the reserved
   primary accent with background + weight + aria-current so identity survives without color.
-  Reuses existing tokens only (primary/muted/ring) — no new colors, icons, or spacing.
+  Reuses existing tokens only (primary/muted/ring) — no new colors or spacing.
+
+  Each desktop group header carries a rule directly beneath it (quick-260715): without one, the group
+  label and its leaves read as siblings in the same flat list rather than a heading over its members.
+  각인서 also shows its representative icon (groupIconUrl — data-derived, null for 재료).
 */
 
-const GROUP_ORDER: readonly CategoryGroup[] = ['각인', '재료']
+const GROUP_ORDER: readonly CategoryGroup[] = ['각인서', '재료']
 
 export function CategoryNav({
   categories,
+  items,
   selectedId,
   onSelect,
 }: {
   categories: Category[]
+  /** Loaded items — the source the group header icon is derived from (never re-filtered here). */
+  items: readonly TrackedItem[]
   selectedId: string | null
   onSelect: (id: string) => void
 }) {
@@ -30,10 +38,15 @@ export function CategoryNav({
           {GROUP_ORDER.map((group) => {
             const leaves = categories.filter((c) => c.group === group)
             if (leaves.length === 0) return null
+            const iconUrl = groupIconUrl(items, group)
             return (
               <div key={group} className="space-y-1">
-                <h2 className="text-muted-foreground px-2 text-sm font-semibold tracking-wide">
+                <h2 className="border-border text-muted-foreground flex items-center gap-1.5 border-b px-2 pb-1.5 text-sm font-semibold tracking-wide">
                   {group}
+                  {iconUrl ? (
+                    // alt="" — the group label right beside it already names this icon.
+                    <img src={iconUrl} alt="" loading="lazy" className="size-4 shrink-0 rounded-sm" />
+                  ) : null}
                 </h2>
                 <ul className="space-y-0.5">
                   {leaves.map((cat) => (
