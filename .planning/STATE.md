@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.6
-milestone_name: 이벤트 영향 신뢰성
+milestone: v1.7
+milestone_name: 경매장 보석 현재가
 status: "**v1.5 완료(4/4)** — Phase 20(이벤트 +3)·21(재련재료 스파이크)·22(추적 편입)·23(대시보드 3열) 완료 + quick-260714 교정. 워치리스트 **49종**: 강화재료 2·재련재료 9·상급재련 8(장인 야금술/재봉술 1~4단계)·재련보조 6(숨결 2+업화 4)·아크그리드젬 6·각인서 18(item_group 6종, role=MATERIAL 31/DEALER 11/SUPPORT 7). **Phase 23**: 대시보드 2열→3열(좌 CategoryNav 2단계 그룹 필터 / 중앙 물품 / 우 소식), 신규 CategoryNav+categories.ts, ItemCard/NewsPanel 무변경, 기존 토큰 재사용(신규 0). 라이브 Playwright QA 통과(데스크톱 3열·필터·모바일 칩·빈 카테고리 숨김). 수집/캐시/event-impact 로직 0줄. Phase 24(경매장 보석)=v1.6 후보. v1.4 완료·라이브 검증됨."
-stopped_at: Phase 25(event-impact 백필 폴백 앵커) 완료 + 사용자 요청 5건 전부 반영(quick-260715-eeg·nav 포함). 다음: push로 배포 반영(V7 포함) 또는 Phase 24(경매장 보석) 착수 결정
-last_updated: "2026-07-15T02:40:00.000Z"
-last_activity: 2026-07-15 -- Phase 25 완료(event-impact 백필 폴백 앵커) — 차원술사×타격의 대가 "데이터 부족"→+40.6%. 사용자 요청 5건 전부 반영
+stopped_at: Phase 24-01 계획 완료(경매장 보석 카탈로그 스파이크). 다음: Task 1~3 실행 — 실행엔 `.env` LOSTARK_API_KEY 주입 + `@Disabled` 일시 제거 필요(수동 스파이크)
+last_updated: "2026-07-15T09:10:00.000Z"
+last_activity: 2026-07-15 -- v1.6 배포 확인 완료(사용자 push, V7·V8 반영). v1.7 착수 — Phase 24(경매장 보석 스파이크) 로드맵 정식화 + 24-01-PLAN 작성
 progress:
   total_phases: 12
   completed_phases: 8
@@ -21,12 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-01 for v1.3 milestone)
 
 **Core value:** 레이트리밋이 걸린 외부 마켓 API에서 시세를 빠짐없이 수집해 시계열로 쌓고, 캐시로 안정적으로 서빙한다
-**Current focus:** ✅ **v1.6 이벤트 영향 신뢰성(Phase 25) 완료** — 이벤트 영향이 백필 일평균으로 폴백해, 수집 시작(7/10) 이전 이벤트가 구조적으로 "데이터 부족"이던 문제 해소. v1.5(20–23)도 완료.
+**Current focus:** 🚧 **v1.7 경매장 보석 현재가 착수(2026-07-15)** — v2로 미뤄둔 `SRC-V2-01`(경매장/보석 소스 확장) 실현. 스코프 **티어4 8~10레벨 보석만**(사용자 확정). Phase 24=Stage 0 스파이크(계획 완료, 실행 대기). v1.6(Phase 25)·v1.5(20–23) 완료·배포 검증됨.
 
 ## Current Position
 
-Milestone: v1.6 이벤트 영향 신뢰성 (Phase 25) — ✅ 완료(1/1). 직전 v1.5(Phases 20–23) 완료. Phase 24(경매장 보석)=미착수 후보
-Next: **push로 배포 반영** — CI가 프론트 빌드→GHCR 재배포. 이번 배포엔 **Flyway V7**(강화재료→재련재료 이관)이 포함되므로 운영 DB의 아비도스 2종이 재련재료로 옮겨진다. 이후 Phase 24(경매장 보석) 착수 여부 결정.
+Milestone: v1.7 경매장 보석 현재가 (Phase 24–) — Phase 24 계획 완료(0/1 실행). 직전 v1.6(Phase 25)·v1.5(20–23) 완료
+Next: **Phase 24-01 실행** — 경매장 API 실호출 스파이크. `LostarkSpikeClient`에 `/auctions/options`·`/auctions/items` 추가 → `AuctionsApiSpikeTest`로 실측 → `24-SPIKE-FINDINGS.md` 잠금 → **휴먼 비준**(보석 카탈로그 + "현재가" 정의) 후 GEM-02(구현) 계획.
+⚠️ 실행 전제: `.env` LOSTARK_API_KEY 유효 + `@Disabled` 일시 제거(수동 스파이크·CI 미실행). **편차 프로토콜**: 레이트리밋 버킷이 거래소와 공유 + 여유 없음으로 나오면 즉시 정지·사용자 보고(Core Value 우선).
 Status: ✅ **Phase 25 완료** — event-impact가 스냅샷 없으면 백필 일평균으로 폴백(`anchorSource=DAILY_AVG`, 화면 "일별 평균 기준"), min(호가)/avg(체결) 혼합 금지·기존 ok 행 값 불변. 워치리스트 item_group 5종(강화재료 폐지→재련재료 11, V7). v1.5 4/4 완료 + quick-260714 교정. Phase 23(대시보드 3열) 코드+라이브 Playwright QA 통과(데스크톱 3열·필터·모바일 칩). 워치리스트 **49**(MATERIAL 31/DEALER 11/SUPPORT 7), item_group 6종. 수집 로직 0줄. 설계: `docs/superpowers/specs/2026-07-14-v1.5-market-scope-ux-design.md`
 Last activity: 2026-07-15 -- quick-260715-g98 완료(재료 망치 아이콘 + 쿠폰 시작일~만료일, V8). 같은 날: Phase 25(event-impact 백필 폴백 — 차원술사×타격의 대가 "데이터 부족"→+40.6%), quick-260715-eeg(소식 패널 만료 필터), quick-260715-nav(강화재료 폐지→재련재료 V7). 사용자 요청 5+2건 전부 반영. 다음: 사용자가 직접 push(배포 시 **V7·V8 마이그레이션** 실행) 또는 Phase 24(경매장 보석) 착수 결정
 
