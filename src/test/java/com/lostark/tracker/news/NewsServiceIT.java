@@ -25,8 +25,13 @@ import static org.mockito.Mockito.when;
  * <ul>
  *   <li>refresh() caches a snapshot and getLatest() serves it (events/notices/updatedAt);</li>
  *   <li>a failing poll KEEPS the last cache untouched (D-07 keep-on-failure);</li>
- *   <li>a cold cache returns empty lists + {@code updatedAt=null}.</li>
+ *   <li>a cold cache returns empty lists + {@code updatedAt=null};</li>
+ *   <li>an event that ENDED while cached is filtered at serve time (요청 4번).</li>
  * </ul>
+ *
+ * <p>Fixture dates are deliberately far-future/far-past rather than "a few days out": serve-time
+ * filtering judges {@code endDate} against the real KST clock, so a near-dated fixture would turn this
+ * suite into a time bomb that goes red on the day the fixture expires.
  */
 @SpringBootTest
 @ActiveProfiles("test")
@@ -40,9 +45,14 @@ class NewsServiceIT extends PostgresRedisContainers {
     @Autowired
     RedisConnectionFactory redisConnectionFactory;
 
+    private static final String FAR_FUTURE = "2099-12-31T06:00:00";
     private static final NewsEvent EVENT =
             new NewsEvent("이벤트A", "https://lostark.game.onstove.com/e", "2026-07-01T06:00:00",
-                    "2026-07-20T06:00:00", "https://cdn-lostark.game.onstove.com/t.jpg");
+                    FAR_FUTURE, "https://cdn-lostark.game.onstove.com/t.jpg");
+    /** Ended long ago — must never survive the serve-time 진행중 filter, whatever the wall clock says. */
+    private static final NewsEvent ENDED_EVENT =
+            new NewsEvent("종료된 이벤트", "https://lostark.game.onstove.com/old", "2020-01-01T06:00:00",
+                    "2020-02-01T06:00:00", null);
     private static final NewsNotice NOTICE =
             new NewsNotice("공지A", "https://lostark.game.onstove.com/n", "2026-07-01T15:10:18.527", "공지");
 
@@ -62,8 +72,27 @@ class NewsServiceIT extends PostgresRedisContainers {
         NewsResponse latest = newsService.getLatest();
 
         assertThat(latest.events()).extracting(NewsEvent::title).containsExactly("이벤트A");
-        assertThat(latest.events()).extracting(NewsEvent::endDate).containsExactly("2026-07-20T06:00:00");
+        assertThat(latest.events()).extracting(NewsEvent::endDate).containsExactly(FAR_FUTURE);
         assertThat(latest.notices()).extracting(NewsNotice::type).containsExactly("공지");
+        assertThat(latest.updatedAt()).isNotNull();
+    }
+
+    /*
+      The 6h-window hole the poll-time filter alone cannot close: an event that was 진행중 when the
+      snapshot was cached, but has since ended. Serving the cache verbatim would keep advertising it as
+      진행중 until the next poll — getLatest() re-judges instead.
+    */
+    @Test
+    void getLatestDropsEventThatEndedWhileCached() {
+        when(client.fetchEvents()).thenReturn(List.of(ENDED_EVENT, EVENT));
+        when(client.fetchNotices()).thenReturn(List.of(NOTICE));
+        newsService.refresh();
+
+        NewsResponse latest = newsService.getLatest();
+
+        assertThat(latest.events()).extracting(NewsEvent::title).containsExactly("이벤트A");
+        // Notices and the honesty stamp are untouched by the event filter.
+        assertThat(latest.notices()).hasSize(1);
         assertThat(latest.updatedAt()).isNotNull();
     }
 

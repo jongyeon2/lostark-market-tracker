@@ -1,6 +1,7 @@
 package com.lostark.tracker.news;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.lostark.tracker.news.NewsDtos.NewsEvent;
 import com.lostark.tracker.news.NewsDtos.NewsResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +10,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 /**
@@ -29,6 +32,9 @@ public class NewsService {
     static final String CACHE_KEY = "news:latest";
     /** Fixed 12h TTL backstop; the 6h poller refreshes well within it (D-01). */
     static final Duration CACHE_TTL = Duration.ofHours(12);
+
+    /** 진행중 판정 zone — event {@code endDate} is a KST wall-clock string, so "now" must be KST too. */
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
     private final LostarkNewsClient client;
     private final StringRedisTemplate redis;
@@ -57,8 +63,16 @@ public class NewsService {
     }
 
     /**
-     * Serve the last cached snapshot. A miss (cold or expired cache) — or any Redis error (fail-open) —
-     * returns empty lists + {@code updatedAt=null} so the panel renders an honest empty state (D-07).
+     * Serve the last cached snapshot, re-filtered so only 진행중 events go out. A miss (cold or expired
+     * cache) — or any Redis error (fail-open) — returns empty lists + {@code updatedAt=null} so the
+     * panel renders an honest empty state (D-07).
+     *
+     * <p>The serve-time 만료 filter is a safety net over the poll-time one in
+     * {@link LostarkNewsClient#fetchEvents()}: the snapshot is cached for up to {@link #CACHE_TTL} and
+     * refreshed every 6h, so an event that was running when it was cached can end well before the next
+     * poll. Without this, the panel would keep advertising it as 진행중 for up to 6 hours. Filtering here
+     * (not re-polling) costs nothing and never touches the keep-on-failure guarantee — the cached JSON
+     * itself is left exactly as it is.
      */
     public NewsResponse getLatest() {
         try {
@@ -66,7 +80,12 @@ public class NewsService {
             if (json == null || json.isBlank()) {
                 return empty();
             }
-            return objectMapper.readValue(json, NewsResponse.class);
+            NewsResponse cached = objectMapper.readValue(json, NewsResponse.class);
+            LocalDateTime nowKst = LocalDateTime.now(KST);
+            List<NewsEvent> ongoing = cached.events().stream()
+                    .filter(e -> e.isOngoingAt(nowKst))
+                    .toList();
+            return new NewsResponse(ongoing, cached.notices(), cached.updatedAt());
         } catch (Exception e) {
             log.debug("news cache read failed ({}) — serving empty", e.getClass().getSimpleName());
             return empty();

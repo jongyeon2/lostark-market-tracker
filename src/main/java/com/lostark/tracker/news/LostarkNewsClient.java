@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.List;
 
@@ -36,6 +38,9 @@ public class LostarkNewsClient {
 
     /** Display cap per section (D-04) — the panel shows the most relevant handful, not the full feed. */
     static final int MAX_ITEMS = 6;
+
+    /** 진행중 판정 zone — {@code endDate} is a KST wall-clock string, so "now" must be KST too. */
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
     private final RestClient restClient;
 
@@ -65,11 +70,21 @@ public class LostarkNewsClient {
                 .build();
     }
 
-    /** GET {@code /news/events} -> events 종료임박순(endDate asc), capped at {@link #MAX_ITEMS}. */
+    /**
+     * GET {@code /news/events} -> 진행중인 events only, 종료임박순(endDate asc), capped at
+     * {@link #MAX_ITEMS}.
+     *
+     * <p>The 만료 filter MUST run BEFORE the sort and the cap. The sort is 종료임박순, so ended events
+     * sort FIRST — filtering after the cap would let them occupy every one of the {@link #MAX_ITEMS}
+     * slots and push genuinely running events out of the snapshot entirely (the live 2026-07-15 bug:
+     * two events that ended 7/8 held the top of the panel).
+     */
     public List<NewsEvent> fetchEvents() {
         List<NewsEvent> events = readArray("/news/events", new TypeReference<List<NewsEvent>>() {
         });
+        LocalDateTime nowKst = LocalDateTime.now(KST);
         return events.stream()
+                .filter(e -> e.isOngoingAt(nowKst))
                 .sorted(Comparator.comparing(NewsEvent::endDate, Comparator.nullsLast(Comparator.naturalOrder())))
                 .limit(MAX_ITEMS)
                 .toList();
