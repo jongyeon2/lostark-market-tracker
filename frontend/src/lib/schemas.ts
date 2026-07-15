@@ -235,7 +235,10 @@ export const couponSchema = z.object({
   id: z.number(),
   code: z.string(),
   reward: z.string(),
-  expiresAt: z.string(), // date-only "YYYY-MM-DD" (D-01) — display via slice(0, 10), not formatKst
+  // 기간. Both are date-only "YYYY-MM-DD" (D-01) — display via slice(0, 10), not formatKst.
+  // startsAt is nullable: coupons registered before V8 have no start date and one is never invented.
+  startsAt: z.string().nullable(),
+  expiresAt: z.string(),
   createdAt: z.string(),
   updatedAt: z.string(),
 })
@@ -244,11 +247,13 @@ export type Coupon = z.infer<typeof couponSchema>
 export const couponsSchema = z.array(couponSchema)
 export type Coupons = z.infer<typeof couponsSchema>
 
-// POST/PUT body — only the 3 client-settable fields. id/createdAt/updatedAt are entity-stamped by the
-// backend (bound as CouponRequest, never the entity). expiresAt is sent as the raw "YYYY-MM-DD" from
-// the <input type="date"> value — NO KST↔UTC conversion (D-01).
+// POST/PUT body — only the client-settable fields. id/createdAt/updatedAt are entity-stamped by the
+// backend (bound as CouponRequest, never the entity). Dates are sent as the raw "YYYY-MM-DD" from the
+// <input type="date"> value — NO KST↔UTC conversion (D-01). startsAt is optional; null clears it
+// (PUT is a full replace, not a patch). The backend rejects startsAt after expiresAt with a 400.
 export type AdminCouponRequest = {
   code: string
   reward: string
+  startsAt: string | null
   expiresAt: string
 }

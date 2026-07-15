@@ -57,7 +57,7 @@ export function NewsPanel() {
   쿠폰 섹션 — 관리자가 등록한 미만료 쿠폰(GET /api/coupons, 17.3-02 useCoupons). 백엔드가 이미
   만료임박순으로 정렬·만료분 제외(17.3-01)하므로 여기선 방어적 ≤6 slice만. useNews와 독립된 자체
   <AsyncBoundary>라 쿠폰 로딩 실패가 이벤트/공지를 가리지 않는다(COUPON-03). 각 행은 code(강조) +
-  만료일(newsDate, date-only YYYY.MM.DD — formatKst 금지) + 원클릭 복사 버튼(D-03). reward는 응답에
+  기간(couponPeriod, date-only YYYY.MM.DD — formatKst 금지) + 원클릭 복사 버튼(D-03). reward는 응답에
   그대로 있지만 표시하지 않는다 — 쿠폰 행에서 필요한 건 "무엇을 입력하는가(code)"와 "언제까지인가"뿐.
 */
 function CouponSection() {
@@ -94,7 +94,7 @@ function CouponSection() {
                 <div className="min-w-0 flex-1 space-y-0.5">
                   <p className="truncate text-sm font-semibold tabular-nums">{coupon.code}</p>
                   <p className="text-muted-foreground text-xs tabular-nums">
-                    {newsDate(coupon.expiresAt)}
+                    {couponPeriod(coupon)}
                   </p>
                 </div>
                 <Button
@@ -221,4 +221,14 @@ function TypeBadge({ type }: { type: string }) {
 */
 function newsDate(iso: string): string {
   return iso.slice(0, 10).replace(/-/g, '.')
+}
+
+/*
+  쿠폰 기간 — "시작일 ~ 만료일". A coupon registered before the start date existed (V8) has
+  startsAt=null; rather than invent one, the range opens with a bare "~" so the row still reads as a
+  period and the missing end is obvious. Dates are already date-only "YYYY-MM-DD" (D-01).
+*/
+function couponPeriod(coupon: Coupon): string {
+  const until = newsDate(coupon.expiresAt)
+  return coupon.startsAt ? `${newsDate(coupon.startsAt)} ~ ${until}` : `~ ${until}`
 }

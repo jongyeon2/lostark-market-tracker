@@ -18,9 +18,11 @@ import type { AdminCouponRequest, Coupon } from '@/lib/schemas'
 /*
   쿠폰 CRUD section (COUPON-01), mirroring EventSection. An inline form (no dialog) at the top creates
   (POST 201) / edits (PUT full-replace, 200); the list below (expires_at asc — soonest expiry first)
-  offers 수정 and a destructive 삭제 guarded by an inline 2-step confirm. UNLIKE EventSection, 만료일 is
-  a date-only <Input type="date"> whose "YYYY-MM-DD" value is sent verbatim as expiresAt — NO KST↔UTC
-  conversion (D-01, kstLocalToUtcIso deliberately unused). Every mutation invalidates ['admin-coupons']
+  offers 수정 and a destructive 삭제 guarded by an inline 2-step confirm. UNLIKE EventSection, 기간 is
+  a pair of date-only <Input type="date"> whose "YYYY-MM-DD" values are sent verbatim — NO KST↔UTC
+  conversion (D-01, kstLocalToUtcIso deliberately unused). 시작일 is OPTIONAL (V8): left blank it is
+  sent as null and the dashboard renders "~ 만료일" instead of a fabricated start. Because PUT is a
+  full replace, clearing the field on an edit genuinely clears it. Every mutation invalidates ['admin-coupons']
   AND ['coupons'] → the dashboard panel refreshes too; a 401 triggers the global auto-logout (D-03).
 */
 
@@ -43,6 +45,7 @@ export function CouponSection() {
 
   const [code, setCode] = useState('')
   const [reward, setReward] = useState('')
+  const [startsAt, setStartsAt] = useState('')
   const [expiresAt, setExpiresAt] = useState('')
   const [editingId, setEditingId] = useState<number | null>(null)
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<number | null>(null)
@@ -54,6 +57,7 @@ export function CouponSection() {
   function resetForm() {
     setCode('')
     setReward('')
+    setStartsAt('')
     setExpiresAt('')
     setEditingId(null)
   }
@@ -62,7 +66,10 @@ export function CouponSection() {
     const body: AdminCouponRequest = {
       code: code.trim(),
       reward: reward.trim(),
-      expiresAt, // "YYYY-MM-DD" verbatim — no KST conversion (D-01)
+      // "YYYY-MM-DD" verbatim — no KST conversion (D-01). Blank 시작일 -> null, not "" (the backend
+      // takes a LocalDate; an empty string is not a date, and null is what "미상" means).
+      startsAt: startsAt || null,
+      expiresAt,
     }
     const onSuccess = (text: string) => () => {
       setFeedback({ kind: 'success', text })
@@ -81,7 +88,9 @@ export function CouponSection() {
     setEditingId(coupon.id)
     setCode(coupon.code)
     setReward(coupon.reward)
-    setExpiresAt(coupon.expiresAt.slice(0, 10)) // date-only prefill for <input type="date">
+    // date-only prefill for <input type="date">; a null 시작일 leaves the field empty.
+    setStartsAt(coupon.startsAt?.slice(0, 10) ?? '')
+    setExpiresAt(coupon.expiresAt.slice(0, 10))
     setConfirmingDeleteId(null)
     setFeedback(null)
   }
@@ -138,6 +147,19 @@ export function CouponSection() {
               value={reward}
               onChange={(event) => setReward(event.target.value)}
               required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-semibold" htmlFor="coupon-starts-at">
+              시작일 <span className="text-muted-foreground font-normal">(선택)</span>
+            </label>
+            <Input
+              id="coupon-starts-at"
+              type="date"
+              value={startsAt}
+              max={expiresAt || undefined}
+              onChange={(event) => setStartsAt(event.target.value)}
             />
           </div>
 

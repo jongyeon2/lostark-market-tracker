@@ -67,15 +67,16 @@ export function firstCategoryId(categories: readonly Category[]): string | null 
 }
 
 /*
-  Groups whose members share ONE icon, so a single glyph can stand for the whole group. Only 각인서
+  Groups whose members share ONE icon, so a real game icon can stand for the whole group. Only 각인서
   qualifies: all 18 relic engraving recipes carry the same use_9_25.png (a grade glyph, not a
   per-engraving art) — which is exactly why it reads as "the 각인서 icon". Every 재료 group is the
-  opposite: each material has its own distinct icon, so no member could represent the others.
+  opposite: each material has its own distinct icon, so no member could represent the others, and 재료
+  wears a drawn glyph (CategoryNav's Hammer) instead.
 */
 const ICONIC_GROUPS: readonly CategoryGroup[] = ['각인서']
 
 /**
- * The icon standing for a group's header, or null when the group has no representative one.
+ * The game icon standing for a group's header, or null when no member can represent the group.
  * Derived from the loaded data (the first member's iconUrl) rather than a hardcoded CDN URL, so it
  * follows the seed automatically if the game's icon ever changes.
  */

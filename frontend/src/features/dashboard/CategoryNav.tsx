@@ -1,3 +1,5 @@
+import { Hammer } from 'lucide-react'
+
 import { cn } from '@/lib/utils'
 import type { TrackedItem } from '@/lib/schemas'
 
@@ -13,10 +15,16 @@ import { groupIconUrl, type Category, type CategoryGroup } from './categories'
 
   Each desktop group header carries a rule directly beneath it (quick-260715): without one, the group
   label and its leaves read as siblings in the same flat list rather than a heading over its members.
-  각인서 also shows its representative icon (groupIconUrl — data-derived, null for 재료).
+
+  Both groups wear an icon, from whichever source can honestly supply one: 각인서 uses its real game
+  icon (groupIconUrl — all 18 books share it), while 재료 has no such shared icon (every material's art
+  differs) and wears a drawn Hammer glyph instead. GROUP_GLYPH holds that fallback.
 */
 
 const GROUP_ORDER: readonly CategoryGroup[] = ['각인서', '재료']
+
+/** Drawn fallback for a group with no representative game icon — the ItemIcon precedent (Phase 14). */
+const GROUP_GLYPH: Partial<Record<CategoryGroup, typeof Hammer>> = { 재료: Hammer }
 
 export function CategoryNav({
   categories,
@@ -39,13 +47,16 @@ export function CategoryNav({
             const leaves = categories.filter((c) => c.group === group)
             if (leaves.length === 0) return null
             const iconUrl = groupIconUrl(items, group)
+            const Glyph = GROUP_GLYPH[group]
             return (
               <div key={group} className="space-y-1">
                 <h2 className="border-border text-muted-foreground flex items-center gap-1.5 border-b px-2 pb-1.5 text-sm font-semibold tracking-wide">
                   {group}
+                  {/* alt=""/aria-hidden — the group label right beside it already names the icon. */}
                   {iconUrl ? (
-                    // alt="" — the group label right beside it already names this icon.
                     <img src={iconUrl} alt="" loading="lazy" className="size-4 shrink-0 rounded-sm" />
+                  ) : Glyph ? (
+                    <Glyph className="size-4 shrink-0" aria-hidden="true" />
                   ) : null}
                 </h2>
                 <ul className="space-y-0.5">
