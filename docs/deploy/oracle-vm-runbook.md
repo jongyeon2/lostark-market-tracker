@@ -337,47 +337,101 @@ API가 아예 없어 소실되면 영구히 못 만들고, 가격은 상세 통�
 
 | | |
 |---|---|
-| 스크립트 | `scripts/backup-db.sh` (cron이 하루 1회) |
+| 스크립트 | `scripts/backup-db.sh` (cron이 하루 1회 · **03:17 UTC = 12:17 KST**, 서버는 `Etc/UTC`) |
 | 방식 | `pg_dump -Fc` — **무중단**(PG는 MVCC라 수집 중에도 일관된 스냅샷) |
-| 목적지 | 오라클 오브젝트 스토리지 (Always Free 20GB) |
+| 목적지 | 버킷 `lostark-backup` · Japan Central (Osaka) · Standard · Private (Always Free 20GB) |
 | 객체명 | `db/YYYY-MM-DD.dump` (UTC) |
 | 인증 | **쓰기 전용 버킷 PAR** — VM에 OCI CLI·API 키 없음 |
-| 보관 | **서버측 수명주기 30일** — 스크립트엔 삭제 로직이 없다(권한 자체가 없음) |
+| 보관 | **서버측 수명주기** — 스크립트엔 삭제 로직이 없다(권한 자체가 없음). 실수명은 최대 60일(§11.1 ②) |
+| 감시 | healthchecks.io Check `lostark-db-backup-prod` (Period 1 day / Grace 1 hour) |
 | RPO | **24시간** — 최악의 경우 하루치가 영구 소실된다 |
+
+> **가동 실적**: 첫 실제 백업 성공 **2026-07-16** — `db/2026-07-16.dump` 약 **345.88 KiB** 업로드,
+> 별도 컨테이너 복원 + 행 수 대조까지 통과(§11.2). 이후 cron이 매일 자동 실행한다.
 
 ### 11.1 최초 설정 (1회)
 
+> 아래는 2026-07-16에 실제로 구축한 순서다. 재구축 시 그대로 따르면 된다.
+
 **① 버킷** — OCI 콘솔 → Object Storage → Create Bucket
-- 이름 예: `lostark-backup` / Standard
-- **버저닝 ON** ⚠️ 쓰기 전용 PAR도 *덮어쓰기*는 되므로, 버저닝이 없으면 기존 백업을 쓰레기로
-  덮을 수 있다. 켜두면 이전 버전이 남는다.
+- 이름 `lostark-backup` / Standard / **Private** / Encryption: Oracle-managed key
+- **Object Versioning: Enabled** ⚠️ 쓰기 전용 PAR도 *덮어쓰기*는 되므로, 버저닝이 없으면 기존
+  백업을 쓰레기로 덮을 수 있다. 켜두면 이전 버전이 남는다.
 
-**② 수명주기 규칙** — 버킷 → Lifecycle Policy Rules → Create Rule
-- Action `Delete` / Target `Objects` / 접두사 `db/` / **30일**
-- 삭제를 **서버가** 한다. VM이 털려도 백업을 지울 수 없는 이유가 이것이다.
+**② 수명주기 규칙 — 반드시 2개** ⚠️ 버킷 → Lifecycle Policy Rules
 
-**③ 쓰기 전용 PAR** — 버킷 → Pre-Authenticated Requests → Create
+버저닝을 켰으므로 규칙이 **하나로는 부족하다**. "최신 버전 삭제"가 돌면 객체가 사라지는 게 아니라
+**이전 버전으로 내려앉기** 때문에, 이전 버전을 치우는 규칙이 없으면 계속 쌓인다.
+
+| 이름 | Target | Action | Days | Prefix |
+|---|---|---|---|---|
+| `delete-db-latest-30d` | **Latest Version of Objects** | Delete | 30 | `db/` |
+| `delete-db-previous-30d` | **Previous Versions of Objects** | Delete | 30 | `db/` |
+
+> **그래서 데이터 실수명은 30일이 아니라 최대 60일이다** — 30일 뒤 이전 버전으로 내려가고, 다시
+> 30일 뒤 소멸한다. **60일 전 백업이 콘솔에 보여도 정상이다.** 용량은 346 KiB/일 × 60 ≈ **21 MB**로
+> 20 GB 한도에는 무의미한 수준이니 그대로 둔다.
+>
+> 참고로 두 번째 규칙을 빠뜨려도 당장 터지진 않는다(연 ~126 MB). 다만 **상한이 없는 증가**라
+> 방치할 이유도 없다.
+
+삭제를 **서버가** 한다. VM이 털려도 백업을 지울 수 없는 이유가 이것이다.
+
+**③ 수명주기 실행용 IAM 정책** ⚠️ 이게 없으면 규칙이 조용히 안 돈다
+
+수명주기는 Object Storage **서비스**가 대신 실행한다. 그 서비스에 삭제 권한을 주지 않으면 규칙은
+콘솔에 **Enabled로 멀쩡히 보이는데 아무 일도 일어나지 않는다** — 실패 로그도, 알림도 없다.
+객체가 30일이 지나도 안 사라지면 여기부터 의심한다.
+
+Identity → Policies → Create Policy (**테넌시 루트 컴파트먼트**에 생성):
+
+```
+Allow service objectstorage-<리전> to manage object-family in compartment <컴파트먼트명>
+```
+
+- `<리전>`은 버킷 리전의 서비스 이름(예: Osaka → `ap-osaka-1`). 콘솔 정책 빌더가 후보를 보여준다.
+
+**④ 쓰기 전용 PAR** — 버킷 → Pre-Authenticated Requests → Create
 - Type: **Bucket** / Access: **Permit object writes** (읽기·목록 조회 **주지 말 것**)
-- Expiration: 길게(예: 2년). ⚠️ **만료일을 달력에 적어라** — 만료되면 백업이 멈춘다(§11.4).
+- Object listing: **Disabled**
 - 생성 직후 뜨는 URL을 **그때 복사**한다(다시 못 본다). `.../o/`로 끝나야 한다.
 
-**④ 데드맨 스위치** — [healthchecks.io](https://healthchecks.io) 가입(무료) → Check 생성
-- Period **1 day** / Grace **1 hour** → 25시간 무신호면 이메일
+> ⚠️ **현재 PAR 만료일: 2028-07-16.** 만료되면 백업이 멈춘다(§11.4).
+> **재발급 알림: 2028-06-16**(만료 한 달 전) — 달력에 등록해 둘 것.
+> 재발급 후 `.env.prod`의 `BACKUP_PAR_URL`만 교체하면 된다. **재시작·재배포 불필요** —
+> 스크립트가 매 실행마다 파일을 새로 읽는다.
+
+**⑤ 데드맨 스위치** — [healthchecks.io](https://healthchecks.io) 가입(무료) → Check 생성
+- 이름 `lostark-db-backup-prod` / Schedule **Simple** / Period **1 day** / Grace **1 hour**
+  → 25시간 무신호면 이메일
 - Ping URL 복사
 
-**⑤ `.env.prod`에 추가** (VM에서만, 커밋 금지)
+**⑥ `.env.prod`에 추가** (VM에서만, 커밋 금지)
 
 ```bash
 BACKUP_PAR_URL=https://objectstorage.<리전>.oraclecloud.com/p/<토큰>/n/<네임스페이스>/b/lostark-backup/o/
 BACKUP_PING_URL=https://hc-ping.com/<uuid>
 ```
 
-**⑥ 첫 실행 + cron**
+**⑦ cron 설치** ⚠️ Oracle Ubuntu 이미지엔 cron이 **기본으로 없다**
 
 ```bash
-cd ~/lostark && scripts/backup-db.sh      # 수동 1회 — 성공 확인 후 등록
-( crontab -l 2>/dev/null; echo '17 3 * * * cd $HOME/lostark && ./scripts/backup-db.sh >> $HOME/backup.log 2>&1' ) | crontab -
+sudo apt install -y cron
+sudo systemctl enable --now cron
+systemctl is-active cron     # → active
+command -v crontab           # → /usr/bin/crontab
 ```
+
+**⑧ 첫 실행 + cron 등록**
+
+```bash
+cd /opt/lostark-price-tracker && ./scripts/backup-db.sh   # 수동 1회 — 성공 확인 후 등록
+( crontab -l 2>/dev/null; echo '17 3 * * * cd /opt/lostark-price-tracker && ./scripts/backup-db.sh >> $HOME/backup.log 2>&1' ) | crontab -
+```
+
+> 서버가 `Etc/UTC`이므로 **03:17 UTC = 12:17 KST**에 돈다.
+> 등록 후 cron과 **똑같은 명령**을 한 번 수동 실행해 로그 리다이렉션까지 확인할 것:
+> `./scripts/backup-db.sh >> "$HOME/backup.log" 2>&1 && tail -n 100 ~/backup.log`
 
 ### 11.2 🔑 복원 — 일회용 컨테이너로 먼저 검증
 
@@ -388,36 +442,64 @@ cd ~/lostark && scripts/backup-db.sh      # 수동 1회 — 성공 확인 후 �
 지운다**.)
 
 ```bash
-# 1) 일회용 PG16 기동
+# 1) 일회용 PG16 기동 (운영 DB와 완전히 별개)
 docker run --rm -d --name pg-verify \
   -e POSTGRES_PASSWORD=verify -e POSTGRES_USER=verifyuser -e POSTGRES_DB=verifydb postgres:16
 
-# 2) 덤프를 넣고 복원
-docker exec -i pg-verify sh -c 'cat > /tmp/r.dump' < db_2026-07-16.dump
-docker exec pg-verify pg_restore -U verifyuser -d verifydb --no-owner --no-privileges /tmp/r.dump
+# 2) 덤프를 넣고 복원 — --exit-on-error 필수(아래 경고 참조)
+docker cp ~/db_2026-07-16.dump pg-verify:/tmp/r.dump
+docker exec pg-verify pg_restore -U verifyuser -d verifydb \
+  --no-owner --no-privileges --exit-on-error /tmp/r.dump
+echo "종료 코드: $?"    # 0이어야 한다
 
 # 3) 행 수 확인 — 추정치(n_live_tup)가 아니라 실제 COUNT(*)로 본다
 docker exec pg-verify psql -U verifyuser -d verifydb -c "
 SELECT 'price_snapshot', COUNT(*) FROM price_snapshot UNION ALL
 SELECT 'gem_price_snapshot', COUNT(*) FROM gem_price_snapshot UNION ALL
+SELECT 'item_daily_stats', COUNT(*) FROM item_daily_stats UNION ALL
+SELECT 'tracked_item', COUNT(*) FROM tracked_item UNION ALL
 SELECT 'game_event', COUNT(*) FROM game_event UNION ALL
 SELECT 'coupon', COUNT(*) FROM coupon;"
 
 # 4) 정리
 docker stop pg-verify
+rm -f ~/db_2026-07-16.dump
 ```
+
+> ⚠️ **`--exit-on-error`를 빼지 마라.** `pg_restore`는 기본적으로 에러를 만나도 **계속 진행하고**,
+> 끝에 `errors ignored on restore: N`만 찍은 뒤 **종료 코드 0으로 끝날 수 있다.** 종료 코드만 보고
+> "복원 성공"이라 판단하면 **일부만 복원된 DB를 통과시킨다** — 검증의 의미가 사라진다.
+> 이 옵션은 첫 에러에서 멈춘다.
+
+> 🔑 **행 수가 조금 다른 건 정상이다 — 백업이 깨진 게 아니다.** 덤프를 뜬 뒤에도 수집기가 계속
+> 돌기 때문에, **`price_snapshot`과 `collection_run`은 "지금" 운영 DB보다 적게 나온다.**
+> 실제 2026-07-16 검증 결과가 그랬다:
+>
+> | 테이블 | 복원본 | 그때의 운영 | 판정 |
+> |---|---|---|---|
+> | `price_snapshot` | 22,946 | 23,044 | ⬆️ 정상 — 계속 수집 중 |
+> | `collection_run` | 806 | 808 | ⬆️ 정상 — 계속 수집 중 |
+> | `item_daily_stats` | 1,107 | 1,107 | ✅ 일치 |
+> | `gem_price_snapshot` | 90 | 90 | ✅ 일치 |
+> | `tracked_item` | 49 | 49 | ✅ 일치 |
+> | `flyway_schema_history` | 9 | 9 | ✅ 일치 |
+> | `game_event` | 2 | 2 | ✅ 일치 |
+> | `coupon` | 1 | 1 | ✅ 일치 |
+>
+> 즉 **10분마다 추가되는 두 테이블은 늘어나는 게 맞고, 나머지 6개가 어긋나면 그때 의심한다.**
+> 정확히 대조하고 싶으면 덤프 시각으로 잘라서 세라 — `WHERE collected_at <= '<덤프 시각>'`.
 
 ### 11.3 복원 — 운영에 적용 ☠️ 파괴적
 
 **`--clean`은 기존 객체를 DROP한다. 되돌릴 수 없다.** 11.2를 통과한 덤프에만, 정말 필요할 때만.
 
 ```bash
-cd ~/lostark
+cd /opt/lostark-price-tracker
 docker compose -f docker-compose.prod.yml --env-file .env.prod stop app   # 쓰기 멈춤
 docker compose -f docker-compose.prod.yml --env-file .env.prod exec -T postgres \
-  sh -c 'cat > /tmp/r.dump' < db_2026-07-16.dump
+  sh -c 'cat > /tmp/r.dump' < ~/db_2026-07-16.dump
 docker compose -f docker-compose.prod.yml --env-file .env.prod exec postgres \
-  pg_restore -U lostark -d lostark --clean --if-exists --no-owner /tmp/r.dump
+  pg_restore -U lostark -d lostark --clean --if-exists --no-owner --exit-on-error /tmp/r.dump
 docker compose -f docker-compose.prod.yml --env-file .env.prod start app
 ```
 
@@ -432,15 +514,19 @@ docker compose -f docker-compose.prod.yml --env-file .env.prod start app
 ping에 도달하지 못한다 — 즉 **알림이 왔다는 건 백업이 실제로 안 됐다는 뜻**이다(원인은 몰라도).
 
 ```bash
-cd ~/lostark && ./scripts/backup-db.sh   # 직접 돌려 에러 메시지를 본다
+cd /opt/lostark-price-tracker && ./scripts/backup-db.sh   # 직접 돌려 에러 메시지를 본다
 ```
 
 | 메시지 | 원인 |
 |---|---|
-| `업로드 실패 (HTTP 404)` / `(HTTP 401)` | **PAR 만료·취소가 가장 흔하다** → §11.1 ③으로 재발급 후 `.env.prod` 교체 |
+| `업로드 실패 (HTTP 404)` / `(HTTP 401)` | **PAR 만료·취소가 가장 흔하다**(만료 2028-07-16) → §11.1 ④로 재발급 후 `.env.prod`의 `BACKUP_PAR_URL` 교체. 재시작 불필요 |
 | `덤프가 유효하지 않다` | 디스크 참(`df -h`) 또는 PG 이상. **이 경우 업로드하지 않는다** — 깨진 덤프가 정상 백업을 덮는 걸 막는다 |
 | `BACKUP_PAR_URL이 비어 있다` | `.env.prod` 항목 누락 |
-| `환경파일 없음` | 경로 문제. cron이 `cd $HOME/lostark`를 하는지 확인 |
+| `환경파일 없음` | 경로 문제. cron이 `cd /opt/lostark-price-tracker`를 하는지 확인(`crontab -l`) |
+| 로그가 아예 없음 | cron 자체가 안 돈다 → `systemctl is-active cron`(§11.1 ⑦). 이미지에 cron이 없어 설치가 필요했던 전례가 있다 |
+
+> **객체가 30일이 지나도 안 사라진다면** 백업 실패가 아니라 수명주기 문제다 — §11.1 ③의 IAM 정책이
+> 없으면 규칙이 Enabled로 보여도 실행되지 않는다. 그리고 §11.1 ②대로 실수명은 **최대 60일**이다.
 
 > ⚠️ **ping은 성공했는데 알림이 온다면** healthchecks 쪽 장애다(스크립트는 `WARN: ... ping 전송
 > 실패`를 남긴다). 백업 자체는 됐다 — 오탐이다. 거짓 경보가 거짓 침묵보다 낫기에 이렇게 뒀다.
