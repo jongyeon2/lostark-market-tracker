@@ -1,7 +1,26 @@
 /* Inter variable font (bundled — no runtime network) with the UI-SPEC fallback stack. */
 @import '@fontsource-variable/inter';
+/* Fredoka — Loaket 워드마크 전용(둥근 무료 폰트, OFL). 번들 self-host라 CSP font-src 'self' 통과. */
+@import '@fontsource/fredoka/500.css';
+@import '@fontsource/fredoka/600.css';
 @import 'tailwindcss';
 @import 'tw-animate-css';
+
+/*
+  Loaket 브랜드 워드마크 — Fredoka + 그라데이션 초록. 로고 색(연두→진초록)에서 뽑았다.
+  background-clip:text로 글자에 그라데이션을 입히므로 color는 transparent가 되어야 한다.
+  @supports 미지원 브라우저(사실상 없음)에서는 fallback으로 단색 초록이 보이도록 color를 먼저 준다.
+*/
+.brand-wordmark {
+  font-family: 'Fredoka', var(--font-sans);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #16a34a;
+  background-image: linear-gradient(135deg, #4ade80 0%, #16a34a 55%, #15803d 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
 
 /*
   UI-SPEC design tokens — the SINGLE source of truth for all v1.1 screens (Phases 8-10
