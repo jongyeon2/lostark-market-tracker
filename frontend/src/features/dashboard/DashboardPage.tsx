@@ -27,26 +27,33 @@ import { NewsPanel } from './NewsPanel'
 
   Phase 28 (DASH-02/DASH-03): the /impact page is gone too — clicking an item card now selects it and
   renders that item's event-impact directly BELOW the list, so you never navigate away from the item
-  you were already looking at. The list itself lives in a fixed-height scroll box on lg+ so the center
-  column lines up with the news panel and the impact section stays visible without scrolling past 11
-  cards. Both new pieces of state are local useState (A4 YAGNI, same as the category).
+  you were already looking at. The list itself lives in a height-CAPPED scroll box on lg+ (see
+  ITEM_BOX_MAX_HEIGHT) so the impact section stays visible without scrolling past 11 cards, while a
+  short category still shrinks to its content instead of trailing blank space. Both new pieces of
+  state are local useState (A4 YAGNI, same as the category).
 
   The center item list and the news panel each keep their OWN AsyncBoundary so one side failing never
   blanks the other (D-07, preserved from the 2-column version). NewsPanel is UNCHANGED.
   Mobile (< lg) collapses to one column in source order: 칩 탭 → 물품 → 이벤트 영향 → 소식, and the
-  scroll box drops its fixed height (a nested scroller fights the page scroll on a phone).
+  scroll box drops its height cap (a nested scroller fights the page scroll on a phone).
   Read-only: no write UI, no polling.
 */
 
 /*
-  물품 카드 박스 높이 = 468px = 카드 6장 + 그 사이 간격 5개 (6×68 + 5×12, 실측 2026-07-15).
-  카드가 잘리지 않고 정확히 6장이 보이는 값이다 — 처음엔 우측 소식 패널의 첫 이벤트 카드 아래에
-  맞춰 416px로 잡았는데, 그러면 6번째 카드가 중간에서 잘려 나갔다(5.2장). 옆 컬럼에 맞추는 것보다
-  이쪽 콘텐츠의 배수로 끊는 게 낫다: 소식 패널의 그 지점은 관리자가 등록한 쿠폰 수에 따라 움직이지만
-  (쿠폰 1개=417px / 2개=469px로 실측) 카드 높이는 고정이라 이 값은 안 흔들린다.
-  rem(29.25rem) 대신 px로 두는 건 저 계산식이 그대로 읽히기 때문이다.
+  물품 카드 박스의 높이 상한 = 628px = 카드 8장 + 그 사이 간격 7개 (8×68 + 7×12, 실측 2026-07-16).
+  6장(468px)은 답답하다는 피드백으로 8장까지 늘렸다.
+
+  🔑 고정 높이(h-)가 아니라 상한(max-h-)이다 — 사용자 결정 2026-07-16. 카테고리별 물품 수가
+  11/7/11/8/6/6이라 628px로 고정하면 6개짜리(재련보조·아크그리드젬)는 아래 160px가 빈 채로 남는다.
+  상한으로 두면 8장 이상일 때만 628px에서 스크롤이 시작되고, 그 미만이면 내용만큼 줄어 빈칸이 없다.
+  대가는 카테고리를 바꿀 때 아래 이벤트 영향의 세로 위치가 움직이는 것(수용됨) — 어차피 목록 전체가
+  바뀌는 순간이다.
+
+  옆 소식 패널 높이에 맞추지 않는다: 그 지점은 관리자가 등록한 쿠폰 수에 따라 움직이지만
+  (쿠폰 1개=417px / 2개=469px 실측) 카드 높이는 고정이라 이쪽 배수가 안 흔들린다.
+  rem(39.25rem) 대신 px로 두는 건 저 계산식이 그대로 읽히기 때문이다.
 */
-const ITEM_BOX_HEIGHT = 'lg:h-[468px] lg:overflow-y-auto'
+const ITEM_BOX_MAX_HEIGHT = 'lg:max-h-[628px] lg:overflow-y-auto'
 export function DashboardPage() {
   const { status, data, refetch } = useItems()
   const gemsQuery = useGems()
@@ -95,7 +102,7 @@ export function DashboardPage() {
           <GemSection gems={gems} query={gemsQuery} />
         ) : (
           <>
-            <div className={ITEM_BOX_HEIGHT}>
+            <div className={ITEM_BOX_MAX_HEIGHT}>
               <AsyncBoundary
                 status={status}
                 isEmpty={(data?.length ?? 0) === 0}

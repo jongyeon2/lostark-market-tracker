@@ -45,7 +45,12 @@ export function CategoryNav({
   onSelect: (id: string) => void
 }) {
   return (
-    <nav aria-label="카테고리" className="lg:sticky lg:top-6 lg:self-start">
+    // top-20(80px) = TopNav 높이 56 + 여백 24. TopNav는 sticky top-0 h-14 z-40에 불투명(bg-card)이라,
+    // 멈춤 지점이 56px보다 위면 nav 윗부분이 그 바 "뒤로" 깔린다 — 실제로 top-6(24px)일 때 각인서
+    // 헤더(24~51px)가 27px 전부 가려 첫 leaf부터 보였다(실측 2026-07-16). z-index로 nav를 위로
+    // 올리면 이번엔 nav가 상단바를 가리므로, 겹침 자체를 없앤다.
+    // ⚠️ TopNav의 h-14를 바꾸면 이 값도 같이 바꿔야 한다.
+    <nav aria-label="카테고리" className="lg:sticky lg:top-20 lg:self-start">
       {/* 데스크톱(lg+) — 2단계 그룹 세로 nav + 그룹 없는 단독 leaf. */}
       <div className="hidden lg:block">
         <div className="space-y-4">
