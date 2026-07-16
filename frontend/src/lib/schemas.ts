@@ -288,3 +288,29 @@ export const gemsResponseSchema = z.object({
   updatedAt: z.string().nullable(),
 })
 export type GemsResponse = z.infer<typeof gemsResponseSchema>
+
+// ---- 거래소 검색 (아바타·모험의 서 실시간 조회) ----
+// 백엔드 /api/market/{adventure,avatar}의 응답. 저장하지 않는 온디맨드 조회라 시계열 필드가 없다.
+// currentMinPrice는 즉시구매 매물이 없으면 null — 값을 지어내지 않는다(gemPrice.minBuyPrice 선례).
+export const marketSearchItemSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  grade: z.string(), // 일반|고급|희귀|영웅|전설|유물|고대|에스더 — 자유 문자열(등급 추가에 열려 있음)
+  iconUrl: z.string(),
+  currentMinPrice: z.number().nullable(),
+  recentPrice: z.number().nullable(),
+  yDayAvgPrice: z.number().nullable(),
+})
+export type MarketSearchItem = z.infer<typeof marketSearchItemSchema>
+
+export const marketSearchResponseSchema = z.object({
+  pageNo: z.number(),
+  pageSize: z.number(), // 업스트림 고정 10
+  totalCount: z.number(), // 총 페이지 계산용(이전/다음 + 번호)
+  items: z.array(marketSearchItemSchema),
+})
+export type MarketSearchResponse = z.infer<typeof marketSearchResponseSchema>
+
+// GET /api/market/classes — 직업 30개 문자열 배열
+export const marketClassesSchema = z.array(z.string())
+export type MarketClasses = z.infer<typeof marketClassesSchema>

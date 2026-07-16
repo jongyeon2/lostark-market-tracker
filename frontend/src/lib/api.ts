@@ -11,6 +11,10 @@ import {
   couponSchema,
   couponsSchema,
   gemsResponseSchema,
+  marketSearchResponseSchema,
+  marketClassesSchema,
+  type MarketSearchResponse,
+  type MarketClasses,
   type CollectionHealth,
   type TrackedItem,
   type TrackedItems,
@@ -208,6 +212,48 @@ export async function getCoupons(): Promise<Coupons> {
 // 예산 관리는 백엔드 캐시의 책임이다.
 export async function getGems(): Promise<GemsResponse> {
   return gemsResponseSchema.parse(await request('/api/gems'))
+}
+
+// ---- 거래소 검색 read (아바타·모험의 서 실시간 조회) ----
+// GET /api/market/{adventure,avatar,classes} — 백엔드가 거래소를 조회·캐시해 서빙한다. 보석과 동일하게
+// 프론트는 로스트아크를 직접 호출하지 않는다(D-06): 실 키는 서버 env에만 있고 호출 예산은 백엔드가 관리.
+// 정렬·직업·부위는 백엔드가 화이트리스트 검증하므로 잘못된 값은 400 → ApiError로 화면 ErrorState.
+
+export type MarketSort = 'min_price' | 'recent_price'
+export type MarketDir = 'asc' | 'desc'
+
+export async function getMarketClasses(): Promise<MarketClasses> {
+  return marketClassesSchema.parse(await request('/api/market/classes'))
+}
+
+export async function getAdventure(params: {
+  q?: string
+  sort: MarketSort
+  dir: MarketDir
+  page: number
+}): Promise<MarketSearchResponse> {
+  const qs = new URLSearchParams({ sort: params.sort, dir: params.dir, page: String(params.page) })
+  if (params.q) qs.set('q', params.q)
+  return marketSearchResponseSchema.parse(await request(`/api/market/adventure?${qs.toString()}`))
+}
+
+export async function getAvatar(params: {
+  characterClass: string
+  part?: string
+  q?: string
+  sort: MarketSort
+  dir: MarketDir
+  page: number
+}): Promise<MarketSearchResponse> {
+  const qs = new URLSearchParams({
+    class: params.characterClass,
+    sort: params.sort,
+    dir: params.dir,
+    page: String(params.page),
+  })
+  if (params.part) qs.set('part', params.part)
+  if (params.q) qs.set('q', params.q)
+  return marketSearchResponseSchema.parse(await request(`/api/market/avatar?${qs.toString()}`))
 }
 
 export async function getAdminCoupons(): Promise<Coupons> {

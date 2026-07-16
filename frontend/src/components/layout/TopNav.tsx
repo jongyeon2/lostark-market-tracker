@@ -17,6 +17,8 @@ import { cn } from '@/lib/utils'
 const navItems = [
   { to: '/dashboard', label: '대시보드' },
   { to: '/timeline', label: '품목 타임라인' },
+  { to: '/avatar', label: '아바타' },
+  { to: '/adventure', label: '모험의 서' },
 ]
 
 /*

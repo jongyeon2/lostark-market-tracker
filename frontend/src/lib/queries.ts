@@ -16,6 +16,11 @@ import {
   deactivateAdminItem,
   getCoupons,
   getGems,
+  getMarketClasses,
+  getAdventure,
+  getAvatar,
+  type MarketSort,
+  type MarketDir,
   getAdminCoupons,
   createAdminCoupon,
   replaceAdminCoupon,
@@ -173,6 +178,55 @@ const GEMS_KEY = ['gems'] as const
 
 export function useGems() {
   return useQuery({ queryKey: GEMS_KEY, queryFn: getGems, staleTime: 5 * 60 * 1000 })
+}
+
+// ---- 거래소 검색 (아바타·모험의 서 실시간 조회) ----
+// 백엔드가 5분 캐시하므로 프론트 staleTime도 5분: 같은 검색·페이지는 재요청하지 않아 레이트리밋 예산을
+// 아낀다(디바운스가 타이핑 폭주를, 캐시가 반복 요청을 막는 이중 방어). 직업 목록은 거의 안 변해 길게 둔다.
+
+export type MarketSearchParams = {
+  q: string
+  sort: MarketSort
+  dir: MarketDir
+  page: number
+}
+
+const MARKET_CLASSES_KEY = ['market-classes'] as const
+
+export function useMarketClasses() {
+  return useQuery({
+    queryKey: MARKET_CLASSES_KEY,
+    queryFn: getMarketClasses,
+    staleTime: 60 * 60 * 1000, // 1h — 직업 목록은 신규 직업이 나올 때만 바뀐다
+  })
+}
+
+export function useAdventure(params: MarketSearchParams) {
+  return useQuery({
+    queryKey: ['market-adventure', params.q, params.sort, params.dir, params.page] as const,
+    queryFn: () => getAdventure(params),
+    staleTime: 5 * 60 * 1000,
+    placeholderData: (prev) => prev, // 페이지 이동·정렬 변경 시 이전 결과를 유지해 깜빡임 방지
+  })
+}
+
+export function useAvatar(params: MarketSearchParams & { characterClass: string; part: string }) {
+  return useQuery({
+    // characterClass가 비면 쿼리를 실행하지 않는다 — 직업 선택이 필수이기 때문(백엔드도 400).
+    queryKey: ['market-avatar', params.characterClass, params.part, params.q, params.sort, params.dir, params.page] as const,
+    queryFn: () =>
+      getAvatar({
+        characterClass: params.characterClass,
+        part: params.part || undefined,
+        q: params.q || undefined,
+        sort: params.sort,
+        dir: params.dir,
+        page: params.page,
+      }),
+    enabled: params.characterClass.length > 0,
+    staleTime: 5 * 60 * 1000,
+    placeholderData: (prev) => prev,
+  })
 }
 
 const ADMIN_COUPONS_KEY = ['admin-coupons'] as const

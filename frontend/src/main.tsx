@@ -8,6 +8,8 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { RootErrorBoundary } from '@/components/RootErrorBoundary'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { TimelinePage } from '@/features/timeline/TimelinePage'
+import { AvatarPage } from '@/features/market/AvatarPage'
+import { AdventurePage } from '@/features/market/AdventurePage'
 import { AdminRoute } from '@/features/admin/AdminRoute'
 import './index.css'
 
@@ -26,6 +28,8 @@ const router = createBrowserRouter([
       { index: true, element: <Navigate to="/dashboard" replace /> },
       { path: 'dashboard', element: <DashboardPage /> },
       { path: 'timeline', element: <TimelinePage /> },
+      { path: 'avatar', element: <AvatarPage /> },
+      { path: 'adventure', element: <AdventurePage /> },
       // /gems·/impact 는 Phase 28에서 대시보드로 흡수됐다. 라우트는 redirect로 남긴다 —
       // 북마크·기존 링크가 404로 죽지 않게(경로를 지우는 것과 목적지를 옮기는 것은 다르다).
       { path: 'impact', element: <Navigate to="/dashboard" replace /> },
