@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 
+import { ApiError } from '@/lib/api'
 import {
   getCollectionHealth,
   getItems,
@@ -184,6 +185,25 @@ export function useGems() {
 // 백엔드가 5분 캐시하므로 프론트 staleTime도 5분: 같은 검색·페이지는 재요청하지 않아 레이트리밋 예산을
 // 아낀다(디바운스가 타이핑 폭주를, 캐시가 반복 요청을 막는 이중 방어). 직업 목록은 거의 안 변해 길게 둔다.
 
+/*
+  🔑 429 자동 재시도. 거래소 검색은 백그라운드 수집기와 레이트리밋 버킷(분당 90)을 공유하므로, 새 검색·
+  페이지를 연달아 넘기면 일시적으로 429가 난다(실측: 새 검색 10회 중 6회). 전역 기본값 retry:1은 "즉시
+  1회"라 버킷이 회복되기 전에 또 429를 맞고 에러 화면을 띄운다 — 사용자가 손으로 '다시 불러오기'를 눌러야
+  했던 원인이다. 여기서는 시간 간격을 두고 몇 번 자동 재시도해 버킷이 회복되면 조용히 성공시킨다.
+
+  429(레이트리밋)·502(업스트림 일시 장애)만 재시도한다. 400(잘못된 정렬·직업)·404는 재시도해도 안
+  고쳐지므로 즉시 에러로 둔다(무의미한 반복 호출로 예산을 더 태우지 않는다).
+  버킷은 분당 90 = 초당 1.5로 회복되므로 1초만 기다려도 대개 토큰이 돌아온다(백오프 1s→2s→4s, 상한 6s).
+*/
+function marketRetry(failureCount: number, error: unknown): boolean {
+  if (error instanceof ApiError) {
+    if (error.status === 429 || error.status === 502) return failureCount < 4
+    return false // 400·404 등은 재시도 무의미
+  }
+  return failureCount < 2 // 네트워크 오류 등은 몇 번 더
+}
+const marketRetryDelay = (attempt: number) => Math.min(1000 * 2 ** attempt, 6000)
+
 export type MarketSearchParams = {
   q: string
   sort: MarketSort
@@ -198,6 +218,8 @@ export function useMarketClasses() {
     queryKey: MARKET_CLASSES_KEY,
     queryFn: getMarketClasses,
     staleTime: 60 * 60 * 1000, // 1h — 직업 목록은 신규 직업이 나올 때만 바뀐다
+    retry: marketRetry,
+    retryDelay: marketRetryDelay,
   })
 }
 
@@ -207,6 +229,8 @@ export function useAdventure(params: MarketSearchParams) {
     queryFn: () => getAdventure(params),
     staleTime: 5 * 60 * 1000,
     placeholderData: (prev) => prev, // 페이지 이동·정렬 변경 시 이전 결과를 유지해 깜빡임 방지
+    retry: marketRetry, // 429 자동 재시도(위 marketRetry 참조) — 수동 '다시 불러오기' 불필요
+    retryDelay: marketRetryDelay,
   })
 }
 
@@ -226,6 +250,8 @@ export function useAvatar(params: MarketSearchParams & { characterClass: string;
     enabled: params.characterClass.length > 0,
     staleTime: 5 * 60 * 1000,
     placeholderData: (prev) => prev,
+    retry: marketRetry,
+    retryDelay: marketRetryDelay,
   })
 }
 
