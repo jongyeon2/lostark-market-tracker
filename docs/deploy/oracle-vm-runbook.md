@@ -214,9 +214,8 @@ docker compose -f docker-compose.prod.yml logs -f app
 IMAGE_TAG=sha-<커밋> docker compose -f docker-compose.prod.yml --env-file .env.prod pull
 IMAGE_TAG=sha-<커밋> docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --remove-orphans
 
-# (선택) DB 백업
-docker compose -f docker-compose.prod.yml exec postgres \
-  pg_dump -U lostark lostark > backup_$(date +%F).sql
+# DB 백업은 자동이다 — §11 참조. 수동으로 한 번 뜨려면:
+scripts/backup-db.sh
 ```
 
 ## 10. 자동 배포 (CI/CD 파이프라인) · 운영 Runbook
@@ -328,3 +327,120 @@ sudo tailscale ip -4        # 이 값이 GitHub secret VM_HOST와 일치하는�
 ### 10.9 후속 보안 작업 (아직 미실행)
 
 - [ ] **공개 SSH 22 폐쇄** — OCI Ingress에서 22 `/32` 규칙 제거. **선행 조건**: Windows Tailscale 클라이언트로 운영자 SSH 접속이 실제로 되는지 검증 완료. (검증 전엔 비상 복구 경로가 사라지므로 닫지 않는다.)
+
+## 11. DB 백업 · 복원 ⚠️ (되돌릴 수 없는 유일한 자산)
+
+사이트가 죽는 건 재배포로 몇 분이면 복구된다. **PG의 시계열은 아니다.** 보석 시세는 경매장 이력
+API가 아예 없어 소실되면 영구히 못 만들고, 가격은 상세 통계로 ~2주가 한계이며, 이벤트·쿠폰은
+관리자가 손으로 넣은 것이다. 그래서 백업은 **PostgreSQL 하나만** 지킨다 — Redis는 캐시라, Caddy
+인증서는 Let's Encrypt가 재발급하므로 대상이 아니다.
+
+| | |
+|---|---|
+| 스크립트 | `scripts/backup-db.sh` (cron이 하루 1회) |
+| 방식 | `pg_dump -Fc` — **무중단**(PG는 MVCC라 수집 중에도 일관된 스냅샷) |
+| 목적지 | 오라클 오브젝트 스토리지 (Always Free 20GB) |
+| 객체명 | `db/YYYY-MM-DD.dump` (UTC) |
+| 인증 | **쓰기 전용 버킷 PAR** — VM에 OCI CLI·API 키 없음 |
+| 보관 | **서버측 수명주기 30일** — 스크립트엔 삭제 로직이 없다(권한 자체가 없음) |
+| RPO | **24시간** — 최악의 경우 하루치가 영구 소실된다 |
+
+### 11.1 최초 설정 (1회)
+
+**① 버킷** — OCI 콘솔 → Object Storage → Create Bucket
+- 이름 예: `lostark-backup` / Standard
+- **버저닝 ON** ⚠️ 쓰기 전용 PAR도 *덮어쓰기*는 되므로, 버저닝이 없으면 기존 백업을 쓰레기로
+  덮을 수 있다. 켜두면 이전 버전이 남는다.
+
+**② 수명주기 규칙** — 버킷 → Lifecycle Policy Rules → Create Rule
+- Action `Delete` / Target `Objects` / 접두사 `db/` / **30일**
+- 삭제를 **서버가** 한다. VM이 털려도 백업을 지울 수 없는 이유가 이것이다.
+
+**③ 쓰기 전용 PAR** — 버킷 → Pre-Authenticated Requests → Create
+- Type: **Bucket** / Access: **Permit object writes** (읽기·목록 조회 **주지 말 것**)
+- Expiration: 길게(예: 2년). ⚠️ **만료일을 달력에 적어라** — 만료되면 백업이 멈춘다(§11.4).
+- 생성 직후 뜨는 URL을 **그때 복사**한다(다시 못 본다). `.../o/`로 끝나야 한다.
+
+**④ 데드맨 스위치** — [healthchecks.io](https://healthchecks.io) 가입(무료) → Check 생성
+- Period **1 day** / Grace **1 hour** → 25시간 무신호면 이메일
+- Ping URL 복사
+
+**⑤ `.env.prod`에 추가** (VM에서만, 커밋 금지)
+
+```bash
+BACKUP_PAR_URL=https://objectstorage.<리전>.oraclecloud.com/p/<토큰>/n/<네임스페이스>/b/lostark-backup/o/
+BACKUP_PING_URL=https://hc-ping.com/<uuid>
+```
+
+**⑥ 첫 실행 + cron**
+
+```bash
+cd ~/lostark && scripts/backup-db.sh      # 수동 1회 — 성공 확인 후 등록
+( crontab -l 2>/dev/null; echo '17 3 * * * cd $HOME/lostark && ./scripts/backup-db.sh >> $HOME/backup.log 2>&1' ) | crontab -
+```
+
+### 11.2 🔑 복원 — 일회용 컨테이너로 먼저 검증
+
+**복원해본 적 없는 백업은 백업이 아니라 희망이다.** 운영에 바로 밀어넣기 전에 반드시 여기서 확인한다.
+
+⚠️ **PAR로는 다운로드가 안 된다.** 쓰기 전용이라 GET 권한이 없다 — 이건 설계된 대가다.
+**OCI 콘솔 → 버킷 → 객체 → Download**로 받는다. (급하면 읽기 PAR을 따로 발급하고 **쓰고 나서
+지운다**.)
+
+```bash
+# 1) 일회용 PG16 기동
+docker run --rm -d --name pg-verify \
+  -e POSTGRES_PASSWORD=verify -e POSTGRES_USER=verifyuser -e POSTGRES_DB=verifydb postgres:16
+
+# 2) 덤프를 넣고 복원
+docker exec -i pg-verify sh -c 'cat > /tmp/r.dump' < db_2026-07-16.dump
+docker exec pg-verify pg_restore -U verifyuser -d verifydb --no-owner --no-privileges /tmp/r.dump
+
+# 3) 행 수 확인 — 추정치(n_live_tup)가 아니라 실제 COUNT(*)로 본다
+docker exec pg-verify psql -U verifyuser -d verifydb -c "
+SELECT 'price_snapshot', COUNT(*) FROM price_snapshot UNION ALL
+SELECT 'gem_price_snapshot', COUNT(*) FROM gem_price_snapshot UNION ALL
+SELECT 'game_event', COUNT(*) FROM game_event UNION ALL
+SELECT 'coupon', COUNT(*) FROM coupon;"
+
+# 4) 정리
+docker stop pg-verify
+```
+
+### 11.3 복원 — 운영에 적용 ☠️ 파괴적
+
+**`--clean`은 기존 객체를 DROP한다. 되돌릴 수 없다.** 11.2를 통과한 덤프에만, 정말 필요할 때만.
+
+```bash
+cd ~/lostark
+docker compose -f docker-compose.prod.yml --env-file .env.prod stop app   # 쓰기 멈춤
+docker compose -f docker-compose.prod.yml --env-file .env.prod exec -T postgres \
+  sh -c 'cat > /tmp/r.dump' < db_2026-07-16.dump
+docker compose -f docker-compose.prod.yml --env-file .env.prod exec postgres \
+  pg_restore -U lostark -d lostark --clean --if-exists --no-owner /tmp/r.dump
+docker compose -f docker-compose.prod.yml --env-file .env.prod start app
+```
+
+> 덤프에는 `flyway_schema_history`도 들어 있으므로 스키마와 데이터가 한 시점으로 일관되게 돌아온다.
+> 복원 후 앱이 뜨면서 Flyway가 `validate`로 확인한다.
+
+### 11.4 백업이 멈췄을 때
+
+**증상**: healthchecks.io에서 "no ping" 알림. 또는 `~/backup.log`에 `ERROR`.
+
+`backup-db.sh`는 **성공했을 때만** ping을 보낸다. 어느 단계든 실패하면 `set -e`가 즉시 끊어
+ping에 도달하지 못한다 — 즉 **알림이 왔다는 건 백업이 실제로 안 됐다는 뜻**이다(원인은 몰라도).
+
+```bash
+cd ~/lostark && ./scripts/backup-db.sh   # 직접 돌려 에러 메시지를 본다
+```
+
+| 메시지 | 원인 |
+|---|---|
+| `업로드 실패 (HTTP 404)` / `(HTTP 401)` | **PAR 만료·취소가 가장 흔하다** → §11.1 ③으로 재발급 후 `.env.prod` 교체 |
+| `덤프가 유효하지 않다` | 디스크 참(`df -h`) 또는 PG 이상. **이 경우 업로드하지 않는다** — 깨진 덤프가 정상 백업을 덮는 걸 막는다 |
+| `BACKUP_PAR_URL이 비어 있다` | `.env.prod` 항목 누락 |
+| `환경파일 없음` | 경로 문제. cron이 `cd $HOME/lostark`를 하는지 확인 |
+
+> ⚠️ **ping은 성공했는데 알림이 온다면** healthchecks 쪽 장애다(스크립트는 `WARN: ... ping 전송
+> 실패`를 남긴다). 백업 자체는 됐다 — 오탐이다. 거짓 경보가 거짓 침묵보다 낫기에 이렇게 뒀다.
