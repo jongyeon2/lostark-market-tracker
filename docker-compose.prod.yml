@@ -70,6 +70,14 @@ services:
     ports:
       - "80:80"
       - "443:443"
+      # tailnet 전용 관리자 리스너(quick-260716-k35). 관리자 화면은 공개 인터넷에 없고 여기서만 뜬다.
+      #
+      # ⚠️ "100.x.x.x:8081:8081"처럼 tailnet IP에 직접 bind하지 않는다. 더 안전해 보이지만,
+      # 재부팅 때 Docker가 Tailscale보다 먼저 뜨면 그 IP가 아직 없어 bind에 실패하고 Caddy 컨테이너가
+      # 통째로 안 뜬다 — Caddy는 공개 사이트도 서빙하므로 관리자 편의 때문에 사이트 전체가 죽는다.
+      # 대신 0.0.0.0에 열고 방화벽으로 막는다(런북 §4(c)): OCI 보안목록에 8081 미추가가 실질 차단이고,
+      # DOCKER-USER/INPUT의 tailscale0 외 DROP이 심층 방어다. 22번에 이미 쓰는 것과 같은 사고방식.
+      - "8081:8081"
     environment:
       SITE_ADDRESS: ${SITE_ADDRESS}
       ACME_EMAIL: ${ACME_EMAIL}

@@ -1,11 +1,17 @@
-# Caddy(Phase 18): 유일한 공개 진입점. DuckDNS 도메인({$SITE_ADDRESS})에서 Let's Encrypt
+# Caddy(Phase 18): 유일한 공개 진입점. 도메인({$SITE_ADDRESS})에서 Let's Encrypt
 # 자동 HTTPS(HTTP→HTTPS 강제)를 받고, 프론트는 정적으로 직접 서빙, /api·/actuator만 앱으로 프록시.
 # 동일 출처라 CORS 불필요(frontend/src/lib/api.ts가 이미 상대 /api 사용).
+#
+# 리스너가 둘이다(quick-260716-k35):
+#   - {$SITE_ADDRESS} : 공개 인터넷. 관리자 경로가 없다.
+#   - :8081           : tailnet 전용. 관리자 포함 전부. 방화벽이 tailscale0만 통과시킨다.
 {
 	email {$ACME_EMAIL}
 }
 
-{$SITE_ADDRESS} {
+# 두 리스너가 공유하는 실제 서빙 규칙. 한 곳에 두는 이유는 중복이 갈라지는 걸 막기 위해서다 —
+# 공개와 tailnet이 서로 다른 앱을 서빙하기 시작하면 "tailnet에선 되는데요"가 시작된다.
+(site) {
 	encode gzip zstd
 
 	# API + actuator → Spring Boot 앱(내부 docker 네트워크 서비스명 app:8080)
@@ -16,12 +22,44 @@
 		reverse_proxy app:8080
 	}
 
-	# 정적 SPA + 클라이언트 라우팅 fallback(/timeline·/impact·/admin 새로고침 대응)
+	# 정적 SPA + 클라이언트 라우팅 fallback(/timeline·/admin 새로고침 대응)
 	handle {
 		root * /srv
 		try_files {path} /index.html
 		file_server
 	}
+}
+
+{$SITE_ADDRESS} {
+	# 🔑 관리자 경로는 공개 인터넷에 존재하지 않는다. tailnet(:8081)에서만 접근한다.
+	#
+	# 이유가 둘이다. (1) 구글 세이프 브라우징이 이 사이트를 "방문자를 속여 개인정보를 노출하도록
+	# 유도함"으로 분류했는데(2026-07-16 확인), 방아쇠는 평판 없는 도메인 위의 공개된 비밀번호
+	# 폼이었다. 크롤러가 404를 받으면 볼 폼이 없다. (2) 관리자 API가 공개에 없으면 시크릿을
+	# 추측당할 표면 자체가 없다.
+	#
+	# 403이 아니라 404다. 403은 "여기 뭔가 있는데 막았다"고 알려준다.
+	#
+	# ⚠️ 이걸로 관리자 JS가 번들에서 빠지지는 않는다(경로만 막는다). 그래도 목적은 달성한다 —
+	# 크롤러는 폼을 못 보고, /api/admin/*이 여기서 404라 UI를 억지로 띄워도 전 동작이 실패한다.
+	# 번들에서 빼려면 빌드를 둘로 쪼개야 하는데 얻는 것 대비 과하다(코드는 이미 공개 저장소에 있다).
+	# handle은 경로 인자를 하나만 받는다(`handle /admin /admin/*`은 파싱 실패). 경로마다 하나씩 쓴다 —
+	# 이름 있는 matcher(@admin)로 묶을 수도 있지만, Caddy는 handle 블록을 **경로 문자열 길이**로
+	# 정렬해 구체적인 것을 먼저 태우므로 경로를 직접 적어야 그 정렬이 작동한다.
+	handle /admin {
+		respond 404
+	}
+	handle /admin/* {
+		respond 404
+	}
+	handle /api/admin {
+		respond 404
+	}
+	handle /api/admin/* {
+		respond 404
+	}
+
+	import site
 
 	# 보안 헤더
 	# CSP는 라이브 실자산 대조로 검증(quick 260713-e1o): 진입 script/stylesheet/폰트는 self 번들,
@@ -38,4 +76,17 @@
 		Cross-Origin-Opener-Policy "same-origin"
 		-Server
 	}
+}
+
+# tailnet 전용 리스너 — 관리자 화면은 여기서만 뜬다. 접속: http://<VM tailnet IP>:8081/admin
+#
+# 평문 HTTP인 게 맞다: tailnet은 WireGuard가 이미 암호화한다. Let's Encrypt는 tailnet 이름으로
+# 인증서를 못 주고, 자체 서명을 쓰면 브라우저 경고가 떠서 오히려 나쁘다.
+#
+# ⚠️ 이 포트를 지키는 건 Caddy가 아니라 방화벽이다(런북 §4(c)):
+#   - OCI 보안목록에 8081을 추가하지 않는다 ← 인터넷에서의 실질 차단
+#   - VM의 DOCKER-USER + INPUT에서 tailscale0 외 8081을 DROP ← 심층 방어
+# compose에서 tailnet IP로 직접 bind하지 않는 이유도 런북에 있다(재부팅 시 bind 실패 → 사이트 전체 중단).
+http://:8081 {
+	import site
 }

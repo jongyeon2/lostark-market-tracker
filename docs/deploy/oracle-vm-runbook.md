@@ -82,13 +82,76 @@ OCI 콘솔 → 인스턴스의 VCN → **Security Lists**(또는 NSG) → **Ingr
 
 ### (b) VM 내부 iptables
 
-Oracle Ubuntu 이미지는 기본 iptables가 80/443을 **차단**한다. 직접 열고 영속화:
+Oracle Ubuntu 이미지는 기본 iptables가 80/443을 **차단**한다(끝의 `REJECT`). 직접 열고 영속화:
 
 ```bash
 sudo iptables -I INPUT 6 -p tcp --dport 80 -j ACCEPT
 sudo iptables -I INPUT 6 -p tcp --dport 443 -j ACCEPT
 sudo netfilter-persistent save     # iptables-persistent 패키지 필요 시: sudo apt -y install iptables-persistent
 ```
+
+> ⚠️ **규칙을 볼 땐 반드시 `-v`를 붙여라.** `iptables -L`은 **`in` 인터페이스 컬럼을 출력하지 않는다.**
+> 그래서 `-i lo`(루프백 전용)가 `ACCEPT all -- 0.0.0.0/0 0.0.0.0/0`으로 보여 **"방화벽이 전부
+> 열려 있다"고 오독**하게 된다. 실측(2026-07-16) 현재 INPUT은 이렇다:
+>
+> ```
+> sudo iptables -L INPUT -n -v --line-numbers
+> 1  ACCEPT tcp -- tailscale0  dpt:22    ← CI 배포용 tailnet SSH
+> 5  ACCEPT all -- lo                    ← 루프백 (전체 허용 아님)
+> 6  ACCEPT tcp -- *           dpt:22    ← 운영자 공개 SSH(OCI가 /32로 제한)
+> 7  ACCEPT tcp -- *           dpt:80
+> 8  ACCEPT tcp -- *           dpt:443
+> 9  REJECT all -- *                     ← 실제로 작동 중
+> ```
+
+> 🔑 **Docker 공개 포트는 INPUT만으로 막을 수 없다.** Docker는 `nat/PREROUTING`에서 DNAT로 목적지를
+> 컨테이너 IP로 바꾸므로, 그 패킷은 **INPUT이 아니라 FORWARD**를 탄다. `iptables -I INPUT --dport
+> <포트> -j DROP`을 넣고 "막았다"고 믿으면 **실제로는 열려 있는** 최악의 상태가 된다.
+> 차단은 `DOCKER-USER` 체인에 넣어야 Docker 규칙보다 먼저 걸린다.
+>
+> 다만 위 7·8번 규칙의 패킷 카운터가 **0이 아니다**(148/89, 실측). Docker 기본값인
+> `userland-proxy`가 호스트 포트를 직접 열어 일부 트래픽은 INPUT을 타기 때문으로 보인다. 즉
+> **두 경로가 다 존재할 수 있으므로, 무언가를 확실히 막으려면 `DOCKER-USER`와 `INPUT` 양쪽에 넣는다**
+> (§4(c)가 그렇게 한다).
+
+### (c) 8081 — tailnet 전용 관리자 포트 ⚠️
+
+관리자 화면(`/admin`)은 **공개 인터넷에 존재하지 않는다**(§4(d)). Caddy가 `:8081`에 따로 열어주고,
+거기 닿을 수 있는 건 tailnet뿐이다. **3겹으로 막는다:**
+
+| 층 | 조치 | 역할 |
+|---|---|---|
+| **OCI 보안목록** | 8081 Ingress 규칙을 **만들지 않는다** | 🔑 **실질 차단** — 클라우드 계층이라 패킷이 VM에 닿지도 않는다 |
+| VM `DOCKER-USER` | tailscale0 외 8081 DROP | DNAT/FORWARD 경로 방어 |
+| VM `INPUT` | tailscale0 외 8081 DROP | userland-proxy 경로 방어 |
+
+```bash
+sudo iptables -I DOCKER-USER 1 ! -i tailscale0 -p tcp --dport 8081 -j DROP
+sudo iptables -I INPUT 7      ! -i tailscale0 -p tcp --dport 8081 -j DROP
+sudo netfilter-persistent save
+```
+
+> **22번 규칙(1·6번)은 건드리지 않는다** — 비상 복구 경로다. 잠기면 VM에 못 들어간다.
+
+### (d) 관리자 접속 — tailnet에서만
+
+```
+http://100.78.167.74:8081/admin      # VM의 tailnet IP (sudo tailscale ip -4)
+```
+
+노트북에서 Tailscale을 켠 상태여야 한다. 공개 도메인의 `/admin`·`/api/admin/*`은 **404**다.
+
+**평문 HTTP인 게 맞다**: tailnet은 WireGuard가 이미 암호화한다. Let's Encrypt는 tailnet 이름으로
+인증서를 못 주고, 자체 서명을 쓰면 브라우저 경고가 떠서 오히려 나쁘다.
+
+**왜 이렇게 하나**: 구글 세이프 브라우징이 이 사이트를 **"방문자를 속여 개인정보를 노출하도록 유도함"**
+(사회공학=피싱)으로 분류했고(2026-07-16 확인), 방아쇠는 **평판 없는 무료 DDNS 도메인 위의 공개된
+비밀번호 폼**이었다. 크롤러가 `/admin`에서 404를 받으면 볼 폼이 없다. 덤으로 관리자 API가 공개에
+없으니 시크릿을 추측당할 표면 자체가 사라진다.
+
+> ⚠️ **이걸로 관리자 JS가 번들에서 빠지지는 않는다**(경로만 막는다). 그래도 목적은 달성한다 —
+> 크롤러는 폼을 못 보고, `/api/admin/*`이 공개에서 404라 UI를 억지로 띄워도 전 동작이 실패한다.
+> 번들에서 빼려면 빌드를 둘로 쪼개야 하는데 얻는 것 대비 과하다(코드는 이미 공개 저장소에 있다).
 
 ## 5. 앱 배치 + 시크릿 (`.env.prod`)
 
@@ -160,7 +223,9 @@ systemctl status lostark
 - [ ] `http://<도메인>` → **https로 리다이렉트**
 - [ ] 대시보드 / 타임라인 / 이벤트영향 **3화면 렌더**
 - [ ] `/timeline` 같은 딥링크 **새로고침해도 정상**(SPA fallback)
-- [ ] 관리자 콘솔에서 **시크릿 로그인 동작**(강시크릿), 잘못된 시크릿은 401
+- [ ] 공개 도메인의 `/admin`·`/api/admin/events` → **404**(§4(d)) — 공개 인터넷엔 관리자가 없다
+- [ ] **tailnet**에서 `http://100.78.167.74:8081/admin` → 로그인 화면 + **시크릿 로그인 동작**(강시크릿), 잘못된 시크릿은 401
+- [ ] **VM 밖에서** `curl --max-time 5 http://<공인IP>:8081/` → **타임아웃/거부**(8081이 공개면 안 됨)
 - [ ] **보안 응답 헤더 7종** 존재(아래 `curl`) + `Server` 헤더 제거됨
 - [ ] 브라우저 콘솔 **CSP 위반 = 무해한 `eval` 1건뿐**(차트·아이콘·Select 정상 렌더)
 - [ ] 수집 축적 확인:
