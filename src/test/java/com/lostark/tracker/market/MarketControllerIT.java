@@ -107,6 +107,20 @@ class MarketControllerIT extends PostgresRedisContainers {
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
+    /**
+     * The frontend zod contract is camelCase. The DTOs deserialize the PascalCase upstream via
+     * {@code @JsonAlias} but MUST serialize camelCase to the client — asserting the raw JSON keys here
+     * pins that, since a round-trip through the same DTO (as the typed tests above do) would hide a
+     * PascalCase leak. This is the bug live verification caught (zod rejected {@code PageNo}).
+     */
+    @Test
+    void responseJsonUsesCamelCaseKeysNotUpstreamPascalCase() {
+        String json = rest.getForObject("/api/market/adventure", String.class);
+
+        assertThat(json).contains("\"pageNo\"", "\"totalCount\"", "\"items\"", "\"currentMinPrice\"");
+        assertThat(json).doesNotContain("\"PageNo\"", "\"TotalCount\"", "\"CurrentMinPrice\"", "\"Icon\"");
+    }
+
     @Test
     void classesReturns200() {
         when(client.getMarketOptions()).thenReturn(
