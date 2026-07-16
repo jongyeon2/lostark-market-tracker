@@ -1,5 +1,7 @@
 package com.lostark.tracker.web.error;
 
+import com.lostark.tracker.collect.error.LostarkApiException;
+import com.lostark.tracker.collect.error.RateLimitedApiException;
 import com.lostark.tracker.web.dto.ApiErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -74,6 +76,22 @@ public class ApiExceptionHandler {
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<ApiErrorResponse> handleMissingParam(MissingServletRequestParameterException ex) {
         return error(HttpStatus.BAD_REQUEST, "Missing required parameter '" + ex.getParameterName() + "'");
+    }
+
+    /**
+     * The market-search read path (아바타·모험의 서) hits 로스트아크 on-demand, so its upstream failures reach
+     * the controller (the collector, by contrast, absorbs them internally). A shared-bucket throttle or a real
+     * 429 → 429 with the caller's own wording; any other upstream fault (auth/5xx/I-O/4xx) → 502, since it is
+     * the upstream we could not reach, not the client's request. The message never carries a key/secret (D-08).
+     */
+    @ExceptionHandler(RateLimitedApiException.class)
+    public ResponseEntity<ApiErrorResponse> handleRateLimited(RateLimitedApiException ex) {
+        return error(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage());
+    }
+
+    @ExceptionHandler(LostarkApiException.class)
+    public ResponseEntity<ApiErrorResponse> handleUpstream(LostarkApiException ex) {
+        return error(HttpStatus.BAD_GATEWAY, "로스트아크 API에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.");
     }
 
     private ResponseEntity<ApiErrorResponse> error(HttpStatus status, String message) {

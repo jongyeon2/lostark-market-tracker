@@ -23,7 +23,13 @@ public abstract class PostgresRedisContainers {
             new PostgreSQLContainer<>(DockerImageName.parse("postgres:16"))
                     .withDatabaseName("lostark")
                     .withUsername("lostark")
-                    .withPassword("lostark");
+                    .withPassword("lostark")
+                    // Raise max_connections from the postgres default (100). @SpringBootTest caches one
+                    // context per distinct configuration, each holding a HikariPool (~10 connections); as the
+                    // suite grew (market-search added two @MockitoBean contexts) the live contexts' pools could
+                    // together exhaust 100 → "FATAL: sorry, too many clients already" on a later context load.
+                    // Pure headroom on the shared singleton container — no behavior change.
+                    .withCommand("postgres", "-c", "max_connections=300");
 
     protected static final GenericContainer<?> REDIS =
             new GenericContainer<>(DockerImageName.parse("redis:7"))

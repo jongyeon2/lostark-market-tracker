@@ -7,12 +7,16 @@ import com.lostark.tracker.collect.error.AuthApiException;
 import com.lostark.tracker.collect.error.NonRetryableApiException;
 import com.lostark.tracker.collect.error.RateLimitedApiException;
 import com.lostark.tracker.collect.error.TransientApiException;
+import com.lostark.tracker.market.dto.MarketOptionsResponse;
+import com.lostark.tracker.market.dto.MarketSearchResponse;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Productized markets client (replaces the Task-0 spike for real collection). It:
@@ -140,6 +144,93 @@ public class LostarkApiClient {
             // Connect/read timeout or other I/O — transient (D-10). No key in the message.
             throw new TransientApiException("Lostark I/O or timeout", e);
         }
+    }
+
+    /**
+     * Search 거래소 for the market-search feature (아바타·모험의 서 실시간 조회) — a paged, sorted,
+     * optionally class-filtered {@code POST /markets/items}. Unlike {@link #searchMarketItems} (which
+     * hardcodes CURRENT_MIN_PRICE/ASC/PageNo1 for the collector and drops Grade/RecentPrice/Icon), this
+     * passes every knob through and returns {@link MarketSearchResponse} with those fields kept.
+     *
+     * <p>The body is a {@link Map} serialized by RestClient's Jackson converter — NOT hand-built text —
+     * so a 한글 {@code characterClass}/{@code itemName} is emitted as correct UTF-8 and JSON-escaped
+     * safely (the text-block path's manual {@code \"} escaping does neither reliably). Blank
+     * class/name fields are OMITTED, since an empty {@code CharacterClass} is not the same request as
+     * no filter (모험의 서 has no class at all).
+     *
+     * <p>Caller (MarketSearchService) is responsible for whitelisting {@code sort}/{@code sortCondition}
+     * BEFORE calling — the API silently ignores unknown values (returns 200 with default order), so an
+     * unvalidated value would look like it worked while doing nothing.
+     *
+     * <p>Same error taxonomy as the collector paths (see {@link #applyErrorTaxonomy}).
+     */
+    public MarketSearchResponse searchMarket(String categoryCode, String characterClass, String itemName,
+                                             int pageNo, String sort, String sortCondition) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("Sort", sort);
+        body.put("CategoryCode", Integer.parseInt(categoryCode));
+        body.put("PageNo", pageNo);
+        body.put("SortCondition", sortCondition);
+        if (itemName != null && !itemName.isBlank()) {
+            body.put("ItemName", itemName);
+        }
+        if (characterClass != null && !characterClass.isBlank()) {
+            body.put("CharacterClass", characterClass);
+        }
+        try {
+            return applyErrorTaxonomy(restClient.post()
+                    .uri("/markets/items")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(body)
+                    .retrieve())
+                    .body(MarketSearchResponse.class);
+        } catch (ResourceAccessException e) {
+            throw new TransientApiException("Lostark I/O or timeout", e);
+        }
+    }
+
+    /**
+     * Fetch {@code GET /markets/options} for the 30 playable classes the avatar 직업 드롭다운 offers.
+     * The list changes only when 로스트아크 ships a new class, so the caller caches it long-term.
+     * Same error taxonomy as the other paths.
+     */
+    public MarketOptionsResponse getMarketOptions() {
+        try {
+            return applyErrorTaxonomy(restClient.get()
+                    .uri("/markets/options")
+                    .retrieve())
+                    .body(MarketOptionsResponse.class);
+        } catch (ResourceAccessException e) {
+            throw new TransientApiException("Lostark I/O or timeout", e);
+        }
+    }
+
+    /**
+     * The shared HTTP-status → typed-exception mapping (COLL-04). Identical to the inline taxonomy in
+     * {@link #searchMarketItems}/{@link #getItemDetail}; the market-search paths route through here so
+     * the mapping lives in one place going forward. 401/403 → {@link AuthApiException}, 429 →
+     * {@link RateLimitedApiException} (with Retry-After), 5xx / I-O → {@link TransientApiException},
+     * other 4xx → {@link NonRetryableApiException}. No key/secret ever reaches a message (D-08).
+     */
+    private static RestClient.ResponseSpec applyErrorTaxonomy(RestClient.ResponseSpec spec) {
+        return spec
+                .onStatus(s -> s.value() == 401 || s.value() == 403,
+                        (req, res) -> {
+                            throw new AuthApiException("Lostark auth failed (HTTP " + res.getStatusCode().value() + ")");
+                        })
+                .onStatus(s -> s.value() == 429,
+                        (req, res) -> {
+                            Integer retryAfter = parseRetryAfter(res.getHeaders().getFirst("Retry-After"));
+                            throw new RateLimitedApiException("Lostark rate limited (HTTP 429)", retryAfter);
+                        })
+                .onStatus(HttpStatusCode::is5xxServerError,
+                        (req, res) -> {
+                            throw new TransientApiException("Lostark server error (HTTP " + res.getStatusCode().value() + ")");
+                        })
+                .onStatus(HttpStatusCode::is4xxClientError,
+                        (req, res) -> {
+                            throw new NonRetryableApiException("Lostark client error (HTTP " + res.getStatusCode().value() + ")");
+                        });
     }
 
     /**
