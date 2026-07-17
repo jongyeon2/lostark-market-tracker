@@ -1,17 +1,16 @@
-# Caddy(Phase 18 · 도메인 이관 커밋 #1): 유일한 공개 진입점. 신규 대표 도메인(loaket.kr)과
-# 옛 도메인(duckdns)을 동시에 서빙하는 컷오버 과도기 설정이다. {$SITE_ADDRESS}는 .env.prod에서 온다.
-# 프론트는 정적으로 직접 서빙, /api·/actuator만 앱으로 프록시(동일 출처라 CORS 불필요).
+# Caddy(Phase 18): 유일한 공개 진입점. 대표 도메인(loaket.kr, {$SITE_ADDRESS})에서 Let's Encrypt
+# 자동 HTTPS(HTTP→HTTPS 강제)를 받고, 프론트는 정적으로 직접 서빙, /api·/actuator만 앱으로 프록시.
+# 동일 출처라 CORS 불필요(frontend/src/lib/api.ts가 이미 상대 /api 사용).
 #
 # 리스너 구성:
-#   - {$SITE_ADDRESS}             : 신규 대표 도메인(loaket.kr). 공개. 관리자 경로 없음.
-#   - www.{$SITE_ADDRESS}         : www → apex 301 영구 리다이렉트.
-#   - lostark-tracker.duckdns.org : ⚠️ 컷오버 임시 병행 서빙(롤백 여유). 전환 확정(커밋 #2) 시 삭제.
-#   - :8081                       : tailnet 전용. 관리자 포함 전부. 방화벽이 tailscale0만 통과시킨다.
+#   - {$SITE_ADDRESS}     : 대표 도메인(loaket.kr). 공개. 관리자 경로 없음.
+#   - www.{$SITE_ADDRESS} : www → apex 301 영구 리다이렉트.
+#   - :8081               : tailnet 전용. 관리자 포함 전부. 방화벽이 tailscale0만 통과시킨다.
 {
 	email {$ACME_EMAIL}
 }
 
-# 모든 리스너가 공유하는 실제 서빙 규칙. 한 곳에 두는 이유는 중복이 갈라지는 걸 막기 위해서다 —
+# 공개·tailnet 리스너가 공유하는 실제 서빙 규칙. 한 곳에 두는 이유는 중복이 갈라지는 걸 막기 위해서다 —
 # 공개와 tailnet이 서로 다른 앱을 서빙하기 시작하면 "tailnet에선 되는데요"가 시작된다.
 (site) {
 	encode gzip zstd
@@ -32,8 +31,8 @@
 	}
 }
 
-# 공개 인터넷에 서빙되는 도메인이 공유하는 규칙(신규 apex·duckdns 동일 적용).
-# admin 404 + 보안 헤더를 여기 한 곳에 둔다 — 도메인별로 복붙하면 한쪽만 고쳐져 갈라진다(커밋 #1의 핵심).
+# 공개 인터넷에 서빙되는 대표 도메인의 규칙. admin 404 + 보안 헤더를 여기 한 곳에 둔다 —
+# 공개(apex)와 tailnet(:8081)이 다른 규칙을 쓰므로(공개는 관리자 404, tailnet은 전부 허용) 스니펫으로 가른다.
 (public) {
 	# 🔑 관리자 경로는 공개 인터넷에 존재하지 않는다. tailnet(:8081)에서만 접근한다.
 	#
@@ -78,24 +77,15 @@
 	}
 }
 
-# 신규 대표 도메인(loaket.kr) — 공개 서빙. Caddy가 SITE_ADDRESS로 Let's Encrypt 인증서를 자동 발급.
+# 대표 도메인(loaket.kr) — 공개 서빙. Caddy가 SITE_ADDRESS로 Let's Encrypt 인증서를 자동 발급.
 {$SITE_ADDRESS} {
 	import public
 }
 
 # www → apex 301 영구 리다이렉트. Caddy가 env를 인라인 확장하므로 도메인명 하드코딩 불필요.
-# 이 블록도 TLS로 서빙되므로 www DNS가 VM을 가리켜야 한다(가비아 A레코드 www 준비됨).
+# 이 블록도 TLS로 서빙되므로 www DNS가 VM을 가리켜야 한다(가비아 A레코드 www).
 www.{$SITE_ADDRESS} {
 	redir https://{$SITE_ADDRESS}{uri} permanent
-}
-
-# ⚠️ 컷오버 임시 — 옛 도메인 병행 서빙(롤백 여유). 신규 도메인 라이브 확인 후 커밋 #2에서 이 블록을 삭제한다.
-#
-# ★ 하드 스톱: {$SITE_ADDRESS}가 아직 duckdns이면 이 블록과 호스트가 **중복**돼 Caddy 기동이 실패한다
-#   (사이트 전체 중단). 그래서 이 Caddyfile을 배포하기 전에 VM .env.prod의 SITE_ADDRESS를
-#   loaket.kr로 반드시 먼저 바꿔야 한다. 로컬 `caddy validate`로 두 케이스를 확인했다(SUMMARY 참조).
-lostark-tracker.duckdns.org {
-	import public
 }
 
 # tailnet 전용 리스너 — 관리자 화면은 여기서만 뜬다. 접속: http://<VM tailnet IP>:8081/admin

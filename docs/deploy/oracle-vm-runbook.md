@@ -48,17 +48,17 @@ newgrp docker
 docker --version && docker compose version
 ```
 
-## 3. DuckDNS 도메인 연결
+## 3. 도메인 연결 (가비아)
 
-1. [duckdns.org](https://www.duckdns.org) 로그인(GitHub/Google 등).
-2. 원하는 서브도메인 생성(예: `lostark-tracker`) → 도메인은 `lostark-tracker.duckdns.org`.
-3. **current ip** 칸에 VM의 Public IP를 넣고 **update** → 저장. **token** 을 기록.
-4. (선택) IP가 바뀌어도 유지되도록 갱신 크론:
+1. 가비아에서 도메인 구매(운영: `loaket.kr`).
+2. 가비아 DNS 관리 → **A 레코드 2개** 추가(둘 다 VM Public IP):
+   - `@`   → VM Public IP
+   - `www` → VM Public IP
+3. 전파 확인: `nslookup loaket.kr` / `nslookup www.loaket.kr` → VM Public IP.
 
-```bash
-# <TOKEN>, <SUBDOMAIN> 치환
-( crontab -l 2>/dev/null; echo '*/5 * * * * curl -s "https://www.duckdns.org/update?domains=<SUBDOMAIN>&token=<TOKEN>&ip=" >/dev/null' ) | crontab -
-```
+> Caddy가 `SITE_ADDRESS`(apex)로 Let's Encrypt 인증서를 자동 발급하고, `www`는 apex로 301 리다이렉트한다(`frontend/Caddyfile`).
+> Oracle VM Public IP는 고정(reserved)이라 DuckDNS식 IP 갱신 크론은 불필요하다.
+> (v1은 무료 DuckDNS 서브도메인을 썼으나 2026-07-17 `loaket.kr`로 이전 — VM에 남은 DuckDNS 갱신 크론은 별도 제거.)
 
 ## 4. 방화벽 이중 개방 ⚠️ (보안 핵심)
 
@@ -176,7 +176,7 @@ openssl rand -hex 32   # → ADMIN_API_SECRET (⚠️ dev의 123456789 절대 �
 `.env.prod` 필수 값:
 - `POSTGRES_PASSWORD` / `REDIS_PASSWORD` / `ADMIN_API_SECRET` = 위 openssl 생성값
 - `LOSTARK_API_KEY` = 로스트아크 개발자 포털 JWT(재발급 가능)
-- `SITE_ADDRESS` = `lostark-tracker.duckdns.org` (본인 서브도메인)
+- `SITE_ADDRESS` = `loaket.kr` (운영 대표 도메인)
 - `ACME_EMAIL` = 본인 이메일(Let's Encrypt 계정)
 
 > **재확인**: `.env.prod`은 `.gitignore`가 무시한다. `git status`에 나타나면 안 된다.
@@ -194,7 +194,7 @@ docker compose -f docker-compose.prod.yml --env-file .env.prod pull
 docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
 ```
 
-- DuckDNS DNS 전파(수 분) 후, Caddy가 `SITE_ADDRESS`로 Let's Encrypt 인증서를 **자동 발급**한다.
+- DNS 전파(수 분) 후, Caddy가 `SITE_ADDRESS`로 Let's Encrypt 인증서를 **자동 발급**한다.
 - 발급 로그 확인:
 
 ```bash
@@ -318,8 +318,8 @@ docker compose -f docker-compose.prod.yml images        # app/web 이미지 태�
 docker inspect --format '{{.Config.Image}}' $(docker compose -f docker-compose.prod.yml ps -q app)
 
 # (외부) 공개 HTTPS 헬스
-curl -fsS https://lostark-tracker.duckdns.org/actuator/health          # {"status":"UP"}
-curl -fsS https://lostark-tracker.duckdns.org/api/health/collection    # 200 + 수집 상태
+curl -fsS https://loaket.kr/actuator/health          # {"status":"UP"}
+curl -fsS https://loaket.kr/api/health/collection    # 200 + 수집 상태
 ```
 
 ### 10.3 컨테이너 로그
@@ -339,7 +339,7 @@ docker compose -f docker-compose.prod.yml logs app | grep -i collection   # 수�
 cd /opt/lostark-price-tracker
 IMAGE_TAG=sha-<이전정상커밋> docker compose -f docker-compose.prod.yml --env-file .env.prod pull
 IMAGE_TAG=sha-<이전정상커밋> docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --remove-orphans
-curl -fsS https://lostark-tracker.duckdns.org/actuator/health   # {"status":"UP"} 확인
+curl -fsS https://loaket.kr/actuator/health   # {"status":"UP"} 확인
 ```
 
 - 위 수동 롤백은 **일시적**이다 — 다음 `main` 배포나 재부팅(systemd `:latest`)이 다시 최신을 띄운다.

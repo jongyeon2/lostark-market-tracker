@@ -171,6 +171,6 @@ jobs:
       - name: Smoke test (public HTTPS)
         run: |
           curl -fsS --retry 12 --retry-delay 5 --retry-all-errors --retry-connrefused \
-            https://lostark-tracker.duckdns.org/actuator/health | grep -q '"status":"UP"'
+            https://loaket.kr/actuator/health | grep -q '"status":"UP"'
           curl -fsS --retry 6 --retry-delay 5 --retry-all-errors \
-            https://lostark-tracker.duckdns.org/api/health/collection > /dev/null
+            https://loaket.kr/api/health/collection > /dev/null

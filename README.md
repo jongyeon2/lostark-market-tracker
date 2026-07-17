@@ -10,7 +10,7 @@
 > 로스트아크 거래소 아이템 시세를 **10분마다 자동으로 모아 기록**하고, 시세가 **언제·얼마나 움직였는지**를 차트로 보여주는 웹 서비스입니다.  
 > 게임이 소재일 뿐, 속을 뜯어보면 **주식·코인 시세를 모으는 파이프라인과 똑같은 구조**입니다.
 
-### 🔗 라이브 데모 → **[lostark-tracker.duckdns.org](https://lostark-tracker.duckdns.org)**
+### 🔗 라이브 데모 → **[loaket.kr](https://loaket.kr)**
 
 ![품목 타임라인 — 30일 시세 라인 차트(최저가·평균 거래가)와 이벤트 범례](frontend/docs/screenshots/item-timeline.png)
 
@@ -32,13 +32,13 @@
 
 ## 직접 보기
 
-**🔗 [lostark-tracker.duckdns.org](https://lostark-tracker.duckdns.org)** — 배포된 사이트에서 바로 확인할 수 있습니다(설치 불필요).
+**🔗 [loaket.kr](https://loaket.kr)** — 배포된 사이트에서 바로 확인할 수 있습니다(설치 불필요).
 
 | 화면 | 무엇을 보여주나 | 바로가기 |
 |------|----------------|----------|
-| **대시보드** | 수집 상태 + 품목별 최신가 워치리스트 | [열기](https://lostark-tracker.duckdns.org/dashboard) |
-| **품목 타임라인** | 시세 라인 차트 + 기간 선택 + 이벤트 마커 | [예시(30일 딥링크)](https://lostark-tracker.duckdns.org/timeline?item=5&from=2026-06-13T03%3A11%3A14.463Z&to=2026-07-13T03%3A11%3A14.463Z) |
-| **이벤트 영향** | 이벤트 전후 가격 변화율 | [열기](https://lostark-tracker.duckdns.org/impact) |
+| **대시보드** | 수집 상태 + 품목별 최신가 워치리스트 | [열기](https://loaket.kr/dashboard) |
+| **품목 타임라인** | 시세 라인 차트 + 기간 선택 + 이벤트 마커 | [예시(30일 딥링크)](https://loaket.kr/timeline?item=5&from=2026-06-13T03%3A11%3A14.463Z&to=2026-07-13T03%3A11%3A14.463Z) |
+| **이벤트 영향** | 이벤트 전후 가격 변화율 | [열기](https://loaket.kr/impact) |
 
 | 대시보드 — 수집 상태·워치리스트·로아 소식 | 이벤트 영향 — 전후 변화율 |
 |:---:|:---:|
