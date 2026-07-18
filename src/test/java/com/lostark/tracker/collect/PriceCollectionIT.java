@@ -26,6 +26,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -53,9 +54,11 @@ class PriceCollectionIT extends PostgresRedisContainers {
     LatestPriceCache latestPriceCache;
     @Autowired
     BackfillCaptureService backfillCaptureService;
-    // Mocked so the tick's dead-man ping is captured (and no real HTTP happens) — MONITORING §9.
-    @MockitoBean
-    CollectionHeartbeat heartbeat;
+    // A LOCAL mock (not a @MockitoBean) captures the tick's dead-man ping for verification — MONITORING §9.
+    // Deliberately not the context bean: this IT has no `test` profile, so the real @Scheduled collector
+    // fires a startup tick (initial-delay defaults to 0); a @MockitoBean would let that stray tick pollute
+    // the invocation count. Only the manually-built collector() below uses this mock, so verify() is exact.
+    private final CollectionHeartbeat heartbeat = mock(CollectionHeartbeat.class);
 
     // Pinned clock -> collected_at == 2026-06-22T09:15:00Z for every tick in this test.
     private static final Instant FIXED = Instant.parse("2026-06-22T09:15:30Z");
