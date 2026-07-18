@@ -7,6 +7,7 @@ import com.lostark.tracker.collect.dto.MarketItemsResponse;
 import com.lostark.tracker.domain.CollectionRun;
 import com.lostark.tracker.domain.PriceSnapshot;
 import com.lostark.tracker.domain.TrackedItem;
+import com.lostark.tracker.health.CollectionHeartbeat;
 import com.lostark.tracker.repository.CollectionRunRepository;
 import com.lostark.tracker.repository.PriceSnapshotRepository;
 import com.lostark.tracker.repository.TrackedItemRepository;
@@ -25,6 +26,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -51,6 +53,9 @@ class PriceCollectionIT extends PostgresRedisContainers {
     LatestPriceCache latestPriceCache;
     @Autowired
     BackfillCaptureService backfillCaptureService;
+    // Mocked so the tick's dead-man ping is captured (and no real HTTP happens) — MONITORING §9.
+    @MockitoBean
+    CollectionHeartbeat heartbeat;
 
     // Pinned clock -> collected_at == 2026-06-22T09:15:00Z for every tick in this test.
     private static final Instant FIXED = Instant.parse("2026-06-22T09:15:30Z");
@@ -58,7 +63,7 @@ class PriceCollectionIT extends PostgresRedisContainers {
 
     private PriceCollector collector(long perCallSeconds, long overallSeconds) {
         return new PriceCollector(itemFetchService, trackedItemRepository, priceSnapshotRepository,
-                collectionRunRepository, latestPriceCache, backfillCaptureService,
+                collectionRunRepository, latestPriceCache, backfillCaptureService, heartbeat,
                 Clock.fixed(FIXED, ZoneOffset.UTC), perCallSeconds, overallSeconds);
     }
 
@@ -141,6 +146,32 @@ class PriceCollectionIT extends PostgresRedisContainers {
         assertThat(run.getItemsSucceeded()).isEqualTo(2);
         assertThat(run.getItemsFailed()).isEqualTo(1);
         assertThat(run.getStatus()).isEqualTo("PARTIAL_SUCCESS");
+    }
+
+    @Test
+    void tickReportsSucceededCountToHeartbeat() {
+        seed("1001", "itemA");
+        seed("1002", "itemB");
+        when(apiClient.searchMarketItems(eq("50010"), eq("itemA"))).thenReturn(oneItem(1001, 100));
+        when(apiClient.searchMarketItems(eq("50010"), eq("itemB"))).thenReturn(oneItem(1002, 200));
+
+        collector(2, 3).collectTick();
+
+        // The dead-man switch is fed the succeeded count for this tick (MONITORING §4).
+        verify(heartbeat).report(2);
+    }
+
+    @Test
+    void emptyWatchlistReportsZeroToHeartbeatDespiteFalseSuccessStatus() {
+        // No active items -> succeeded == items.size() == 0 records a *false* SUCCESS run (the known
+        // application-prod.yml:6-8 edge). The heartbeat must still report 0 so it pings /fail, not the
+        // healthy URL — this is exactly why the ping rule keys off `succeeded`, not `status` (§4).
+        collector(2, 3).collectTick();
+
+        CollectionRun run = latestRun();
+        assertThat(run.getItemsAttempted()).isEqualTo(0);
+        assertThat(run.getStatus()).isEqualTo("SUCCESS"); // the false-positive we refuse to trust
+        verify(heartbeat).report(0);                       // ...reported as a failure regardless
     }
 
     private CollectionRun latestRun() {

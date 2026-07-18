@@ -9,6 +9,7 @@ import com.lostark.tracker.collect.error.RateLimitedApiException;
 import com.lostark.tracker.collect.error.TransientApiException;
 import com.lostark.tracker.domain.CollectionRun;
 import com.lostark.tracker.domain.TrackedItem;
+import com.lostark.tracker.health.CollectionHeartbeat;
 import com.lostark.tracker.repository.CollectionRunRepository;
 import com.lostark.tracker.repository.PriceSnapshotRepository;
 import com.lostark.tracker.repository.TrackedItemRepository;
@@ -27,6 +28,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
@@ -60,7 +62,7 @@ class CollectionResilienceIT extends PostgresRedisContainers {
         // perCall 5s leaves room for the bounded retry's backoff; overall 8s backstop.
         return new PriceCollector(itemFetchService, trackedItemRepository, priceSnapshotRepository,
                 collectionRunRepository, latestPriceCache, backfillCaptureService,
-                Clock.fixed(FIXED, ZoneOffset.UTC), 5, 8);
+                mock(CollectionHeartbeat.class), Clock.fixed(FIXED, ZoneOffset.UTC), 5, 8);
     }
 
     @BeforeEach

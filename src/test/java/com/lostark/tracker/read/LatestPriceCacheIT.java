@@ -9,6 +9,7 @@ import com.lostark.tracker.collect.dto.MarketItem;
 import com.lostark.tracker.collect.dto.MarketItemsResponse;
 import com.lostark.tracker.domain.PriceSnapshot;
 import com.lostark.tracker.domain.TrackedItem;
+import com.lostark.tracker.health.CollectionHeartbeat;
 import com.lostark.tracker.repository.CollectionRunRepository;
 import com.lostark.tracker.repository.PriceSnapshotRepository;
 import com.lostark.tracker.repository.TrackedItemRepository;
@@ -189,7 +190,7 @@ class LatestPriceCacheIT extends PostgresRedisContainers {
     private PriceCollector newCollectorAt(Instant instant) {
         return new PriceCollector(itemFetchService, trackedItemRepository, priceSnapshotRepository,
                 collectionRunRepository, latestPriceCache, backfillCaptureService,
-                Clock.fixed(instant, ZoneOffset.UTC), 2, 3);
+                Mockito.mock(CollectionHeartbeat.class), Clock.fixed(instant, ZoneOffset.UTC), 2, 3);
     }
 
     private static MarketItemsResponse oneItem(long id, long price) {

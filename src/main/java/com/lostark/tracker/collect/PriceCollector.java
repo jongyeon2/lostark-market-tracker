@@ -5,6 +5,7 @@ import com.lostark.tracker.cache.LatestPriceCache;
 import com.lostark.tracker.domain.CollectionRun;
 import com.lostark.tracker.domain.PriceSnapshot;
 import com.lostark.tracker.domain.TrackedItem;
+import com.lostark.tracker.health.CollectionHeartbeat;
 import com.lostark.tracker.repository.CollectionRunRepository;
 import com.lostark.tracker.repository.PriceSnapshotRepository;
 import com.lostark.tracker.repository.TrackedItemRepository;
@@ -47,6 +48,7 @@ public class PriceCollector {
     private final CollectionRunRepository collectionRunRepository;
     private final LatestPriceCache latestPriceCache;
     private final BackfillCaptureService backfillCaptureService;
+    private final CollectionHeartbeat heartbeat;
     private final Clock clock;
     private final long perCallTimeoutSeconds;
     private final long overallTimeoutSeconds;
@@ -57,6 +59,7 @@ public class PriceCollector {
                           CollectionRunRepository collectionRunRepository,
                           LatestPriceCache latestPriceCache,
                           BackfillCaptureService backfillCaptureService,
+                          CollectionHeartbeat heartbeat,
                           Clock clock,
                           @Value("${collection.per-call-timeout-seconds:5}") long perCallTimeoutSeconds,
                           @Value("${collection.overall-timeout-seconds:90}") long overallTimeoutSeconds) {
@@ -66,6 +69,7 @@ public class PriceCollector {
         this.collectionRunRepository = collectionRunRepository;
         this.latestPriceCache = latestPriceCache;
         this.backfillCaptureService = backfillCaptureService;
+        this.heartbeat = heartbeat;
         this.clock = clock;
         this.perCallTimeoutSeconds = perCallTimeoutSeconds;
         this.overallTimeoutSeconds = overallTimeoutSeconds;
@@ -131,6 +135,12 @@ public class PriceCollector {
         run.finish(OffsetDateTime.now(clock), succeeded, failed, status);
         run.setSummaryMessage(summaryMessage);
         collectionRunRepository.save(run);
+
+        // Additive fail-open dead-man ping (MONITORING §4/§7): report the tick to the external switch
+        // AFTER the run is persisted, so a ping problem can never affect the run record. Judged by the
+        // succeeded count (not `status`): succeeded==0 pings /fail for an immediate alert; an empty
+        // watchlist's false SUCCESS is thus reported as a failure. No-op when the ping URL is unset.
+        heartbeat.report(succeeded);
     }
 
     private void awaitAll(List<ItemFuture> futures) {
