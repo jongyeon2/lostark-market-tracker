@@ -23,7 +23,17 @@ ENV_FILE="${ENV_FILE:-${REPO_DIR}/.env.prod}"
 COMPOSE_FILE="${COMPOSE_FILE:-${REPO_DIR}/docker-compose.prod.yml}"
 
 log() { printf '[backup-db] %s\n' "$1"; }
-die() { printf '[backup-db] ERROR: %s\n' "$1" >&2; exit 1; }
+die() {
+	printf '[backup-db] ERROR: %s\n' "$1" >&2
+	# 실패를 즉시 알린다: 데드맨의 25시간을 기다리지 않고 /fail로 지금 핑을 보낸다(발견 ~26h → 즉시).
+	# PING_URL이 아직 로드되기 전(초기 검증 die)이거나 비어 있으면 조용히 건너뛴다(${PING_URL:-} 가드).
+	# ⚠️ curl stderr는 반드시 버린다(2>/dev/null) — 실패 메시지에 URL(시크릿)이 섞여 cron 메일로
+	#    새는 걸 막는다. 성공 핑(아래 curl)과 같은 규칙이며, `curl -f`를 안 쓰는 이유(78행)와 동일한 자세.
+	if [ -n "${PING_URL:-}" ]; then
+		curl -sS -m 10 -o /dev/null "${PING_URL%/}/fail" 2>/dev/null || true
+	fi
+	exit 1
+}
 
 [ -f "$ENV_FILE" ] || die "환경파일 없음: ${ENV_FILE}"
 

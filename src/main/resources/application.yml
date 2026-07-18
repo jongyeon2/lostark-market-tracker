@@ -60,6 +60,13 @@ admin:
   api:
     secret: ${ADMIN_API_SECRET:}
 
+# 수집 하트비트 → 외부 데드맨 스위치(healthchecks.io). CollectionHeartbeat가 매 틱 호출한다.
+# 빈 기본값 = 전역 비활성(no-op): dev/test/CI는 아무 설정 없이 무영향이고, prod만 .env.prod의
+# COLLECTION_PING_URL로 켜진다. URL은 시크릿이라 여기엔 실값을 절대 두지 않는다(플레이스홀더 없음).
+monitoring:
+  collection:
+    ping-url: ${COLLECTION_PING_URL:}
+
 management:
   endpoints:
     web:

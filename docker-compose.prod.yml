@@ -23,6 +23,8 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       LOSTARK_API_KEY: ${LOSTARK_API_KEY}
       ADMIN_API_SECRET: ${ADMIN_API_SECRET}
+      # 수집 하트비트 데드맨 핑 URL(시크릿). 미설정이면 앱이 no-op → 감시만 꺼지고 수집은 정상.
+      COLLECTION_PING_URL: ${COLLECTION_PING_URL:-}
     depends_on:
       postgres:
         condition: service_healthy
