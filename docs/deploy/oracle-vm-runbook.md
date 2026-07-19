@@ -178,6 +178,7 @@ openssl rand -hex 32   # → ADMIN_API_SECRET (⚠️ dev의 123456789 절대 �
 - `LOSTARK_API_KEY` = 로스트아크 개발자 포털 JWT(재발급 가능)
 - `SITE_ADDRESS` = `loaket.kr` (운영 대표 도메인)
 - `ACME_EMAIL` = 본인 이메일(Let's Encrypt 계정)
+- (모니터링 핑 URL — 선택이지만 권장) `COLLECTION_PING_URL`(§12) · `BACKUP_PING_URL`(§11.1⑤) — 시크릿. 비우면 감시만 꺼지고 서비스는 정상
 
 > **재확인**: `.env.prod`은 `.gitignore`가 무시한다. `git status`에 나타나면 안 된다.
 
@@ -468,7 +469,7 @@ Allow service objectstorage-<리전> to manage object-family in compartment <컴
 
 **⑤ 데드맨 스위치** — [healthchecks.io](https://healthchecks.io) 가입(무료) → Check 생성
 - 이름 `lostark-db-backup-prod` / Schedule **Simple** / Period **1 day** / Grace **1 hour**
-  → 25시간 무신호면 이메일
+  → 25시간 무신호면 알림(**Discord 연동** — §12에서 collection 체크와 함께 설정)
 - Ping URL 복사
 
 **⑥ `.env.prod`에 추가** (VM에서만, 커밋 금지)
@@ -573,7 +574,7 @@ docker compose -f docker-compose.prod.yml --env-file .env.prod start app
 
 ### 11.4 백업이 멈췄을 때
 
-**증상**: healthchecks.io에서 "no ping" 알림. 또는 `~/backup.log`에 `ERROR`.
+**증상**: healthchecks.io → **Discord**로 "no ping"(DOWN) 알림. 또는 `~/backup.log`에 `ERROR`. (백업 실패 시 `die()`가 `/fail`을 즉시 쏘므로 25시간을 기다리지 않고 바로 온다 — §12.)
 
 `backup-db.sh`는 **성공했을 때만** ping을 보낸다. 어느 단계든 실패하면 `set -e`가 즉시 끊어
 ping에 도달하지 못한다 — 즉 **알림이 왔다는 건 백업이 실제로 안 됐다는 뜻**이다(원인은 몰라도).
@@ -595,3 +596,89 @@ cd /opt/lostark-price-tracker && ./scripts/backup-db.sh   # 직접 돌려 에러
 
 > ⚠️ **ping은 성공했는데 알림이 온다면** healthchecks 쪽 장애다(스크립트는 `WARN: ... ping 전송
 > 실패`를 남긴다). 백업 자체는 됐다 — 오탐이다. 거짓 경보가 거짓 침묵보다 낫기에 이렇게 뒀다.
+
+## 12. 능동 모니터링 · 알림 (사이트 · 수집 · 백업 → Discord)
+
+혼자 운영하는 무료 VM이 **"죽어도 모르는"** 상태를 없앤다. 세 신호를 각각 다른 도구로 잡아 **Discord로 능동 통지**한다. 설계 근거·기각안은 `docs/superpowers/specs/2026-07-17-monitoring-alerting-design.md`, 코드 구현은 quick-260718-jrz 참조.
+
+| 신호 | 잡는 것 | 도구 | 주기 / 유예 |
+|---|---|---|---|
+| 사이트 · TLS | Caddy·VM·앱·DB 다운, 인증서 만료 | UptimeRobot(외부 프로브) | 5분 |
+| 수집 | 스케줄러 정지, 전량 실패(키 만료 등) | healthchecks.io 데드맨 + 즉시 `/fail` | Period 10분 / Grace 5분 |
+| 백업 | 덤프·업로드 실패, PAR 만료 | healthchecks.io 데드맨 + 즉시 `/fail`(§11) | Period 1일 / Grace 1시간 |
+
+> 외부 프로브(빠름·독립)와 데드맨(느림·파이프라인 내부)의 겹침은 의도적이다 — 하나가 죽어도 다른 하나가 남는다.
+
+### 12.1 시크릿 취급 — 어디에 무엇을 두나 ⚠️
+
+| 값 | 보관 위치 | 비고 |
+|---|---|---|
+| `COLLECTION_PING_URL` · `BACKUP_PING_URL` (hc-ping) | **VM `.env.prod`만** | 앱/스크립트가 핑 쏠 대상. 커밋 금지 |
+| **Discord 웹훅 URL** | **healthchecks·UptimeRobot 대시보드만** | 코드·`.env.prod`·깃 어디에도 두지 않는다 |
+
+핑 URL을 아는 자는 "정상"을 위조해 알림을 영구 침묵시킬 수 있다 → 앱은 이 URL을 로그에도 남기지 않는다(예외 클래스명만 로깅). `.env.prod`은 `chmod 600` 유지.
+
+### 12.2 수집 하트비트 (healthchecks.io)
+
+`PriceCollector`가 매 틱(10분) 결과를 데드맨에 핑한다 — **성공 아이템 수(`succeeded`)로 판단**: `>0`이면 기본 URL, `==0`(빈 워치리스트·키 만료 등 전량 실패)이면 `/fail`로 즉시 알림. 신호가 끊기면(스케줄러 사망) 15분 후 데드맨이 운다. `COLLECTION_PING_URL`이 비면 앱은 조용히 감시만 끄고 수집은 정상(fail-open).
+
+**체크 생성** — healthchecks.io → Check
+- 이름 `lostark-collection-prod` / Schedule **Simple** / Period **10 minutes** / Grace **5 minutes**
+- Discord Integration 활성화 / Ping URL 복사 → `.env.prod`
+
+**`.env.prod`에 추가** (VM에서만, 커밋 금지)
+
+```bash
+COLLECTION_PING_URL=https://hc-ping.com/<uuid>
+```
+
+**compose 배선** — `docker-compose.prod.yml`의 `app.environment`에 이미 있다:
+
+```yaml
+COLLECTION_PING_URL: ${COLLECTION_PING_URL:-}
+```
+
+> `COLLECTION_PING_URL`은 compose를 통해 **app 컨테이너**로 주입된다. 반면 `BACKUP_PING_URL`은 **호스트의 백업 스크립트**가 `.env.prod`를 직접 읽으므로 app 컨테이너엔 전달하지 않는다(§11) — 정상 구조다.
+
+**app만 안전하게 재생성** (핑 URL 추가·변경 후 반영. postgres·redis는 안 건드림):
+
+```bash
+cd /opt/lostark-price-tracker
+docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --no-deps --force-recreate app
+```
+
+> 운영 compose 명령은 **항상 `--env-file .env.prod`와 `-f docker-compose.prod.yml`을 함께** 쓴다. `--no-deps`가 의존 서비스 동반 재생성을 막고, `--force-recreate`가 새 env를 확실히 반영한다. 재생성 후 컨테이너 안에 값이 들어갔는지 확인: `docker compose ... exec app printenv COLLECTION_PING_URL`(값 자체를 남에게 보이는 화면에 띄우지 말 것).
+
+### 12.3 사이트 · TLS (UptimeRobot)
+
+Spring은 DB·Redis 컴포넌트가 죽으면 `/actuator/health`에서 **HTTP 503**을 내므로, 상태코드 감시만으로 Caddy·TLS·앱·DB·Redis를 한 번에 덮는다(`show-details: never`라 본문은 `{"status":"UP"}`만).
+
+- Monitor type: **HTTP(s)** / URL `https://loaket.kr/actuator/health` / Interval **5분**
+- Tags: `loaket`, `production`, `health`
+- Alert Contact: **Discord**(웹훅 URL을 UptimeRobot 대시보드에 붙여넣기 — 저장 시 Test Notification으로 채널 도착 확인)
+
+### 12.4 라이브 검증 실적 (2026-07-18~19 완료)
+
+**알림이 실제로 오는 걸 눈으로 확인**해야 감시가 검증된 것이다(초록불만으론 거짓 안심).
+
+- ✅ 수집 데드맨: `lostark-collection-prod`에 `/fail` → Discord **DOWN**, 정상 핑 → Discord **UP** 복구
+- ✅ 백업 데드맨: `lostark-db-backup-prod`에 `/fail` → Discord **DOWN**, 정상 핑 → Discord **UP** 복구
+- ✅ 사이트: UptimeRobot 모니터 URL을 `/actuator/nope`로 잠시 변경 → HTTP 404 감지·Discord **DOWN**, `/actuator/health`로 복구 → Discord **UP**
+- ✅ 배포 후 healthchecks에서 Java 앱의 실제 collection 핑 수신 확인, `https://loaket.kr/actuator/health` = `{"status":"UP"}`
+- ✅ 백업 cron 자율 실행 실증(2026-07-19): `journalctl -u cron`에서 **07-17·18·19** 03:17 UTC 자동 실행, `backup.log`에 **07-16~19 4일 연속 업로드 성공(HTTP 200)**, `lostark-db-backup-prod` 매일 12:17 KST OK·현재 UP — cron→pg_dump→유효성검사→Object Storage 업로드→200→정상 핑 전 구간 검증
+- 테스트 종료 후 세 체크 모두 **UP**
+
+### 12.5 앱 로그에 핑 URL이 노출되지 않는지 검사 ⚠️
+
+**반드시 `-c`(개수만)로** — 기본 `grep`은 매칭 라인을 출력해 URL이 화면에 찍힐 수 있다:
+
+```bash
+docker logs lostark-price-tracker-app-1 2>&1 | grep -c -E 'hc-ping\.com|hchk\.io'   # 기대값 0
+docker logs lostark-price-tracker-app-1 2>&1 | grep -c -i 'heartbeat'               # 있어도 예외 클래스명 경고뿐(URL 없음)
+```
+
+저장소 문서에 실 URL이 없는지도 확인(플레이스홀더 `<uuid>` 외 0건이어야):
+
+```bash
+git grep -nI -e 'hc-ping.com' -e 'hchk.io' -e 'discord.com/api/webhooks' -- docs
+```

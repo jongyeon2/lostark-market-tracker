@@ -63,24 +63,26 @@ commits: [f873010, bd013b5, 9e8f36b, 945e151]
 - `bash -n scripts/backup-db.sh` 문법 OK, 저장소 blob은 LF(CR 0).
 - 추적 파일에 실 핑/웹훅 URL **0건**(`git grep` hc-ping/hchk/discord webhooks → docs 플레이스홀더 외 없음).
 
-## 아직 안 된 것 (완료 조건 — 감시는 "알림이 오는 걸 봐야" 검증됨, §10)
+## 라이브 검증 완료 (2026-07-18) ✅
 
-**⚠️ 이 코드만으로는 감시가 검증되지 않았다.** 초록불만 보고 끝내면 우리가 없애려는 거짓 안심을 우리가 만드는 셈.
-아래 라이브 실증 전까지 미완:
+감시는 "알림이 오는 걸 눈으로 봐야" 검증된 것(§10). 운영 VM에서 실증 완료 — 자세한 운영 절차는
+런북 §12에 반영됨(`docs/deploy/oracle-vm-runbook.md`).
 
-- 배포 후 healthchecks 대시보드에 **실제 핑 도착** 확인(10분 주기)
-- **Discord로 실제 알림 수신** 확인(체크 수동 일시정지/`/fail` 유발)
-- VM 로그에 핑 URL 미출현 확인
-- **`/security-review` 실행**(하트비트 코드 존재 상태) — 수동 검토가 찾은 §5 유출 경로를 도구가 독립 확인하는지 교차검증
+- ✅ healthchecks 체크 2개 라이브: `lostark-collection-prod`(10분/5분), `lostark-db-backup-prod`(1일/1시간)
+- ✅ 배포 후 Java 앱이 실제 collection 핑을 보내는 것 확인, `/actuator/health`={"status":"UP"}
+- ✅ Discord 장애·복구 테스트: collection·backup 각각 `/fail`→DOWN, 정상 핑→UP 복구 확인
+- ✅ UptimeRobot 5분 `/actuator/health` 감시 + Discord 장애·복구 테스트(`/actuator/nope`→404 DOWN, 복구 UP)
+- ✅ `.env.prod`에 `COLLECTION_PING_URL`·`BACKUP_PING_URL`만 저장(chmod 600), Discord 웹훅은 대시보드에만
+- ✅ `/security-review` 실행 — §5 유출 경로 관련 신뢰도 8+ 취약점 **0건**(URL 무유출 설계가 도구로도 확인됨)
+- 로그 URL 미노출 검사 명령은 런북 §12.5에 상시 절차로 기록
 
-## 사용자 작업 (외부 서비스 — 코드 밖, 스펙 §11)
+## 사용자 작업 (외부 서비스 — 스펙 §11) — 완료
 
-1. healthchecks.io 체크 2개 생성: `collection`(period 10분 / grace 5분), `backup`(period 1일 / grace 1시간)
-2. UptimeRobot 모니터 1개: `https://loaket.kr/actuator/health`, 5분 간격
-3. 세 곳 모두 **Discord 통합** 연결(healthchecks·UptimeRobot 무료 플랜 모두 Discord 지원 확인됨)
-4. VM `.env.prod`에 `COLLECTION_PING_URL` 실값 추가 → 앱 재기동
-5. **백업 cron 실가동 검증**: `crontab -l | grep backup` (quick-260716-h1e에서 미검증으로 남은 항목)
-6. 위 "완료 조건"의 라이브 실증(핑 도착·Discord 알림 수신) + `/security-review`
+1. ✅ healthchecks.io 체크 2개(collection 10분/5분, backup 1일/1시간) — Discord Integration 활성화
+2. ✅ UptimeRobot 모니터: `https://loaket.kr/actuator/health` 5분, 태그 loaket·production·health
+3. ✅ 세 곳 모두 Discord 연결
+4. ✅ VM `.env.prod`에 `COLLECTION_PING_URL` 추가 → `app`만 안전 재생성(`--no-deps --force-recreate app`)
+5. ✅ **백업 cron 실가동 재확인 완료 (2026-07-19)**: `crontab -l`에 `17 3 * * *` 등록 확인 → `journalctl -u cron`에서 07-17·18·19 **자율 실행** 확인 → `backup.log`에 07-16~19 **4일 연속 업로드 성공(HTTP 200)** → healthchecks `lostark-db-backup-prod` 매일 12:17 KST OK·현재 UP. cron 자율 실행부터 Object Storage 업로드까지 전 구간 실증 — 백업 자동화(런북 §11) 완료.
 
 ## 커밋
 
@@ -91,4 +93,4 @@ commits: [f873010, bd013b5, 9e8f36b, 945e151]
 | 9e8f36b | 설정 배선(application.yml/compose/.env.example) + backup-db.sh die() /fail |
 | 945e151 | PriceCollectionIT 로컬 mock 전환(스케줄 startup 틱 오염 차단) |
 
-미푸시 — 사용자 방침대로 push는 사용자가 직접.
+푸시·배포 완료. 라이브 검증(§ 라이브 검증 완료)·런북 §12 반영 완료.
