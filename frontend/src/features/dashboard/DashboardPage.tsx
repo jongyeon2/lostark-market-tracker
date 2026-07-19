@@ -11,11 +11,11 @@ import { deriveCategories, filterByCategory, firstCategoryId, GEM_CATEGORY_ID } 
 import { GemCard } from './GemCard'
 import { ItemCard } from './ItemCard'
 import { ItemImpactSection } from './ItemImpactSection'
-import { NewsPanel } from './NewsPanel'
+import { NewsPanel, NoticeRail } from './NewsPanel'
 
 /*
   DashboardPage — the client dashboard, a maplanet-style 3-column layout (Phase 23, UX-01/UX-02):
-  좌 CategoryNav(카테고리 필터) / 중앙 선택 카테고리 물품 / 우 NewsPanel. useItems() is client-sorted
+  좌 CategoryNav(카테고리 필터)+공지 레일(lg) / 중앙 선택 카테고리 물품 / 우 쿠폰·진행 이벤트. useItems() is client-sorted
   by role via sortByRole (backend stays 0-line); deriveCategories groups the sorted items into
   non-empty leaves (각인서 딜러/서포터 + 재료 4 itemGroup — categories.ts is the single source). Picking a
   leaf filters the center list; selection is local useState only (A4 — YAGNI, no URL/router state).
@@ -32,10 +32,11 @@ import { NewsPanel } from './NewsPanel'
   short category still shrinks to its content instead of trailing blank space. Both new pieces of
   state are local useState (A4 YAGNI, same as the category).
 
-  The center item list and the news panel each keep their OWN AsyncBoundary so one side failing never
-  blanks the other (D-07, preserved from the 2-column version). NewsPanel is UNCHANGED.
-  Mobile (< lg) collapses to one column in source order: 칩 탭 → 물품 → 이벤트 영향 → 소식, and the
-  scroll box drops its height cap (a nested scroller fights the page scroll on a phone).
+  The center item list and each news widget keep their OWN AsyncBoundary so one side failing never
+  blanks the other (D-07, preserved from the 2-column version). 공지사항은 좌측 레일(NoticeRail)로
+  옮겼고(2026-07-19), 우측 NewsPanel엔 제목 없이 쿠폰+진행 이벤트만 남는다.
+  Mobile (< lg) collapses to one column in source order: 칩 탭 → 물품 → 이벤트 영향 → 쿠폰·이벤트 → 공지,
+  and the scroll box drops its height cap (a nested scroller fights the page scroll on a phone).
   Read-only: no write UI, no polling.
 */
 
@@ -87,14 +88,27 @@ export function DashboardPage() {
   return (
     // 자체 max-w 없음 — 폭은 AppLayout <main>이 소유한다. 여기에도 max-w를 두면 같은 매직넘버가
     // 두 곳이 되고, 실제로 그래서 껍데기만 넓혔을 때 그리드가 옛 값에서 다시 잘렸다(2026-07-15).
-    <div className="grid grid-cols-1 gap-8 lg:grid-cols-[11rem_minmax(0,1fr)_20rem]">
-      {/* 좌(lg) / 상단(모바일) — 카테고리 필터. 로딩 중엔 leaf가 없어 자연 축소. */}
-      <CategoryNav
-        categories={categories}
-        items={sorted}
-        selectedId={selectedId}
-        onSelect={pickCategory}
-      />
+    <div className="grid grid-cols-1 gap-8 lg:grid-cols-[20rem_minmax(0,1fr)_20rem] lg:gap-12">
+      {/* 좌(lg) / 상단(모바일) — 카테고리와 공지를 각각 별개의 흰 카드로 나눈다(사용자 결정 2026-07-20:
+          둘을 한 박스에 넣으니 불편 → 박스 분리 + 구분선 제거). 폭·패딩은 우측 소식 박스와 동일(20rem·p-6).
+          카드 스타일은 lg:*로만 걸어 모바일은 카드 없이 칩 행이 노출되고, 공지는 NewsPanel 하단 카드로
+          내려간다. 두 카드를 한 sticky 블록(space-y-6)으로 묶어 긴 본문 스크롤에도 좌측이 통째로 머문다.
+          top-20(80px)=TopNav 72px+여백8, self-start라야 셀이 행 높이로 늘지 않아 sticky가 동작한다. */}
+      <div className="lg:sticky lg:top-20 lg:self-start lg:space-y-6">
+        {/* 카테고리 카드 */}
+        <div className="lg:bg-card lg:rounded-xl lg:border lg:px-6 lg:py-6 lg:shadow-sm">
+          <CategoryNav
+            categories={categories}
+            items={sorted}
+            selectedId={selectedId}
+            onSelect={pickCategory}
+          />
+        </div>
+        {/* 공지 카드 — 카테고리와 별개 박스. lg 전용(모바일은 NewsPanel 하단 카드). */}
+        <div className="hidden lg:block lg:bg-card lg:rounded-xl lg:border lg:px-6 lg:py-6 lg:shadow-sm">
+          <NoticeRail />
+        </div>
+      </div>
 
       {/* 중앙 — [물품/보석 스크롤 박스] + [선택 물품의 이벤트 영향]. */}
       <div className="flex min-w-0 flex-col gap-6">

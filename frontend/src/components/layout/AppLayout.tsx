@@ -7,17 +7,18 @@ import { TopNav } from '@/components/layout/TopNav'
   with 32px side padding and is the primary visual focus of each route. The router renders the active
   page into <Outlet/>.
 
-  Width raised 80rem → 90rem (2026-07-15): the dashboard's event-impact table wants 754px of its own
-  and the 3-column grid could only spare 641px at 80rem, so the table scrolled sideways. 90rem gives
-  the center column 816px (1440 − 64 padding − 64 gaps − 176 nav − 320 news) and the table fits with
-  the news panel untouched. TopNav mirrors this value so the brand/menu stay aligned with the content
-  below; keep the two in step. /timeline shares the shell and simply gets a wider chart.
+  Width raised 90rem → 100rem (2026-07-20): the dashboard's left column grew 176px → 320px so it
+  matches the 320px news column as a symmetric card (사용자 결정), which shrank the center. At 100rem
+  the center is ~800px (1600 − 64 padding − 96 gaps − 320 left − 320 news), so the event-impact table
+  (needs 754px) still fits without sideways scroll on wide screens. TopNav mirrors this value so the
+  brand/menu stay aligned with the content below; keep the two in step. /timeline shares the shell and
+  simply gets a wider chart.
 */
 export function AppLayout() {
   return (
     <div className="bg-background min-h-screen">
       <TopNav />
-      <main className="mx-auto max-w-[90rem] px-8 py-8">
+      <main className="mx-auto max-w-[100rem] px-8 py-8">
         <Outlet />
       </main>
     </div>

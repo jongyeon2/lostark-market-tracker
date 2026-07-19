@@ -1,9 +1,10 @@
-import { Hammer } from 'lucide-react'
+import { Gem, Hammer } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import type { TrackedItem } from '@/lib/schemas'
 
-import { groupIconUrl, type Category, type CategoryGroup } from './categories'
+import { groupIconUrl, GEM_CATEGORY_ID, type Category, type CategoryGroup } from './categories'
 
 /*
   CategoryNav — the dashboard's category filter (Phase 23, UX-01/UX-02). Stateless: it renders the
@@ -25,6 +26,11 @@ import { groupIconUrl, type Category, type CategoryGroup } from './categories'
   once), and a header repeating its single child's name ("보석 > 보석") would be noise. The existing
   space-y-4 between blocks already separates it. The mobile chip row needs ZERO change: it always
   ignored groups and rendered leaves flat, so the gem chip joins automatically.
+
+  Because it has no group header, the desktop 보석 leaf would sit icon-less beside the icon-bearing
+  group headers (각인서/재료) — so it wears a Gem glyph ON THE LEAF itself, the same fallback stance as
+  재료's Hammer (a drawn glyph where no shared game icon exists). Desktop only, matching the group
+  headers whose icons are also lg-only; the mobile chips stay icon-less across the board.
 */
 
 const GROUP_ORDER: readonly CategoryGroup[] = ['각인서', '재료']
@@ -45,12 +51,10 @@ export function CategoryNav({
   onSelect: (id: string) => void
 }) {
   return (
-    // top-20(80px) = TopNav 높이 56 + 여백 24. TopNav는 sticky top-0 h-14 z-40에 불투명(bg-card)이라,
-    // 멈춤 지점이 56px보다 위면 nav 윗부분이 그 바 "뒤로" 깔린다 — 실제로 top-6(24px)일 때 각인서
-    // 헤더(24~51px)가 27px 전부 가려 첫 leaf부터 보였다(실측 2026-07-16). z-index로 nav를 위로
-    // 올리면 이번엔 nav가 상단바를 가리므로, 겹침 자체를 없앤다.
-    // ⚠️ TopNav의 h-14를 바꾸면 이 값도 같이 바꿔야 한다.
-    <nav aria-label="카테고리" className="lg:sticky lg:top-20 lg:self-start">
+    // sticky 고정은 이제 상위(DashboardPage 좌측 레일 래퍼)가 소유한다 — 필터와 공지 레일을 한
+    // sticky 블록으로 묶어야 본문 스크롤 시 공지가 고정된 필터 "뒤로" 겹치지 않기 때문. 여기선 순수
+    // 콘텐츠만 렌더한다(top-20 산정 근거는 DashboardPage 래퍼 주석 참조).
+    <nav aria-label="카테고리">
       {/* 데스크톱(lg+) — 2단계 그룹 세로 nav + 그룹 없는 단독 leaf. */}
       <div className="hidden lg:block">
         <div className="space-y-4">
@@ -81,14 +85,20 @@ export function CategoryNav({
             )
           })}
 
-          {/* 단독 leaf(group: null) — 헤더 없이, 그룹 leaf와 같은 들여쓰기·같은 NavLeaf. */}
+          {/* 단독 leaf(group: null) — 헤더 없이, 그룹 leaf와 같은 들여쓰기·같은 NavLeaf.
+              보석은 그룹 헤더가 없어 아이콘을 못 받으므로 leaf 자체에 Gem 글리프를 준다(재료 Hammer 선례). */}
           {categories.some((c) => c.group === null) && (
             <ul className="space-y-0.5">
               {categories
                 .filter((c) => c.group === null)
                 .map((cat) => (
                   <li key={cat.id}>
-                    <NavLeaf cat={cat} active={cat.id === selectedId} onSelect={onSelect} />
+                    <NavLeaf
+                      cat={cat}
+                      active={cat.id === selectedId}
+                      onSelect={onSelect}
+                      icon={cat.id === GEM_CATEGORY_ID ? Gem : undefined}
+                    />
                   </li>
                 ))}
             </ul>
@@ -110,10 +120,13 @@ function NavLeaf({
   cat,
   active,
   onSelect,
+  icon: Icon,
 }: {
   cat: Category
   active: boolean
   onSelect: (id: string) => void
+  /** Optional leading glyph — 헤더가 없어 그룹 아이콘을 못 받는 단독 leaf(보석)에 균형을 준다. */
+  icon?: LucideIcon
 }) {
   return (
     <button
@@ -128,7 +141,11 @@ function NavLeaf({
           : 'text-foreground hover:bg-muted/60 border-transparent font-medium',
       )}
     >
-      <span className="truncate">{cat.label}</span>
+      <span className="flex min-w-0 items-center gap-1.5">
+        {/* aria-hidden — 바로 옆 라벨이 이미 이름을 말한다(그룹 헤더 아이콘과 동일 규칙). */}
+        {Icon ? <Icon className="size-4 shrink-0" aria-hidden="true" /> : null}
+        <span className="truncate">{cat.label}</span>
+      </span>
       <span className="text-muted-foreground shrink-0 text-xs font-semibold tabular-nums">
         {cat.count}
       </span>

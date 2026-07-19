@@ -3,21 +3,24 @@ import { useState, type ReactNode } from 'react'
 import { useCoupons, useNews } from '@/lib/queries'
 import { AsyncBoundary } from '@/components/state/AsyncBoundary'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import type { Coupon, NewsEvent, NewsNotice } from '@/lib/schemas'
+import { Card, CardContent } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
+import type { Coupon, NewsEvent } from '@/lib/schemas'
 
 /*
-  NewsPanel — the dashboard's right-column widget (D-03/D-04/D-07). Consumes useNews() and wraps its
-  OWN <AsyncBoundary> (isEmpty = events AND notices both empty) so a news failure renders an in-panel
-  Loading/Empty/Error and NEVER blanks the item grid in the left column — per-widget isolation, the
-  same discipline as HealthCard.
+  NewsPanel — the dashboard's right-column widget (D-03/D-04/D-07). Consumes useNews() and wraps
+  events in its OWN <AsyncBoundary> so a news failure renders an in-panel Loading/Empty/Error and
+  NEVER blanks the item grid — per-widget isolation, the same discipline as HealthCard.
+
+  제목("로스트아크 소식")은 뺐다(사용자 결정 2026-07-19) — 각 섹션 헤딩이 이미 무엇인지 말하므로 정보를
+  바로 보여주는 편이 직관적이다. 공지사항도 좌측 레일(CategoryNav 아래)로 옮겼다({@link NoticeRail}); 이
+  패널엔 쿠폰 + 진행중 이벤트만 남고, 모바일(<lg)에서만 공지 레일을 하단에 덧붙인다(좌측 레일은 lg 전용).
 
   진행중인 이벤트 renders loawa.com-style: the event's banner THUMBNAIL with the title (+기간) in
   small text beneath it (vertical cards, 1-column to fit the ~320px sidebar). 종료된 이벤트는 백엔드가 KST
-  기준으로 걸러 보내므로(NewsService.getLatest) 여기선 만료 판정을 하지 않는다. 공지사항 is a compact list —
-  타입 뱃지 · 제목(폭에 맞춰 2줄, 넘치면 … 말줄임) · 날짜. Each card/row opens the official Lostark
-  link in a NEW TAB with rel="noopener noreferrer" (tabnabbing guard). The frontend calls only
-  /api/news — never Lostark directly (D-06).
+  기준으로 걸러 보내므로(NewsService.getLatest) 여기선 만료 판정을 하지 않는다. Each card/row opens the
+  official Lostark link in a NEW TAB with rel="noopener noreferrer" (tabnabbing guard). The frontend
+  calls only /api/news — never Lostark directly (D-06).
 */
 
 const MAX_ROWS = 6
@@ -25,31 +28,29 @@ const MAX_ROWS = 6
 export function NewsPanel() {
   const { status, data, refetch } = useNews()
   const events = data?.events.slice(0, MAX_ROWS) ?? []
-  const notices = data?.notices.slice(0, MAX_ROWS) ?? []
-  const isEmpty = events.length === 0 && notices.length === 0
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-xl">로스트아크 소식</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* 쿠폰이 맨 위 — 가장 actionable (D-02). 자체 AsyncBoundary라 뉴스 실패와 서로 가리지 않는다. */}
-        <CouponSection />
-        <AsyncBoundary
-          status={status}
-          isEmpty={isEmpty}
-          onRetry={() => refetch()}
-          emptyHeading="소식이 없어요"
-          emptyBody="진행중인 이벤트나 새 공지가 아직 없어요."
-        >
-          <div className="space-y-6">
+    <div className="space-y-6">
+      {/* 제목 없는 소식 카드 — 쿠폰 + 진행중 이벤트. 공지사항은 좌측 카드로 분리됐다(NoticeRail).
+          CardContent에 pt를 주지 않는다 — Card의 py-6가 이미 상단 여백을 주므로 pt를 더하면 제목이
+          사라진 지금 상단 공백이 두 배(48px)가 된다(사용자 QA 2026-07-19). */}
+      <Card>
+        <CardContent className="space-y-6">
+          {/* 쿠폰이 맨 위 — 가장 actionable (D-02). 자체 AsyncBoundary라 뉴스 실패와 서로 가리지 않는다. */}
+          <CouponSection />
+          {/* 진행중 이벤트만 이 boundary가 감싼다 — 빈 목록은 EventSection이 자체 안내(EmptyLine)한다. */}
+          <AsyncBoundary status={status} onRetry={() => refetch()}>
             <EventSection events={events} />
-            <NoticeSection notices={notices} />
-          </div>
-        </AsyncBoundary>
-      </CardContent>
-    </Card>
+          </AsyncBoundary>
+        </CardContent>
+      </Card>
+      {/* 모바일 전용 공지 카드 — 데스크톱은 좌측 카드 안. 모바일에선 우측 카드들과 같은 흰 박스로. */}
+      <Card className="lg:hidden">
+        <CardContent>
+          <NoticeRail />
+        </CardContent>
+      </Card>
+    </div>
   )
 }
 
@@ -159,17 +160,29 @@ function EventSection({ events }: { events: NewsEvent[] }) {
 }
 
 /*
-  공지사항 — 타입 뱃지 + 제목 + 날짜(최신순). 제목은 컬럼 폭에 맞춰 최대 2줄, 넘치면 … 말줄임
-  (line-clamp-2). flex 안의 제목에 min-w-0/flex-1을 줘야 flex item이 컨테이너보다 좁아질 수 있어
-  clamp가 실제 폭 기준으로 동작한다(min-w-0 없으면 내용 폭만큼 넘쳐 잘리지 않음).
+  공지사항 레일 — 대시보드 좌측 카드 안(CategoryNav 아래)과 모바일 하단 카드에서 재사용하는 위젯
+  (사용자 결정 2026-07-19: 공지를 우측 소식 박스에서 좌측으로 이동). 자체 useNews + 자체 AsyncBoundary라
+  소식 실패가 카테고리·쿠폰·이벤트를 가리지 않는다(D-07). React Query가 useNews 캐시를 공유하므로
+  좌측·모바일 두 곳에 마운트돼도 요청은 한 번이다.
+
+  ⚠️ 순수 콘텐츠 블록이다 — 카드(흰 박스)와 카테고리와의 구분선(border-t)은 호출부가 className으로
+  준다(좌측=좌측 카드 안의 border-t, 모바일=자체 Card). 행: 타입 뱃지 + 제목 + 날짜(최신순). 제목은
+  한 줄, 넘치면 …로 말줄임(line-clamp-1) — 좁은 레일에서 2줄이면 줄글처럼 읽힌다는 피드백. flex 안의
+  제목에 min-w-0/flex-1을 줘야 제목이 컨테이너보다 좁아져 clamp가 실제 폭 기준으로 동작한다.
 */
-function NoticeSection({ notices }: { notices: NewsNotice[] }) {
+export function NoticeRail({ className }: { className?: string }) {
+  const { status, data, refetch } = useNews()
+  const notices = data?.notices.slice(0, MAX_ROWS) ?? []
   return (
-    <section className="space-y-2">
+    <section className={cn('space-y-2', className)}>
       <SectionHeading>공지사항</SectionHeading>
-      {notices.length === 0 ? (
-        <EmptyLine>새 공지가 없어요</EmptyLine>
-      ) : (
+      <AsyncBoundary
+        status={status}
+        isEmpty={notices.length === 0}
+        onRetry={() => refetch()}
+        emptyHeading="새 공지가 없어요"
+        emptyBody="새 공지가 올라오면 여기에 표시됩니다."
+      >
         <ul className="-mx-2 space-y-0.5">
           {/* -mx-2 aligns each row's px-2 content with the "공지사항" heading's first char. */}
           {notices.map((notice) => (
@@ -193,7 +206,7 @@ function NoticeSection({ notices }: { notices: NewsNotice[] }) {
             </li>
           ))}
         </ul>
-      )}
+      </AsyncBoundary>
     </section>
   )
 }
