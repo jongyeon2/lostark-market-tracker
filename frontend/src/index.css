@@ -126,6 +126,15 @@
     @apply border-border outline-ring/50;
   }
 
+  /*
+    스크롤바 자리를 항상 예약한다. 안 하면 페이지가 길어 세로 스크롤바가 생기는 라우트(대시보드·
+    모험의 서)와 짧아 스크롤바가 없는 라우트(품목 타임라인·아바타) 사이를 오갈 때 가용 폭이 ~15px
+    바뀌고, mx-auto 중앙정렬(AppLayout·TopNav)이라 헤더·본문이 좌우로 튄다. stable로 고정.
+  */
+  html {
+    scrollbar-gutter: stable;
+  }
+
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-sans);
