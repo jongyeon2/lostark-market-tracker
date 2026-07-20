@@ -88,7 +88,7 @@ export function DashboardPage() {
   return (
     // 자체 max-w 없음 — 폭은 AppLayout <main>이 소유한다. 여기에도 max-w를 두면 같은 매직넘버가
     // 두 곳이 되고, 실제로 그래서 껍데기만 넓혔을 때 그리드가 옛 값에서 다시 잘렸다(2026-07-15).
-    <div className="grid grid-cols-1 gap-8 lg:grid-cols-[20rem_minmax(0,1fr)_20rem] lg:gap-12">
+    <div className="grid grid-cols-1 gap-8 lg:grid-cols-[18rem_minmax(0,1fr)_18rem] lg:gap-12">
       {/* 좌(lg) / 상단(모바일) — 카테고리와 공지를 각각 별개의 흰 카드로 나눈다(사용자 결정 2026-07-20:
           둘을 한 박스에 넣으니 불편 → 박스 분리 + 구분선 제거). 폭·패딩은 우측 소식 박스와 동일(20rem·p-6).
           카드 스타일은 lg:*로만 걸어 모바일은 카드 없이 칩 행이 노출되고, 공지는 NewsPanel 하단 카드로

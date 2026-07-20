@@ -36,7 +36,7 @@ export function TopNav() {
   return (
     <header className="bg-card sticky top-0 z-40 h-[4.5rem] border-b">
       {/* max-w는 AppLayout <main>과 반드시 같아야 브랜드·메뉴가 본문과 정렬된다. 함께 바꿀 것. */}
-      <div className="mx-auto flex h-full max-w-[100rem] items-center justify-between px-8 py-3">
+      <div className="mx-auto flex h-full max-w-[110rem] items-center justify-between px-8 py-3">
         <NavLink to="/" className="flex min-w-0 flex-col leading-tight" aria-label="Loaket 홈">
           <span className="brand-wordmark text-3xl">Loaket</span>
           {/* 부제는 좁은 화면에서 숨긴다 — nav 링크 자리를 확보(브랜드 이름은 항상 보임). */}
