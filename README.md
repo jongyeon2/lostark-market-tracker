@@ -7,8 +7,8 @@
 ![Redis](https://img.shields.io/badge/Redis-7-DC382D?logo=redis&logoColor=white)
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
 
-> 로스트아크 거래소 아이템 시세를 **10분마다 자동으로 모아 기록**하고, 시세가 **언제·얼마나 움직였는지**를 차트로 보여주는 웹 서비스입니다.  
-> 게임이 소재일 뿐, 속을 뜯어보면 **주식·코인 시세를 모으는 파이프라인과 똑같은 구조**입니다.
+> 로스트아크 거래소 시세를 10분마다 자동으로 모아 쌓고, 차트로 보여주는 웹 서비스입니다.
+> 소재는 게임이지만 구조는 주식·코인 시세 수집 파이프라인과 같습니다.
 
 ### 🔗 라이브 데모 → **[loaket.kr](https://loaket.kr)**
 
@@ -18,33 +18,40 @@
 
 ## 이런 서비스예요
 
-로스트아크에는 아이템을 사고파는 **거래소**가 있고, 시세는 하루에도 계속 바뀝니다.  
-이 사이트는 그 시세를 **사람이 지켜보지 않아도 10분마다 자동으로 수집**해 차곡차곡 쌓아두고, 품목별 **가격 흐름을 차트로**, 그리고 **어떤 게임 이벤트와 같은 시점에 움직였는지**를 함께 보여줍니다.
+- 거래소 시세는 하루에도 계속 바뀌는데, 사람이 계속 지켜볼 수는 없습니다.
+- 그래서 **10분마다 자동으로 시세를 모아** 쌓아두고, 다음을 보여줍니다.
+  - 품목별 가격 흐름 차트
+  - 게임 이벤트 무렵에 가격이 얼마나 오르내렸는지
+  - 아바타·모험의 서 실시간 시세 조회
 
-**왜 만들었나 —** 저는 로스트아크 유저이자 신입 백엔드 개발자입니다.  
-좋아하는 게임을 소재로, **외부 API에서 데이터를 빠짐없이 모아 저장하고 안정적으로 보여주는 파이프라인**을 직접 설계·구현한 **포트폴리오 프로젝트**입니다.  
-도메인만 게임일 뿐, 구조는 금융 시세 수집 파이프라인과 같습니다.
+**왜 만들었나**
 
-> ⚠️ 이벤트와 가격이 같은 시점에 겹친다는 건 **상관**이지 **인과**가 아닙니다.  
-> 데이터가 부족하면 억지로 계산하지 않고 "데이터 부족"으로 정직하게 표시합니다.
+- 저는 로스트아크 유저이자 신입 백엔드 개발자입니다.
+- 좋아하는 게임을 소재로, **외부 API에서 데이터를 빠짐없이 모아 저장하고 안정적으로 서빙하는 파이프라인**을 직접 설계했습니다.
+- 도메인만 게임이고, 구조는 금융 시세 파이프라인과 같습니다.
+
+> ⚠️ **이벤트가 가격을 움직였다고 말하지는 않습니다.**
+> 이벤트 무렵에 가격이 이만큼 변했다는 사실만 보여줍니다.
+> 그 시간대에 쌓인 시세가 없으면 숫자를 만들어내지 않고 "데이터 부족"이라고 씁니다.
 
 ---
 
 ## 직접 보기
 
-**🔗 [loaket.kr](https://loaket.kr)** — 배포된 사이트에서 바로 확인할 수 있습니다(설치 불필요).
+**🔗 [loaket.kr](https://loaket.kr)** — 설치 없이 바로 볼 수 있습니다.
 
 | 화면 | 무엇을 보여주나 | 바로가기 |
 |------|----------------|----------|
-| **대시보드** | 수집 상태 + 품목별 최신가 워치리스트 | [열기](https://loaket.kr/dashboard) |
-| **품목 타임라인** | 시세 라인 차트 + 기간 선택 + 이벤트 마커 | [예시(30일 딥링크)](https://loaket.kr/timeline?item=5&from=2026-06-13T03%3A11%3A14.463Z&to=2026-07-13T03%3A11%3A14.463Z) |
-| **이벤트 영향** | 이벤트 전후 가격 변화율 | [열기](https://loaket.kr/impact) |
+| **대시보드** | 관심 품목 시세 + 이벤트 영향 + 로아 소식 | [열기](https://loaket.kr/dashboard) |
+| **품목 타임라인** | 시세 라인 차트 + 기간 선택 + 이벤트 마커 | [열기](https://loaket.kr/timeline) |
+| **아바타** | 직업별 아바타 실시간 시세 | [열기](https://loaket.kr/avatar) |
+| **모험의 서** | 대륙별 수집품 실시간 시세 | [열기](https://loaket.kr/adventure) |
 
-| 대시보드 — 수집 상태·워치리스트·로아 소식 | 이벤트 영향 — 전후 변화율 |
+| 대시보드 | 이벤트 영향 |
 |:---:|:---:|
 | ![대시보드](frontend/docs/screenshots/dashboard.png) | ![이벤트 영향](frontend/docs/screenshots/event-impact.png) |
 
-<sub>※ 이벤트 영향 화면은 관리자가 게임 이벤트를 등록하면 전후 변화율이 채워집니다. 데이터가 부족할 땐 위처럼 **정직하게 빈 상태**로 둡니다(억지로 수치를 만들지 않음).</sub>
+<sub>※ 이벤트 영향은 관리자가 이벤트를 등록하면 채워집니다. 데이터가 부족하면 위처럼 빈 상태로 둡니다.</sub>
 
 ---
 
@@ -53,62 +60,71 @@
 | 영역 | 사용 기술 |
 |------|-----------|
 | **백엔드** | Java 21 · Spring Boot 3.4 · Spring Data JPA · Spring Security |
-| **저장소** | PostgreSQL 16 (Flyway 마이그레이션) · Redis 7 (캐시 + 레이트리밋) |
+| **저장소** | PostgreSQL 16 (Flyway) · Redis 7 (캐시 + 레이트리밋) |
 | **프론트** | React 19 · TypeScript · Vite · Tailwind CSS · Recharts · TanStack Query |
-| **테스트** | JUnit 5 · Mockito · Testcontainers (로컬·CI 동일 메커니즘) |
+| **테스트** | JUnit 5 · Mockito · Testcontainers (로컬·CI 동일) |
 | **배포** | Docker Compose · Caddy (자동 HTTPS) · Oracle Cloud VM |
 
-<sub>MSA · Kafka · Spring Batch는 포트폴리오 범위상 **의도적으로 제외**했습니다.</sub>
+<sub>MSA · Kafka · Spring Batch는 포트폴리오 범위상 의도적으로 제외했습니다.</sub>
 
 ---
 
 ## 어떻게 배포했나
 
-- **한 대의 VM(Oracle Cloud Always Free)** 에 **Docker Compose**로 앱 · PostgreSQL · Redis · Caddy를 함께 올립니다.
-- **Caddy**가 유일한 공개 진입점이 되어 **자동 HTTPS(Let's Encrypt)** + 정적 프론트 서빙 + `/api` 프록시를 담당합니다(프론트·API 동일 출처 → CORS 불필요). DB · Redis · 앱은 내부 네트워크에 격리돼 외부에서 접근할 수 없습니다.
-- `@Scheduled` 수집기가 **24/7** 상시 돌며 시세를 계속 쌓습니다.
-- **코드를 올리면 자동으로 배포됩니다** — `main`에 반영하면 GitHub Actions가 **테스트 → 이미지 빌드(GHCR) → VM에 안전하게 접속(Tailscale) → 새 버전으로 무중단 교체 → HTTPS 헬스체크**까지 사람 손 없이 처리합니다. 문제가 생기면 이전 버전 이미지로 즉시 되돌릴 수 있습니다.
-- 자동 배포 파이프라인과 보안 하드닝(HTTPS · 보안 헤더/CSP · SSH 제한) · 롤백·장애 대응 절차는 [`docs/deploy/oracle-vm-runbook.md`](docs/deploy/oracle-vm-runbook.md)에 정리했습니다.
+- **VM 한 대**(Oracle Cloud Always Free)에 Docker Compose로 앱·PostgreSQL·Redis·Caddy를 함께 올립니다.
+- **Caddy가 유일한 공개 진입점**입니다.
+  - 자동 HTTPS(Let's Encrypt)
+  - 정적 프론트 서빙 + `/api` 프록시 → 같은 출처라 CORS 불필요
+  - DB·Redis·앱은 내부 네트워크에 격리
+- **수집기는 24/7 상시 동작**합니다 (`@Scheduled`).
+- **`main`에 푸시하면 자동 배포됩니다.**
+  - 테스트 → 이미지 빌드(GHCR) → VM 접속(Tailscale) → 무중단 교체 → HTTPS 헬스체크
+  - 문제가 생기면 이전 이미지로 즉시 롤백
+- 배포·보안·장애 대응 절차는 [`docs/deploy/oracle-vm-runbook.md`](docs/deploy/oracle-vm-runbook.md)에 있습니다.
 
 ---
 
 ## 어떻게 만들었나 (AI 협업)
 
-이 프로젝트는 **Claude Code + GSD(Get Shit Done) 스펙 주도 워크플로우**로, 자연어로 설계·구현했습니다.  
-다만 "AI가 알아서" 만든 결과물이 아닙니다 —
+**Claude Code + GSD 스펙 주도 워크플로우**로 만들었습니다. 다만 "AI가 알아서" 만든 결과물은 아닙니다.
 
-- **아키텍처 · 데이터 모델 · 트레이드오프는 제가 결정**하고 그 근거를 문서로 남겼습니다.
-- 모든 변경은 **계획 → 실행 → 검증** 단계를 거쳐 **원자적 커밋**으로 추적되고, **Testcontainers 통합 테스트**로 검증됩니다.
-- 그래서 이 저장소의 코드는 **한 줄까지 "왜 이렇게 했는지" 설명할 수 있습니다** — 아래 접힌 "엔지니어링 상세"가 그 기록입니다.
+- 아키텍처·데이터 모델·트레이드오프는 **제가 결정**하고 근거를 문서로 남겼습니다.
+- 모든 변경은 **계획 → 실행 → 검증**을 거쳐 원자적 커밋으로 남습니다.
+- Testcontainers 통합 테스트로 검증합니다.
+- 그래서 이 저장소의 코드는 **왜 그렇게 했는지 설명할 수 있습니다**.
 
-> AI는 구현 속도를 높이는 도구였고, **설계 판단과 책임은 제가 집니다.**
+> AI는 속도를 높이는 도구였고, **설계 판단과 책임은 제가 집니다.**
 
 ---
 
 <details>
-<summary>📦 <b>엔지니어링 상세 펼치기</b> — 로컬 실행 · 아키텍처 · 설계 결정 · API · 프로젝트 구조 (면접관용 깊이)</summary>
+<summary>📦 <b>엔지니어링 상세 펼치기</b> — 로컬 실행 · 아키텍처 · 설계 결정 · API · 프로젝트 구조</summary>
 
 <br/>
 
 ### 로컬 실행
 
-**사전 요구:** JDK 21, Docker. *(프론트 데모까지 보려면 Node.js)*
+**필요한 것:** JDK 21, Docker *(프론트까지 보려면 Node.js)*
 
 ```bash
 # 1) 인프라 기동 (Postgres 16 + Redis 7)
 cp .env.example .env
 docker compose up -d
 
-# 2) 앱 실행 — seed 프로파일: 합성 8일치 시세 + 데모 이벤트 (API 키 불필요, 즉시 재현)
+# 2) 앱 실행 — seed 프로파일: 합성 데이터, API 키 불필요
 ./gradlew bootRun --args='--spring.profiles.active=seed'
 
 # 3) 헤드라인 기능 호출
 curl "http://localhost:8080/api/items/1/event-impact?window=24"
 ```
 
-- **두 프로파일** — `seed`(합성 데이터, API 키 불필요·리뷰용) vs `dev`(`.env`의 `LOSTARK_API_KEY`로 실제 거래소 API를 호출해 실데이터 수집). 라이브 배포는 `dev` 성격의 실수집입니다.
-- 관리자 콘솔(`/admin`)을 쓰려면 `.env`의 `ADMIN_API_SECRET`을 채우세요. 비어 있으면 `/api/admin/**`는 **fail-closed**로 모두 `401`(공개 읽기·수집은 정상).
-- 빌드 + 전체 테스트: `./gradlew build` (CI가 동일 명령 실행). 프론트 데모: `cd frontend && npm install && npm run dev` → http://localhost:5173. 자세한 프론트 안내는 [`frontend/README`](frontend/README.md).
+- **프로파일 2개**
+  - `seed` — 합성 데이터. API 키 없이 바로 재현 (리뷰용)
+  - `dev` — `.env`의 `LOSTARK_API_KEY`로 실제 거래소 API 호출. 라이브 배포와 같은 성격
+- 관리자 콘솔(`/admin`)은 `.env`의 `ADMIN_API_SECRET`이 필요합니다.
+  - 비어 있으면 `/api/admin/**`는 전부 401로 막습니다 (설정을 빠뜨리면 열리는 게 아니라 잠깁니다)
+- 전체 테스트: `./gradlew build` (CI가 같은 명령을 실행합니다)
+- 프론트: `cd frontend && npm install && npm run dev` → http://localhost:5173
 
 ### 아키텍처 — collect → store → serve → correlate
 
@@ -139,29 +155,43 @@ flowchart LR
     READ --> EI
 ```
 
-`@Scheduled` 수집기가 10분마다 워치리스트를 Redis 토큰버킷 레이트리밋 아래 `@Async`로 병렬 호출해 `min_price`를 `price_snapshot`에 멱등 적재합니다(`UNIQUE(tracked_item_id, collected_at)` → 재시작·중복에도 시계열 무결).  
-읽기 API는 최신가를 Redis cache-aside로 서빙하고, 관리자가 등록한 `game_event`를 스냅샷 시계열과 시점 상관시켜 `event-impact`를 계산합니다.
+- **수집** — 10분마다 관심 품목 49종을 호출량 제한 안에서 한꺼번에 가져옵니다.
+- **저장** — 같은 시각의 데이터는 두 번 저장되지 않게 막아, 재시작이나 중복 호출에도 기록이 어긋나지 않습니다.
+- **서빙** — 최신가는 Redis에 잠깐 담아두고 내보냅니다.
+- **맞춰보기** — 등록된 이벤트 시각을 기준으로 그 전후 시세를 찾아 변화율을 냅니다.
 
 ### 설계 결정 (정직한 "왜")
 
-- **왜 Redis** — 품목별 최신가 cache-aside 핫 리드 + 스케줄러 토큰버킷 레이트리밋. MVP 규모(~15품목)면 DB만으로도 읽기를 감당할 수 있음을 인정합니다. "다들 쓰니까"가 아니라 **패턴 증명 + 확장 시 옳은 선택**이라 씁니다.
-- **왜 레이트리밋(토큰버킷)** — 외부 예산은 키당 분당 100회. 실제로는 한계에 못 미치지만 토큰버킷/요청 분산/429 처리를 **선제적으로 올바르게** 구현하고, 재시작·다중 인스턴스 정확성을 위해 Redis에 상태를 둡니다.
-- **Approach A → B** — 1주차에 레이트리밋·캐시 없는 워킹 스켈레톤(A)으로 "수집→저장→조회"를 세우고, 그 위에 토큰버킷 / `@Async` 디커플링 / cache-aside / 범위 쿼리를 단계적으로(B) 올렸습니다.
-- **상관 ≠ 인과** — `change_rate`는 시점 상관이지 인과 주장이 아닙니다. 윈도우 내 스냅샷이 희소·stale하면 계산하지 않고 `insufficient_data`로 응답합니다.
-- **시각 enrichment** — 품목 아이콘·역할 배지(딜러/서포터/융화재료)는 API `Icon` 필드를 DB에 시드로 잠가 read 응답에 패스스루합니다. CDN이 막히거나 URL이 깨지면 역할색 글리프 타일로 **레이아웃 시프트 0** fallback. `role_group`은 금융의 "자산 섹터"와 동형입니다.
+- **왜 Redis를 썼나**
+  - 자주 읽히는 최신가를 잠깐 담아두고, 외부 API 호출 횟수를 세는 데 씁니다.
+  - 솔직히 지금 규모(49종)면 DB만으로도 충분합니다.
+  - 다만 호출 횟수는 앱을 재시작해도 이어져야 해서, DB보다 Redis가 맞다고 봤습니다.
+- **왜 호출 횟수를 직접 세나**
+  - 외부 API가 키 하나당 분당 100회까지만 받아줍니다.
+  - 넘기면 수집이 통째로 막히기 때문에, 넘기기 전에 스스로 멈추게 했습니다.
+- **먼저 굴러가게, 그다음 튼튼하게**
+  - 1주차엔 제한·캐시 없이 "수집 → 저장 → 조회"만 되는 뼈대를 세웠습니다.
+  - 그게 돌아가는 걸 확인한 뒤 토큰버킷·비동기 처리·캐시·범위 쿼리를 하나씩 얹었습니다.
+- **이벤트가 원인이라고 말하지 않습니다**
+  - 보여주는 건 "이벤트 무렵 가격이 이만큼 변했다"는 사실뿐입니다.
+  - 그 시간대에 쌓인 시세가 없거나 너무 오래됐으면 계산하지 않고 "데이터 부족"으로 응답합니다.
+  - 숫자가 비어 보이더라도 지어내는 것보다 낫다고 봤습니다.
+- **아이콘과 배지**
+  - 품목 아이콘·역할 배지(딜러/서포터/재료)는 API가 준 값을 DB에 저장해두고 그대로 내려줍니다.
+  - 아이콘 서버가 막히면 같은 크기의 글리프로 대신해, 화면이 밀리지 않습니다.
 
 ### API 예시 — event-impact (헤드라인)
 
-이벤트별로 전(`pre`)·후(`post`) 앵커 스냅샷 `min_price`로 `changeRate = post / pre − 1`을 계산합니다.  
-두 앵커가 모두 신선(≤30분)할 때만 `status: "ok"`, 아니면 `insufficient_data`.
+이벤트 직전 가격과 직후 가격을 하나씩 골라 `변화율 = 직후 / 직전 − 1`을 계산합니다.
+양쪽 다 이벤트에서 30분 안쪽일 때만 `ok`이고, 하나라도 없거나 오래됐으면 `insufficient_data`입니다.
 
 ```bash
-curl "http://localhost:8080/api/items/1/event-impact?window=24"
+curl "http://localhost:8080/api/items/1/event-impact?window=24&sort=occurred_desc&limit=50"
 ```
 
 ```json
 {
-  "itemId": 1, "window": 24,
+  "itemId": 1, "window": 24, "totalCount": 12,
   "events": [{
     "eventType": "LOA_ON", "title": "로아ON 쇼케이스",
     "occurredAt": "2026-06-22T15:05:00Z",
@@ -172,36 +202,46 @@ curl "http://localhost:8080/api/items/1/event-impact?window=24"
 
 | 메서드 | 경로 | 설명 |
 |--------|------|------|
-| GET | `/api/items` | 워치리스트 |
-| GET | `/api/items/{id}/prices?from=&to=` | 타임라인(큰 범위 자동 다운샘플) |
-| GET | `/api/items/{id}/latest` | 최신가 (Redis cache-aside) |
-| GET | `/api/health/collection` | 수집 파이프라인 헬스 |
-| POST·PUT·DELETE | `/api/admin/**` | 품목·이벤트 CRUD (X-Admin-Secret, 미설정 시 401) |
+| GET | `/api/items` | 관심 품목 목록 |
+| GET | `/api/items/{id}/prices?from=&to=` | 기간별 시세 (범위가 넓으면 알아서 솎아서 내려줍니다) |
+| GET | `/api/items/{id}/latest` | 최신가 (Redis 캐시) |
+| GET | `/api/items/{id}/event-impact` | 이벤트 전후 변화율 (종류·정렬·개수 필터) |
+| GET | `/api/gems` | 보석 현재가 |
+| GET | `/api/market/avatar`, `/api/market/adventure` | 아바타·모험의 서 실시간 조회 |
+| GET | `/api/news`, `/api/coupons` | 로아 공식 소식 · 쿠폰 |
+| GET | `/api/health/collection` | 수집이 잘 돌고 있는지 확인 |
+| POST·PUT·DELETE | `/api/admin/**` | 품목·이벤트 CRUD (X-Admin-Secret) |
 
-시각은 UTC ISO-8601, 4xx는 `{timestamp, status, error, message}` 단일 계약을 따릅니다.
+- 시각은 전부 UTC ISO-8601입니다.
+- 4xx는 `{timestamp, status, error, message}` 하나의 계약을 따릅니다.
 
 ### 프로젝트 구조
 
 ```
 src/main/java/com/lostark/tracker/
 ├── collect/     # 수집 — PriceCollector(@Scheduled), @Async 팬아웃
-├── ratelimit/   # Redis 토큰버킷 레이트리밋
-├── cache/       # 최신가 cache-aside
-├── read/        # 읽기 서비스 — WindowQuery·Downsample·LatestPrice·EventImpact
-├── domain/      # 엔티티 — TrackedItem·PriceSnapshot·GameEvent·CollectionRun
-├── web/         # 컨트롤러 + DTO + 전역 에러 핸들러 (+ admin/)
-├── security/    # X-Admin-Secret 필터 (fail-closed)
+├── ratelimit/   # 외부 API 호출량 제한
+├── cache/       # 최신가 캐시
+├── read/        # 읽기 — WindowQuery · Downsample · LatestPrice · EventImpact
+├── market/      # 아바타·모험의 서 실시간 조회 (저장 안 함)
+├── gem/         # 보석 현재가 + 시간당 기록
+├── news/        # 로아 공식 소식 주기 수집
+├── domain/      # 엔티티
+├── web/         # 컨트롤러 + DTO + 전역 에러 핸들러
+├── security/    # 관리자 인증 필터 (미설정 시 잠김)
 └── seed/        # seed 프로파일 합성 데이터
-frontend/        # React 19 + Vite 데모 (3화면) — 같은 read API 소비
+frontend/        # React 19 + Vite (4화면, 다크모드)
 docs/deploy/     # Oracle VM 배포 런북
 .planning/       # 단계별 계획·결정 기록 (GSD)
 ```
 
 ### 스코프 / 한계
 
-- **데이터 소스:** 거래소(MARKETS)만. 경매장/보석은 v2.
-- **단일 인스턴스:** 단일 박스(Oracle VM · Docker Compose) 상시 운영. 다중 인스턴스 HA는 v2 (프로세스 다운 시 시계열 구멍은 `insufficient_data`로 정직하게 노출).
-- **데이터 보존:** MVP는 삭제 없이 원본 스냅샷 보존(복합 인덱스로 감당). 롤업/파티셔닝은 v2.
+- **데이터 소스** — 거래소(MARKETS)가 중심입니다. 보석은 경매장에서 별도로 읽습니다.
+- **저장 범위** — 관심 품목 49종만 기록으로 쌓습니다. 아바타·모험의 서는 저장하지 않고 그때그때 조회합니다.
+- **서버 한 대** — VM 한 대로 상시 운영합니다. 여러 대로 늘리는 건 다음 버전입니다.
+  - 앱이 내려가 있던 구간은 숨기지 않고 "데이터 부족"으로 드러냅니다.
+- **데이터 보존** — 모은 기록을 지우지 않고 그대로 둡니다. 오래된 데이터를 요약해 줄이는 건 다음 버전입니다.
 
 </details>
 
@@ -209,7 +249,7 @@ docs/deploy/     # Oracle VM 배포 런북
 
 ## 👤 개발자
 
-- **개발:** jongyeon ([@jongyeon2](https://github.com/jongyeon2)) — 단일 개발자
-- **기간:** 2026.06 ~ 2026.07 (약 1개월)
-- **유형:** 신입 백엔드 포트폴리오 — "설명 가능한 엔지니어링" (도메인=게임, 구조=금융 시세 파이프라인)
-- **저장소:** [github.com/jongyeon2/lostark-market-tracker](https://github.com/jongyeon2/lostark-market-tracker)
+- **개발** — jongyeon ([@jongyeon2](https://github.com/jongyeon2)), 단일 개발자
+- **기간** — 2026.06 ~ 2026.07 (약 1개월)
+- **유형** — 신입 백엔드 포트폴리오. 도메인은 게임, 구조는 금융 시세 파이프라인
+- **저장소** — [github.com/jongyeon2/lostark-market-tracker](https://github.com/jongyeon2/lostark-market-tracker)
