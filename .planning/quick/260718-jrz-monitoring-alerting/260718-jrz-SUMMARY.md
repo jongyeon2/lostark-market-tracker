@@ -4,7 +4,7 @@ slug: monitoring-alerting
 description: 능동 모니터링·알림 구현 — 수집 하트비트(데드맨) + 백업 즉시 /fail
 date: 2026-07-18
 status: complete
-spec: docs/superpowers/specs/2026-07-17-monitoring-alerting-design.md
+spec: docs/specs/2026-07-17-monitoring-alerting-design.md
 commits: [f873010, bd013b5, 9e8f36b, 945e151]
 ---
 
@@ -13,7 +13,7 @@ commits: [f873010, bd013b5, 9e8f36b, 945e151]
 ## 무엇을 만들었나
 
 혼자 운영하는 무료 VM이 **"죽어도 모르는"** 상태를 없애기 위한 능동 감시의 **코드 절반**을 구현했다.
-설계 스펙(`docs/superpowers/specs/2026-07-17-monitoring-alerting-design.md`, 사용자 승인 2026-07-17)의
+설계 스펙(`docs/specs/2026-07-17-monitoring-alerting-design.md`, 사용자 승인 2026-07-17)의
 §7~§9를 코드로 옮겼다. 수집·캐시·서빙 로직은 0줄 변경(Core Value 가드) — 하트비트는 `collectTick()`
 끝의 additive fail-open 훅 1줄이다.
 

@@ -3,13 +3,13 @@ quick_id: 260718-jrz
 slug: monitoring-alerting
 description: 능동 모니터링·알림 구현 — 수집 하트비트(데드맨) + 백업 즉시 /fail
 date: 2026-07-18
-spec: docs/superpowers/specs/2026-07-17-monitoring-alerting-design.md
+spec: docs/specs/2026-07-17-monitoring-alerting-design.md
 status: planned
 ---
 
 # Quick Task 260718-jrz: 능동 모니터링·알림 구현
 
-**설계 스펙:** `docs/superpowers/specs/2026-07-17-monitoring-alerting-design.md` (사용자 승인 2026-07-17, 선택항목 1=백업 즉시 /fail 포함)
+**설계 스펙:** `docs/specs/2026-07-17-monitoring-alerting-design.md` (사용자 승인 2026-07-17, 선택항목 1=백업 즉시 /fail 포함)
 
 이 계획은 스펙 §7~§9를 코드로 옮긴다. 앱 로직(수집·캐시·서빙)은 건드리지 않는다 — 하트비트는 `collectTick()` 끝의 additive fail-open 훅 1줄이다(Core Value 가드, §2).
 

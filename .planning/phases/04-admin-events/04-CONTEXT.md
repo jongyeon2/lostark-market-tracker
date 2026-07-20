@@ -52,8 +52,8 @@ Phase 1에서 잠근 `game_event`·`tracked_item` 위에 **공유 시크릿 인�
 **Downstream agents MUST read these before planning or implementing.**
 
 ### 설계 / 리뷰 (필수 — 구현 확정 레이어)
-- `docs/design/yeonjong-unknown-design-20260619-221517.md` — Phase 4 핵심: **§관리자 엔드포인트**(`POST/PUT/DELETE /api/admin/events`, `POST/DELETE /api/admin/items`, **단일 공유 시크릿/Basic auth, 유저 모델 없음**), **확정 8결정 중 6A(관리자 시크릿 인증)**, **§Implementation Tasks T8**(`/api/admin/**` 시크릿 게이트 = Spring Security + env; 검증: 시크릿 없이 401/403, 있으면 200), **game_event 모델**(event_type 4종, 단일 `occurred_at`, `created_by` 생략), 풀 유저/권한 모델 v2 강등.
-- `docs/reviews/yeonjong-unknown-eng-review-test-plan-20260620-102515.md` — 테스트 플랜: **관리자 인증 401/200**.
+- `docs/specs/2026-06-19-project-design.md` — Phase 4 핵심: **§관리자 엔드포인트**(`POST/PUT/DELETE /api/admin/events`, `POST/DELETE /api/admin/items`, **단일 공유 시크릿/Basic auth, 유저 모델 없음**), **확정 8결정 중 6A(관리자 시크릿 인증)**, **§Implementation Tasks T8**(`/api/admin/**` 시크릿 게이트 = Spring Security + env; 검증: 시크릿 없이 401/403, 있으면 200), **game_event 모델**(event_type 4종, 단일 `occurred_at`, `created_by` 생략), 풀 유저/권한 모델 v2 강등.
+- `docs/specs/2026-06-20-eng-review-test-plan.md` — 테스트 플랜: **관리자 인증 401/200**.
 
 ### 선행 데이터 모델·스키마 (필수 — 사실 근거)
 - `src/main/resources/db/migration/V1__init_schema.sql` — `tracked_item`(`external_item_id` VARCHAR(100) NOT NULL·**UNIQUE 미설정**, `active` BOOLEAN 기본 TRUE), `game_event`(`event_type`/`title`/`occurred_at` NOT NULL, `description` TEXT, `created_at`/`updated_at`), `price_snapshot.tracked_item_id` FK **REFERENCES tracked_item(id) — ON DELETE CASCADE 없음**(→ soft delete 근거 D-03).

@@ -273,6 +273,7 @@ src/main/java/com/lostark/tracker/
 └── seed/        # 예시 데이터 만들기
 frontend/        # 화면 (React, 4개 페이지 + 다크모드)
 docs/deploy/     # 배포·장애 대응 절차서
+docs/specs/      # 코드를 짜기 전에 먼저 그린 설계 문서
 .planning/       # 무엇을 왜 그렇게 정했는지 남긴 기록
 ```
 

@@ -44,8 +44,8 @@
 **Downstream agents MUST read these before planning or implementing.**
 
 ### 설계 / 리뷰 (필수)
-- `docs/design/yeonjong-unknown-design-20260619-221517.md` — 승인 + 엔지니어링 리뷰된 설계 문서. 하단 **"엔지니어링 리뷰 반영"** 섹션이 구현 확정 레이어(Data Model Decisions, Database Engine & Environments, Failure Modes, Test Strategy, Phase 시퀀싱). Phase 1은 특히 "Data Model Decisions" + "Database Engine & Environments" + "Task 0 Exit Criteria"를 따른다.
-- `docs/reviews/yeonjong-unknown-eng-review-test-plan-20260620-102515.md` — 엔지니어링 리뷰 테스트 플랜(엣지 케이스·통합 테스트 대상).
+- `docs/specs/2026-06-19-project-design.md` — 승인 + 엔지니어링 리뷰된 설계 문서. 하단 **"엔지니어링 리뷰 반영"** 섹션이 구현 확정 레이어(Data Model Decisions, Database Engine & Environments, Failure Modes, Test Strategy, Phase 시퀀싱). Phase 1은 특히 "Data Model Decisions" + "Database Engine & Environments" + "Task 0 Exit Criteria"를 따른다.
+- `docs/specs/2026-06-20-eng-review-test-plan.md` — 엔지니어링 리뷰 테스트 플랜(엣지 케이스·통합 테스트 대상).
 
 ### 프로젝트 계획
 - `.planning/PROJECT.md` — Core Value, 제약(스택/DB/타임라인), Key Decisions 표

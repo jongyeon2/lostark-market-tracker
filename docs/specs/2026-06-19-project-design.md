@@ -244,7 +244,7 @@ API 검증 스파이크. **아래를 실측·확정하기 전에는 데이터 �
 
 - 프레임워크: **JUnit 5 + Mockito + Testcontainers(Postgres + Redis)** [마, Codex 20]. 로컬·CI **동일 메커니즘**으로 검증.
 - **통합테스트 중심** — 토큰버킷 재시작 / 비동기 트랜잭션 / 스케줄러 / 캐시 무효화 / 재시도 타이밍 / event-impact 윈도우는 단위 테스트만으론 거짓말한다(Codex 인정). [Codex 17]
-- 커버리지: office-hours 명시 6개(토큰버킷 소진·회복·재시작, 부분 실패, 범위 쿼리, 캐시 무효화, 캐시 히트 DB 0회, event-impact 델타) + 본 리뷰 GAP 8묶음. 상세는 테스트 플랜 아티팩트(`~/.gstack/projects/test/yeonjong-unknown-eng-review-test-plan-*.md`).
+- 커버리지: office-hours 명시 6개(토큰버킷 소진·회복·재시작, 부분 실패, 범위 쿼리, 캐시 무효화, 캐시 히트 DB 0회, event-impact 델타) + 본 리뷰 GAP 8묶음. 상세는 테스트 플랜 아티팩트(`docs/specs/2026-06-20-eng-review-test-plan.md`).
 - GAP 추가분: 팬아웃 await/직렬화, @Async×JPA 멱등 커밋, 429 Retry-After·max3·401·5xx, collection_run 기록+health 읽기, 공유 윈도우 경계·UTC/KST off-by-9h, event-impact 충분성·staleness·앵커시각, 관리자 인증 401/200, 입력검증(from>to·window≤0·404·빈 범위).
 - E2E 1개: 수집 틱 → 적재 → latest/prices (Testcontainers).
 

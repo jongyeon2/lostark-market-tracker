@@ -13,7 +13,7 @@ created: 2026-07-14
 > 이 phase는 **레이아웃 재구성**이다: 기존 검증된 디자인 시스템·카드·소식 패널을 재사용하고 **신규 디자인 토큰 0개**.
 > 신규 컴포넌트는 `CategoryNav` 하나. `ItemCard`·`NewsPanel`은 **무변경**(내용 계약 유지).
 
-**설계 근거:** `docs/superpowers/specs/2026-07-14-v1.5-market-scope-ux-design.md` 기능 A. 사용자 확정(2026-07-14): 카테고리 nav = **2단계 그룹(maplanet식)**, 필터 상호작용, 로컬 useState, 모바일 상단 칩.
+**설계 근거:** `docs/specs/2026-07-14-v1.5-market-scope-ux-design.md` 기능 A. 사용자 확정(2026-07-14): 카테고리 nav = **2단계 그룹(maplanet식)**, 필터 상호작용, 로컬 useState, 모바일 상단 칩.
 
 ---
 

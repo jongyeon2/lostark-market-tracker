@@ -28,6 +28,15 @@
 
 
 
+
+
+
+
+
+
+
+
+
 **Shipped:**
 - ✅ **v1.0 MVP** (2026-06-25) — 신뢰 가능한 10분 수집 파이프라인 + Redis 캐시 read API + event-impact + 관리자 CRUD + CI·seed·README 데모 표면 (Phases 1–6, 24/24 요구사항). [archive](milestones/v1.0-ROADMAP.md)
 - ✅ **v1.1 Frontend Demo Dashboard** (2026-06-29) — v1.0 read API를 백엔드 0줄 변경(Vite 프록시 dev 동일 출처)으로 소비하는 React + TS + Tailwind + Recharts 3화면(Dashboard / Item Timeline / Event Impact)을 seed 기준 빈 화면 없이 재현. README의 curl 데모를 클릭 가능한 데모 표면으로 전환 (Phases 7–11, 필수 20/20; DEMO-03 정적 서빙은 v2 강등). [archive](milestones/v1.1-ROADMAP.md)
@@ -82,7 +91,7 @@
 ## Context
 
 - **개발자 경험:** Spring Boot + JPA 자주 사용(CRUD 능숙). **스케줄러·캐시·레이트리밋은 처음** → 학습 곡선이 곧 포트폴리오 차별점과 일치.
-- **선행 설계:** 이 프로젝트는 `/office-hours`(승인) → `/plan-eng-review`(8개 결정 + Codex 외부검토 흡수, clean)를 거친 설계 문서를 기반으로 한다. 원본: `~/.gstack/projects/test/yeonjong-unknown-design-20260619-221517.md` (하단 "엔지니어링 리뷰 반영" 섹션이 구현 확정 레이어).
+- **선행 설계:** 이 프로젝트는 `/office-hours`(승인) → `/plan-eng-review`(8개 결정 + Codex 외부검토 흡수, clean)를 거친 설계 문서를 기반으로 한다. 원본: `docs/specs/2026-06-19-project-design.md` (하단 "엔지니어링 리뷰 반영" 섹션이 구현 확정 레이어).
 - **도메인 지식:** 강화 수단인 융화재료처럼 골드가 많이 드는 고변동 품목이 로아온·시즌 종료·대형 업데이트 시점에 시세 변동이 가장 심하다 — 검색으로 못 얻는, 이 프로젝트 차별점의 출처.
 - **DB 선택 배경:** 기존 Choice 프로젝트에서 MySQL을 경험 → 이번엔 PostgreSQL로 시계열 스냅샷 저장 + 복합 인덱스 설계를 경험.
 - **상관 ≠ 인과:** 이벤트-가격은 "시점상 겹친다(상관)"이지 "이벤트가 가격을 올렸다(인과)"가 아니다. 응답 문구/README를 거기에 맞추고 과대 주장하지 않는다.

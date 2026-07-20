@@ -29,7 +29,7 @@ key-files:
     - src/test/resources/application-spike.yml
     - .planning/phases/01-foundation-task-0/TASK0-FINDINGS.md
   modified:
-    - docs/design/yeonjong-unknown-design-20260619-221517.md
+    - docs/specs/2026-06-19-project-design.md
 
 key-decisions:
   - "D-06: avg_price + trade_count는 제공되나 일단위(상세 Stats[]); 목록은 YDayAvgPrice만 제공"

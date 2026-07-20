@@ -55,8 +55,8 @@ Phase 1/2가 쌓은 `price_snapshot`·`game_event`·`collection_run` 위에 **�
 **Downstream agents MUST read these before planning or implementing.**
 
 ### 설계 / 리뷰 (필수 — 구현 확정 레이어)
-- `docs/design/yeonjong-unknown-design-20260619-221517.md` — Phase 3 핵심: **§3 Redis 역할(최신가 캐시-어사이드 + 쓰기 무효화 / cache stale 실패모드)**, **확정 8결정 중 4A(공유 윈도우 쿼리)·7A(큰 범위 서버 다운샘플 `date_trunc`)·3A(collection_run + `/health/collection`)**, **§Worktree B. Read API(latest 캐시-어사이드/공유 윈도우/timeline/다운샘플)** 와 **A·B persistence 공유 충돌 경고**, **§Test Strategy(캐시히트 시 DB 0회·범위 쿼리·캐시 무효화)**, **§Implementation Tasks T6(공유 윈도우)·T9(다운샘플)·T10(캐시 무효화)·T5(collection_run+health)**.
-- `docs/reviews/yeonjong-unknown-eng-review-test-plan-20260620-102515.md` — 테스트 플랜: 공유 윈도우 경계·**UTC/KST off-by-9h**, collection_run 기록+health 읽기, **입력검증(from>to·window≤0·404·빈 범위)**, 캐시 무효화·캐시 히트.
+- `docs/specs/2026-06-19-project-design.md` — Phase 3 핵심: **§3 Redis 역할(최신가 캐시-어사이드 + 쓰기 무효화 / cache stale 실패모드)**, **확정 8결정 중 4A(공유 윈도우 쿼리)·7A(큰 범위 서버 다운샘플 `date_trunc`)·3A(collection_run + `/health/collection`)**, **§Worktree B. Read API(latest 캐시-어사이드/공유 윈도우/timeline/다운샘플)** 와 **A·B persistence 공유 충돌 경고**, **§Test Strategy(캐시히트 시 DB 0회·범위 쿼리·캐시 무효화)**, **§Implementation Tasks T6(공유 윈도우)·T9(다운샘플)·T10(캐시 무효화)·T5(collection_run+health)**.
+- `docs/specs/2026-06-20-eng-review-test-plan.md` — 테스트 플랜: 공유 윈도우 경계·**UTC/KST off-by-9h**, collection_run 기록+health 읽기, **입력검증(from>to·window≤0·404·빈 범위)**, 캐시 무효화·캐시 히트.
 
 ### Task 0 실측 / 선행 데이터 모델 (필수 — 사실 근거)
 - `.planning/phases/01-foundation-task-0/TASK0-FINDINGS.md` — `min_price`=`CurrentMinPrice`, `external_item_id`=String(Id), 모든 시간 TIMESTAMPTZ(UTC).

@@ -59,8 +59,8 @@
 **Downstream agents MUST read these before planning or implementing.**
 
 ### 설계 / 리뷰 (필수)
-- `docs/design/yeonjong-unknown-design-20260619-221517.md` — 하단 **"엔지니어링 리뷰 반영"** 섹션이 구현 확정 레이어. Phase 2는 특히: **§Failure Modes**(유일 critical = 팬아웃 타임아웃 미설정), **§Test Strategy**(통합테스트 중심 + GAP 묶음), **§Data Model Decisions**(collected_at 틱 정규화, fetched_at 분리), **§Worktree A. Collection**(LostarkApiClient/RateLimiter/PriceCollector/collection_run), **§Implementation Tasks T1·T2·T4·T5·T11**(팬아웃+타임아웃, UNIQUE 멱등, 429/401/5xx, collection_run, 토큰버킷 재시작).
-- `docs/reviews/yeonjong-unknown-eng-review-test-plan-20260620-102515.md` — 엔지니어링 리뷰 테스트 플랜(엣지 케이스 대상: 토큰버킷 재시작, @Async 트랜잭션 멱등, 429 타이밍, 부분 실패, collection_run+health).
+- `docs/specs/2026-06-19-project-design.md` — 하단 **"엔지니어링 리뷰 반영"** 섹션이 구현 확정 레이어. Phase 2는 특히: **§Failure Modes**(유일 critical = 팬아웃 타임아웃 미설정), **§Test Strategy**(통합테스트 중심 + GAP 묶음), **§Data Model Decisions**(collected_at 틱 정규화, fetched_at 분리), **§Worktree A. Collection**(LostarkApiClient/RateLimiter/PriceCollector/collection_run), **§Implementation Tasks T1·T2·T4·T5·T11**(팬아웃+타임아웃, UNIQUE 멱등, 429/401/5xx, collection_run, 토큰버킷 재시작).
+- `docs/specs/2026-06-20-eng-review-test-plan.md` — 엔지니어링 리뷰 테스트 플랜(엣지 케이스 대상: 토큰버킷 재시작, @Async 트랜잭션 멱등, 429 타이밍, 부분 실패, collection_run+health).
 
 ### Task 0 실측 (필수 — 수집 동작의 사실 근거)
 - `.planning/phases/01-foundation-task-0/TASK0-FINDINGS.md` — (a) 요청 포맷(`POST /markets/items`, CategoryCode leaf 필수, PageSize 10 페이징; detail엔 `CurrentMinPrice` 없음) / (b) 필드 매트릭스(`CurrentMinPrice`→min_price) / (c) 매칭 규칙(`external_item_id`=String(Id)) / (d) **레이트 100/min 확정 + x-ratelimit·Retry-After 헤더 존재** + **키 공백→401 gotcha**.
