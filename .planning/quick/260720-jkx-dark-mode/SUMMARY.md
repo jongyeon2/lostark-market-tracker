@@ -4,7 +4,7 @@ slug: dark-mode
 description: 다크모드 — 클래스 기반 테마 전환 + 하드코딩 색 전량 토큰화
 date: 2026-07-20
 status: complete
-commits: [e0f9d4c]
+commits: [e0f9d4c, 72e5816, 7127536]
 ---
 
 # Quick Task 260720-jkx — 다크모드
@@ -76,6 +76,28 @@ commits: [e0f9d4c]
 
 - **네이티브 스크롤바가 밝게 남음** — `color-scheme`을 안 줘서. 계산이나 빌드로는 안 잡히고 실제
   화면을 봐야만 보이는 종류였다. `:root{color-scheme:light}` / `.dark{color-scheme:dark}`로 해결.
+
+## 후속 — 배포 후 CSP 위반 2건 (커밋 72e5816 · 7127536)
+
+푸시 후 사용자가 운영 콘솔에서 폰트 CSP 오류 4건을 발견했다. 조사하다 **같은 유형의 두 번째 건이
+이 작업에서 들어간 것**을 함께 찾았다.
+
+| 건 | 원인 | 조치 |
+|---|---|---|
+| 폰트 4개 차단 (기존 버그) | Vite 기본 `assetsInlineLimit`(4KB)이 작은 폰트 서브셋을 `data:` URI로 인라인 → `font-src 'self'` 위반 | `vite.config.ts`에서 폰트 인라인 금지. data:font 4→0, 폰트 파일 15→19 |
+| 테마 스크립트 차단 (**이 작업이 넣은 것**) | FOUC 차단 스크립트를 `index.html` 인라인으로 둠 → `script-src 'self'` 위반 | `public/theme-init.js`로 분리(동일 출처) |
+
+🔑 **왜 못 잡았나**: 둘 다 **로컬에서 재현되지 않는다**. `npm run dev`는 에셋을 인라인하지 않고 CSP
+헤더는 운영 Caddy에만 있다. 빌드도 타입 체크도 대비 계산도 통과한다 — 운영 헤더가 있어야만 보인다.
+
+🔑 **재발 방지 방법**: 운영 Caddyfile과 **동일한 CSP 헤더로 `dist/`를 로컬 서빙**해 브라우저로 확인하는
+절차를 썼다(임시 정적 서버 + Playwright). `/avatar`·`/dashboard` 콘솔 에러 0, 저장된 다크 설정이
+새로고침 후에도 첫 페인트에 적용됨(`html class="dark"`, body `rgb(2,6,23)`)을 실측했다. 앞으로 CSP에
+걸릴 만한 변경(인라인 스크립트/스타일, 새 외부 출처, 번들러 설정)을 할 때 이 절차를 쓰면 된다.
+
+두 건 모두 **CSP를 넓히지 않고 정책을 지키는 쪽**으로 고쳤다. `font-src`에 `data:`를 더하거나
+`script-src`에 `'unsafe-inline'`을 더하면 한 줄로 끝나지만, 그건 도구 편의를 위해 보안 정책을 깎는
+것이다. `index.css`가 "self-host라 font-src 'self' 통과"라고 적어둔 의도가 옳았다.
 
 ## 알려진 한계
 
