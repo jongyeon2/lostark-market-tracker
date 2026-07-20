@@ -51,7 +51,11 @@
 |:---:|:---:|
 | ![대시보드](frontend/docs/screenshots/dashboard.png) | ![이벤트 영향](frontend/docs/screenshots/event-impact.png) |
 
-<sub>※ 이벤트 영향은 관리자가 이벤트를 등록하면 채워집니다. 데이터가 부족하면 위처럼 빈 상태로 둡니다.</sub>
+| 아바타 | 모험의 서 |
+|:---:|:---:|
+| ![아바타](frontend/docs/screenshots/avatar.png) | ![모험의 서](frontend/docs/screenshots/adventure.png) |
+
+<sub>※ 이벤트 영향은 관리자가 이벤트를 등록하면 채워집니다. 아직 등록된 이벤트가 하나뿐이라 위 화면은 1건만 보여줍니다.</sub>
 
 ---
 
@@ -130,34 +134,53 @@ curl "http://localhost:8080/api/items/1/event-impact?window=24"
 
 ```mermaid
 flowchart LR
-    API[("Lostark MARKETS API\n(JWT, 100/min)")]
-    subgraph collect["수집"]
-        SCH["@Scheduled 10분 틱\nPriceCollector"]
-        RL["Redis 토큰버킷\n레이트리밋"]
-        RC["RestClient\n@Async 팬아웃"]
+    API[("Lostark Open API<br/>markets · auctions · news<br/>(JWT, 100/min)")]
+    RL["Redis 토큰버킷<br/>모든 외부 호출이 여기를 지남"]
+
+    subgraph collect["정기 수집"]
+        SCH["시세 10분<br/>PriceCollector"]
+        GEM["보석 1시간<br/>GemPriceRecorder"]
+        NEWS["소식 6시간<br/>NewsPoller"]
     end
+
+    subgraph ondemand["실시간 조회 (저장 안 함)"]
+        MK["아바타 · 모험의 서<br/>MarketSearchService"]
+    end
+
     subgraph store["저장"]
-        PG[("PostgreSQL\nprice_snapshot / tracked_item / game_event\nUNIQUE(item, collected_at)")]
+        PG[("PostgreSQL<br/>price_snapshot · gem_price_snapshot<br/>item_daily_stats · tracked_item<br/>game_event · coupon · collection_run")]
     end
+
     subgraph serve["서빙"]
         READ["Read API"]
-        CACHE[("Redis\ncache-aside: latest")]
+        CACHE[("Redis 캐시<br/>최신가 · 보석 · 소식 · 검색결과")]
     end
-    EI["EventImpactService\n앵커 전후 change_rate"]
-    ADMIN["Admin CRUD\n/api/admin/** (X-Admin-Secret)"]
 
-    SCH --> RL --> RC --> API
-    RC --> PG
+    EI["EventImpactService<br/>이벤트 전후 변화율"]
+    ADMIN["Admin CRUD<br/>/api/admin/** (X-Admin-Secret)"]
+
+    SCH --> RL
+    GEM --> RL
+    NEWS --> RL
+    MK --> RL
+    RL --> API
+
+    SCH --> PG
+    GEM --> PG
+    NEWS --> CACHE
+    MK --> CACHE
+
     READ --> CACHE
     READ --> PG
-    ADMIN --> PG
-    EI --> PG
     READ --> EI
+    EI --> PG
+    ADMIN --> PG
 ```
 
-- **수집** — 10분마다 관심 품목 49종을 호출량 제한 안에서 한꺼번에 가져옵니다.
+- **정기 수집** — 시세는 10분, 보석은 1시간, 로아 공식 소식은 6시간마다 스스로 가져옵니다.
+- **실시간 조회** — 아바타·모험의 서는 저장하지 않고 물어볼 때만 가져와 잠깐 캐시합니다.
+- **호출량 제한은 한 곳** — 외부 API를 부르는 모든 경로가 같은 토큰버킷을 지나갑니다. 그래야 합쳐서 한도를 넘지 않습니다.
 - **저장** — 같은 시각의 데이터는 두 번 저장되지 않게 막아, 재시작이나 중복 호출에도 기록이 어긋나지 않습니다.
-- **서빙** — 최신가는 Redis에 잠깐 담아두고 내보냅니다.
 - **맞춰보기** — 등록된 이벤트 시각을 기준으로 그 전후 시세를 찾아 변화율을 냅니다.
 
 ### 설계 결정 (정직한 "왜")
