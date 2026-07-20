@@ -60,11 +60,9 @@ export function AvatarPage() {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-xl font-semibold">아바타</h1>
-        <p className="text-muted-foreground text-sm">직업을 선택하고 이름으로 검색해 현재 시세를 확인하세요.</p>
-      </div>
-
+      {/* 제목·부제 없음(사용자 결정 2026-07-20). 상단 네비의 '아바타'가 이미 활성 표시로 어느 화면인지
+          말하고, 무엇을 하는 곳인지는 직업 바둑판과 부위 칩이 그 자체로 말한다. 시세를 보러 온 사람에게
+          "시세를 확인하세요"는 정보가 0이다. 접근성용 제목은 각 영역의 aria-label이 대신한다. */}
       {/* 직업 바둑판 — 필수 선택. 목록 자체가 원격 데이터라 자체 boundary를 갖는다(D-07). */}
       <AsyncBoundary
         status={classes.status}

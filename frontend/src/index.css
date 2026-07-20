@@ -79,6 +79,27 @@
   --role-dealer: #e11d48; /* rose-600    — 딜러 = 공격 */
   --role-support: #047857; /* emerald-700 — 서포터 = 회복·버프 */
   --role-material: #b45309; /* amber-700   — 융화재료 = 재화 */
+
+  /*
+    아이템 등급색 — 이 앱이 지어낸 색이 아니라 **게임의 어휘**다. 로아 유저는 거래소에서 초록/파랑/
+    보라/주황을 등급으로 즉시 읽는다(사용자 결정 2026-07-20). 이전엔 "신규 색 0" 원칙으로 등급을
+    흑백 outline 배지로만 표기했는데, 그건 유저가 이미 아는 신호를 버리는 쪽이었다.
+
+    🔑 게임 색을 그대로 쓰지 않는다 — 게임은 어두운 배경이고 이 앱은 흰 카드다:
+    - 일반은 게임에서 **흰색**이라 흰 배경에서 안 보인다 → 중립 회색으로 대체(유일하게 색상을 바꾼 등급).
+    - 나머지는 같은 색상 계열을 어둡게 낮춰 흰 배경 대비를 확보했다. 전부 #FFFFFF·#F8FAFC 양쪽에서
+      본문 대비 ≥ 4.79:1 (AA) — 실측값은 아래 주석.
+
+    🔑 의미 충돌은 범위로 막는다: 여기 초록은 semantic `--up`(가격 상승), 파랑은 accent(상호작용)와
+    가까운 색이다. 이 색들은 **거래소 검색 결과 행(아바타·모험의 서)에서만** 쓰이는데, 그 행은
+    링크가 아니고(클릭 불가) 등락 텍스트도 없다. 그래서 같은 화면에서 두 의미가 만나지 않는다.
+    다른 화면으로 번지면 이 논거가 깨지므로 확산 금지.
+  */
+  --grade-normal: #475569; /* slate-600  — 일반   (게임 흰색 대체) 7.24:1 */
+  --grade-uncommon: #15803d; /* green-700  — 고급              4.79:1 */
+  --grade-rare: #1d4ed8; /* blue-700   — 희귀              6.41:1 */
+  --grade-epic: #7e22ce; /* purple-700 — 영웅              6.67:1 */
+  --grade-legendary: #c2410c; /* orange-700 — 전설              4.95:1 */
 }
 
 @theme inline {
@@ -112,6 +133,13 @@
   --color-role-dealer: var(--role-dealer);
   --color-role-support: var(--role-support);
   --color-role-material: var(--role-material);
+
+  /* 등급 유틸 (text-grade-epic / bg-grade-rare/10 …) — 거래소 검색 결과 행 전용 */
+  --color-grade-normal: var(--grade-normal);
+  --color-grade-uncommon: var(--grade-uncommon);
+  --color-grade-rare: var(--grade-rare);
+  --color-grade-epic: var(--grade-epic);
+  --color-grade-legendary: var(--grade-legendary);
 
   --font-sans: 'Inter Variable', Inter, system-ui, -apple-system, sans-serif;
 
