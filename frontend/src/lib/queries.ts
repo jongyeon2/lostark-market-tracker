@@ -223,12 +223,16 @@ export function useMarketClasses() {
   })
 }
 
-export function useAdventure(params: MarketSearchParams) {
+/*
+  모험의 서 전량. 인자가 없다 — 대륙 전환·검색·정렬이 전부 로컬이라 쿼리 키가 하나뿐이고, 그래서
+  대륙을 아무리 눌러도 네트워크 요청이 0이다(placeholderData로 깜빡임을 막을 이유도 사라졌다).
+  staleTime은 서버 캐시 TTL(10분)에 맞춘다 — 더 짧게 잡아도 서버가 같은 캐시를 돌려줄 뿐이다.
+*/
+export function useAdventure() {
   return useQuery({
-    queryKey: ['market-adventure', params.q, params.sort, params.dir, params.page] as const,
-    queryFn: () => getAdventure(params),
-    staleTime: 5 * 60 * 1000,
-    placeholderData: (prev) => prev, // 페이지 이동·정렬 변경 시 이전 결과를 유지해 깜빡임 방지
+    queryKey: ['market-adventure'] as const,
+    queryFn: getAdventure,
+    staleTime: 10 * 60 * 1000,
     retry: marketRetry, // 429 자동 재시도(위 marketRetry 참조) — 수동 '다시 불러오기' 불필요
     retryDelay: marketRetryDelay,
   })

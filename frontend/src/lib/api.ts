@@ -226,15 +226,13 @@ export async function getMarketClasses(): Promise<MarketClasses> {
   return marketClassesSchema.parse(await request('/api/market/classes'))
 }
 
-export async function getAdventure(params: {
-  q?: string
-  sort: MarketSort
-  dir: MarketDir
-  page: number
-}): Promise<MarketSearchResponse> {
-  const qs = new URLSearchParams({ sort: params.sort, dir: params.dir, page: String(params.page) })
-  if (params.q) qs.set('q', params.q)
-  return marketSearchResponseSchema.parse(await request(`/api/market/adventure?${qs.toString()}`))
+/*
+  모험의 서 전량(~140). 파라미터가 없다 — 대륙 분류·검색·정렬을 전부 클라이언트가 이 140행 위에서
+  하기 때문이다(대륙 매핑은 features/market/tomes.ts). 서버는 10분 캐시라 대륙을 아무리 눌러도
+  API 호출이 늘지 않는다.
+*/
+export async function getAdventure(): Promise<MarketSearchResponse> {
+  return marketSearchResponseSchema.parse(await request('/api/market/adventure'))
 }
 
 export async function getAvatar(params: {
