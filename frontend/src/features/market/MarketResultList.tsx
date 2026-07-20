@@ -12,9 +12,17 @@ import type { MarketSearchItem } from '@/lib/schemas'
   로스트아크 등급 색은 이 앱의 디자인 토큰(slate 기반)에 없다. 새 색을 만들지 않고 Badge outline 하나로
   통일한다 — 등급 "이름"은 보이되(전설/영웅…) 게임의 등급별 색을 재현하지는 않는다(신규 색 0 원칙).
 */
-export function MarketResultList({ items }: { items: MarketSearchItem[] }) {
+export function MarketResultList({
+  items,
+  // 목록 배치는 호출부가 정한다. 모험의 서는 좁은 1열(max-w-3xl)이라 기본값이 맞고, 아바타는 넓은
+  // 폭을 2열로 쓴다 — 행 자체는 양쪽이 같아야 하므로 컴포넌트를 쪼개는 대신 컨테이너만 열어둔다.
+  className = 'space-y-2',
+}: {
+  items: MarketSearchItem[]
+  className?: string
+}) {
   return (
-    <ul className="space-y-2">
+    <ul className={className}>
       {/* key에 index를 섞는다 — 같은 id가 한 페이지에 여러 번 올 수 있다(같은 아이템을 서로 다른
           가격에 여러 명이 등록). id만으로는 React 키가 충돌한다(실측: 아바타 무기에서 동일 id 중복). */}
       {items.map((item, i) => (
