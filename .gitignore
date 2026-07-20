@@ -11,6 +11,11 @@ Thumbs.db
 .vscode/
 *.iml
 
+# AI 툴 로컬 설정 — 지금까진 전역 ignore 덕에 빠져 있었을 뿐이라 명시한다.
+# 설계 기록은 .planning/(추적)에 남고, 여기엔 머신 로컬 설정만 들어간다.
+.claude/
+.playwright-mcp/
+
 # Java / Gradle
 .gradle/
 build/

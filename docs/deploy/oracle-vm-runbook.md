@@ -136,7 +136,7 @@ sudo netfilter-persistent save
 ### (d) 관리자 접속 — tailnet에서만
 
 ```
-http://100.78.167.74:8081/admin      # VM의 tailnet IP (sudo tailscale ip -4)
+http://<VM_TAILNET_IP>:8081/admin      # VM의 tailnet IP (sudo tailscale ip -4)
 ```
 
 노트북에서 Tailscale을 켠 상태여야 한다. 공개 도메인의 `/admin`·`/api/admin/*`은 **404**다.
@@ -225,7 +225,7 @@ systemctl status lostark
 - [ ] 대시보드 / 타임라인 / 이벤트영향 **3화면 렌더**
 - [ ] `/timeline` 같은 딥링크 **새로고침해도 정상**(SPA fallback)
 - [ ] 공개 도메인의 `/admin`·`/api/admin/events` → **404**(§4(d)) — 공개 인터넷엔 관리자가 없다
-- [ ] **tailnet**에서 `http://100.78.167.74:8081/admin` → 로그인 화면 + **시크릿 로그인 동작**(강시크릿), 잘못된 시크릿은 401
+- [ ] **tailnet**에서 `http://<VM_TAILNET_IP>:8081/admin` → 로그인 화면 + **시크릿 로그인 동작**(강시크릿), 잘못된 시크릿은 401
 - [ ] **VM 밖에서** `curl --max-time 5 http://<공인IP>:8081/` → **타임아웃/거부**(8081이 공개면 안 됨)
 - [ ] **보안 응답 헤더 7종** 존재(아래 `curl`) + `Server` 헤더 제거됨
 - [ ] 브라우저 콘솔 **CSP 위반 = 무해한 `eval` 1건뿐**(차트·아이콘·Select 정상 렌더)
@@ -599,7 +599,7 @@ cd /opt/lostark-price-tracker && ./scripts/backup-db.sh   # 직접 돌려 에러
 
 ## 12. 능동 모니터링 · 알림 (사이트 · 수집 · 백업 → Discord)
 
-혼자 운영하는 무료 VM이 **"죽어도 모르는"** 상태를 없앤다. 세 신호를 각각 다른 도구로 잡아 **Discord로 능동 통지**한다. 설계 근거·기각안은 `docs/superpowers/specs/2026-07-17-monitoring-alerting-design.md`, 코드 구현은 quick-260718-jrz 참조.
+혼자 운영하는 무료 VM이 **"죽어도 모르는"** 상태를 없앤다. 세 신호를 각각 다른 도구로 잡아 **Discord로 능동 통지**한다. 설계 근거·기각안은 `docs/specs/2026-07-17-monitoring-alerting-design.md`, 코드 구현은 quick-260718-jrz 참조.
 
 | 신호 | 잡는 것 | 도구 | 주기 / 유예 |
 |---|---|---|---|
