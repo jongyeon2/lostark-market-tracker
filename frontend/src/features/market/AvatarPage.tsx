@@ -221,6 +221,11 @@ function ClassTile({
   번들된 공식 SVG. 실패하면 슬롯만 남기고 조용히 비운다(MarketIcon·GemIcon 선례) — 아이콘이 없어도
   아래 이름으로 고를 수 있으니 타일을 통째로 죽이지 않는다. 매핑에 없는 신규 직업(iconSlug=null)도
   같은 빈 슬롯을 쓴다: 줄 이미지가 없는 것과 이미지를 못 받은 것은 화면에서 같은 상태다.
+
+  🔑 다크모드에선 반전한다. 공식 SVG가 fill="#222222" 단색이라 어두운 배경에서 사실상 안 보인다.
+  단색이라 invert가 정확히 #DDDDDD를 만들어 밝은 글리프가 된다 — mask-image로 currentColor를 상속시키거나
+  흰색 아이콘 세트를 하나 더 번들하는 것보다 싸고, <img>를 유지하므로 onError 폴백도 그대로 살아있다.
+  (색이 여러 개인 아이콘이었다면 invert는 색상까지 뒤집어 못 썼을 것이다.)
 */
 function ClassIcon({ entry }: { entry: ClassEntry }) {
   const [failed, setFailed] = useState(false)
@@ -233,7 +238,7 @@ function ClassIcon({ entry }: { entry: ClassEntry }) {
           src={classIconUrl(slug)}
           alt=""
           loading="lazy"
-          className="size-full object-contain"
+          className="size-full object-contain dark:invert"
           onError={() => setFailed(true)}
         />
       ) : null}

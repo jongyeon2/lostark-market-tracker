@@ -22,10 +22,12 @@ export function formatChangeRate(rate: number): string {
 // the domain audience (로아 유저 · 국내 면접관) reads the 국내 거래소/MTS convention (상승=빨강 · 하락=파랑).
 // Down uses blue-700 (#1D4ED8), intentionally distinct from the blue-600 accent (#2563EB): the
 // accent is reserved for structure (buttons/focus/selection), this blue is inline number text only.
+// 값은 --change-* 토큰으로 올라갔다(다크모드, 2026-07-20). hex를 여기 박아두면 테마별 값을 가질 수
+// 없다. 토큰 이름을 --up/--down과 따로 둔 이유는 index.css의 --change-* 주석에 그대로 옮겨 적었다.
 export function changeRateColorClass(rate: number): string {
-  if (rate > 0) return 'text-[#DC2626]' // 상승 = 빨강 (red-600)
-  if (rate < 0) return 'text-[#1D4ED8]' // 하락 = 파랑 (blue-700)
-  return 'text-[#64748B]' // 보합 = 중립 (slate-500)
+  if (rate > 0) return 'text-change-up' // 상승 = 빨강
+  if (rate < 0) return 'text-change-down' // 하락 = 파랑
+  return 'text-change-flat' // 보합 = 중립
 }
 
 // Thousands-separated price (D-06) — reuses the LatestPriceCard convention.

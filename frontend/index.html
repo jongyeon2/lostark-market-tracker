@@ -6,6 +6,28 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Loaket · 로스트아크 시세 트래커</title>
+    <!--
+      테마 부트스트랩 — 반드시 첫 페인트 전에 동기적으로 실행돼야 한다. React 안에서 하면 번들을
+      받아 마운트할 때까지 라이트가 먼저 그려져 다크 사용자에게 흰 화면이 번쩍한다(FOUC).
+      그래서 컴포넌트가 아니라 <head>의 인라인 스크립트다.
+
+      저장된 수동 선택이 있으면 그걸 쓰고, 없으면 OS 설정을 따른다(사용자 결정: 첫 방문은 시스템).
+      localStorage 접근이 막힌 환경(프라이버시 모드 등)에서도 죽지 않게 try/catch로 감싼다 —
+      여기서 던지면 이 스크립트 아래가 통째로 안 돌아 페이지가 빈 채로 남는다.
+    -->
+    <script>
+      ;(function () {
+        try {
+          var saved = localStorage.getItem('theme')
+          var dark =
+            saved === 'dark' ||
+            (saved !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+          if (dark) document.documentElement.classList.add('dark')
+        } catch (e) {
+          /* 저장소를 못 읽으면 라이트로 둔다 — 테마 하나 때문에 앱이 안 뜨는 것보다 낫다 */
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

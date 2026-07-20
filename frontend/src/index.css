@@ -7,6 +7,13 @@
 @import 'tw-animate-css';
 
 /*
+  Tailwind v4의 `dark:`는 기본이 `prefers-color-scheme` 미디어쿼리라 수동 토글이 먹지 않는다.
+  <html class="dark">를 보도록 바꿔야 헤더의 해/달 버튼이 동작한다. 시스템 설정 추종은 사라지는 게
+  아니라 index.html의 부트스트랩 스크립트가 대신 판단한다(수동 선택이 없을 때만 시스템을 따름).
+*/
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
   Loaket 브랜드 워드마크 — Fredoka + 그라데이션 초록. 로고 색(연두→진초록)에서 뽑았다.
   background-clip:text로 글자에 그라데이션을 입히므로 color는 transparent가 되어야 한다.
   @supports 미지원 브라우저(사실상 없음)에서는 fallback으로 단색 초록이 보이도록 color를 먼저 준다.
@@ -32,6 +39,12 @@
     Accent       #2563EB (blue-600)   | destructive #DC2626 (red-600)
 */
 :root {
+  /*
+    네이티브 위젯(스크롤바·date input 달력·select 팝업)은 CSS 변수를 안 본다 — 브라우저가 color-scheme을
+    보고 스스로 칠한다. 이걸 안 주면 다크 화면에 밝은 회색 스크롤바가 그대로 남는다(라이브 QA에서 발견).
+  */
+  color-scheme: light;
+
   --radius: 0.625rem;
 
   --background: #f8fafc; /* slate-50  — app background / dominant surface */
@@ -100,6 +113,117 @@
   --grade-rare: #1d4ed8; /* blue-700   — 희귀              6.41:1 */
   --grade-epic: #7e22ce; /* purple-700 — 영웅              6.67:1 */
   --grade-legendary: #c2410c; /* orange-700 — 전설              4.95:1 */
+
+  /*
+    등락 색 — 국내 거래소/MTS 관례(**상승=빨강 · 하락=파랑**). `--up`/`--down`과 **의미 축이 정반대**라
+    (그쪽은 일반적인 가격 상승=초록) 절대 공유하면 안 된다. 원래 impactFormat.ts에 hex로 박혀 있었고
+    그 이유가 주석에 적혀 있었는데, 다크모드를 붙이며 토큰으로 끌어올리면서 그 구분을 그대로 옮겼다.
+    하락의 파랑은 accent(blue-600)와 일부러 다른 blue-700 — accent는 구조(버튼·포커스·선택) 전용이고
+    이건 본문 숫자 색이다.
+  */
+  --change-up: #dc2626; /* red-600  — 상승 */
+  --change-down: #1d4ed8; /* blue-700 — 하락 */
+  --change-flat: #64748b; /* slate-500 — 보합 */
+
+  /*
+    타임라인 차트 — Recharts가 SVG 속성으로 받는 색. 두 지표를 색으로 구분한다(백필 vs 실측).
+  */
+  --chart-min: #2563eb; /* blue-600  — 실측 최저호가 */
+  --chart-backfill: #d97706; /* amber-600 — 일별 평균가 백필 */
+
+  /*
+    이벤트 종류 색 — 차트의 세로 마커 · 범례 스와치 · 이벤트 배지가 공유한다. 색 단독으로 의미를
+    나르지 않는다(항상 한글 라벨 동반, 마커는 점선이라 형태로도 구분).
+  */
+  --event-loa-on: #7c3aed; /* violet-600 */
+  --event-major-update: #ea580c; /* orange-600 */
+  --event-season-end: #db2777; /* pink-600 */
+  --event-balance-patch: #0d9488; /* teal-600 */
+  --event-new-class: #3b82f6; /* blue-500 */
+  --event-new-raid: #dc2626; /* red-600 */
+  --event-general-patch: #16a34a; /* green-600 */
+}
+
+/*
+  다크 테마 (사용자 결정 2026-07-20: shadcn 표준 slate 계열). 라이트 토큰은 **한 값도 바꾸지 않는다** —
+  라이트 화면이 한 픽셀도 안 변하는 것이 이 작업의 제약이었다.
+
+  면 관계를 라이트와 동일하게 유지한다: 라이트가 bg=slate-50 / card=흰색으로 **카드가 배경보다 밝다**.
+  다크도 bg=slate-950 / card=slate-900으로 카드가 더 밝다. 반대로 뒤집으면 같은 컴포넌트가 테마마다
+  다른 깊이로 읽힌다.
+
+  대비는 전부 계산해서 넣었다(배경 #020617 · 카드 #0f172a 양쪽 기준, 텍스트 AA 4.5:1 / 차트·마커 3:1):
+  본문 19.3 · muted 7.9 · primary 4.9 · 등급 6.8~10.3 · 등락 6.5~7.0 · 이벤트 6.6~9.6 — 전부 통과.
+  전반적으로 라이트보다 여유가 큰데, 다크에서는 400번대 색을 쓰기 때문이다(라이트는 700번대라
+  4.8:1 언저리가 여럿이었다).
+*/
+.dark {
+  color-scheme: dark; /* 네이티브 스크롤바·달력·팝업까지 어둡게 (위 :root 주석 참고) */
+
+  --background: #020617; /* slate-950 */
+  --foreground: #f8fafc; /* slate-50   19.28:1 */
+
+  --card: #0f172a; /* slate-900 — 배경보다 밝게(라이트와 같은 관계) */
+  --card-foreground: #f8fafc;
+
+  --popover: #0f172a;
+  --popover-foreground: #f8fafc;
+
+  --primary: #3b82f6; /* blue-500 — blue-600은 어두운 배경에서 가라앉는다  4.85:1 */
+  --primary-foreground: #ffffff;
+
+  --secondary: #1e293b; /* slate-800 */
+  --secondary-foreground: #f8fafc;
+
+  --muted: #1e293b; /* slate-800 */
+  --muted-foreground: #94a3b8; /* slate-400   6.96:1 */
+
+  --accent: #1e293b;
+  --accent-foreground: #f8fafc;
+
+  --destructive: #f87171; /* red-400   6.45:1 */
+  --destructive-foreground: #0f172a; /* 밝은 빨강 위엔 어두운 글자 */
+
+  --border: #1e293b; /* slate-800 */
+  --input: #1e293b;
+  --ring: #3b82f6;
+
+  --up: #4ade80; /* green-400  10.25:1 */
+  --down: #f87171; /* red-400     6.45:1 */
+  --warning: #fbbf24; /* amber-400  10.69:1 */
+  --neutral: #94a3b8; /* slate-400   6.96:1 */
+
+  /*
+    역할 알약은 라이트에서 "진한 배경 + 흰 글자"였다. 다크에선 배경이 어두워 진한 알약이 묻히므로
+    한 단계 밝히고 글자를 어둡게 뒤집는다 — 알약이 면으로 보여야 라벨이 읽힌다.
+  */
+  --role-dealer: #fb7185; /* rose-400 */
+  --role-support: #34d399; /* emerald-400 */
+  --role-material: #fbbf24; /* amber-400 */
+
+  /* 등급 — 라이트는 700번대(흰 배경용), 다크는 400번대. 일반은 여기서도 게임의 흰색을 그대로 쓰지
+     않는다: 본문색과 같아져 "등급 없음"처럼 읽히므로 중립 회색을 유지한다. */
+  --grade-normal: #94a3b8; /* slate-400    6.96:1 */
+  --grade-uncommon: #4ade80; /* green-400   10.25:1 */
+  --grade-rare: #60a5fa; /* blue-400     7.02:1 */
+  --grade-epic: #c084fc; /* purple-400   6.76:1 */
+  --grade-legendary: #fb923c; /* orange-400   7.89:1 */
+
+  /* 등락 — 관례(상승=빨강·하락=파랑)는 그대로, 밝기만 다크용으로. */
+  --change-up: #f87171; /* red-400    6.45:1 */
+  --change-down: #60a5fa; /* blue-400   7.02:1 */
+  --change-flat: #94a3b8; /* slate-400  6.96:1 */
+
+  --chart-min: #60a5fa; /* blue-400   7.02:1 */
+  --chart-backfill: #fbbf24; /* amber-400 10.69:1 */
+
+  --event-loa-on: #a78bfa; /* violet-400  6.56:1 */
+  --event-major-update: #fb923c; /* orange-400  7.89:1 */
+  --event-season-end: #f472b6; /* pink-400    6.74:1 */
+  --event-balance-patch: #2dd4bf; /* teal-400    9.59:1 */
+  --event-new-class: #60a5fa; /* blue-400    7.02:1 */
+  --event-new-raid: #f87171; /* red-400     6.45:1 */
+  --event-general-patch: #4ade80; /* green-400  10.25:1 */
 }
 
 @theme inline {
@@ -140,6 +264,11 @@
   --color-grade-rare: var(--grade-rare);
   --color-grade-epic: var(--grade-epic);
   --color-grade-legendary: var(--grade-legendary);
+
+  /* 등락 유틸 (text-change-up …) — 국내 관례. --up/--down과 의미 축이 반대다(위 주석) */
+  --color-change-up: var(--change-up);
+  --color-change-down: var(--change-down);
+  --color-change-flat: var(--change-flat);
 
   --font-sans: 'Inter Variable', Inter, system-ui, -apple-system, sans-serif;
 

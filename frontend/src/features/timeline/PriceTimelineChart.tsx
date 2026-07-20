@@ -34,8 +34,9 @@ interface ChartRow {
 
 // Distinct colors so the two metrics are told apart by COLOR (and the backfill legend label), never
 // merged. 실측=파랑(호가), 백필=주황(거래 평균).
-const MIN_COLOR = '#2563EB'
-const BACKFILL_COLOR = '#D97706'
+// 다크모드(2026-07-20): hex → 토큰. Recharts는 SVG stroke/fill로 넘기므로 CSS 변수가 그대로 먹는다.
+const MIN_COLOR = 'var(--chart-min)'
+const BACKFILL_COLOR = 'var(--chart-backfill)'
 
 // Compact ko-KR gold for the y-axis ticks (e.g. 1250000 -> '125만').
 const compactGold = new Intl.NumberFormat('ko-KR', { notation: 'compact' })
@@ -143,19 +144,19 @@ export function PriceTimelineChart({
   return (
     <ResponsiveContainer width="100%" height={360} minHeight={280}>
       <LineChart data={rows} margin={{ top: 16, right: 16, bottom: 8, left: 8 }}>
-        <CartesianGrid vertical={false} stroke="#E2E8F0" strokeDasharray="3 3" />
+        <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 3" />
         <XAxis
           type="number"
           scale="time"
           dataKey="t"
           domain={['dataMin', 'dataMax']}
           tickFormatter={(ms: number) => kstMonthDay.format(new Date(ms))}
-          tick={{ fontSize: 14, fill: '#64748B' }}
+          tick={{ fontSize: 14, fill: 'var(--muted-foreground)' }}
         />
         <YAxis
           width={56}
           tickFormatter={(v: number) => compactGold.format(v)}
-          tick={{ fontSize: 14, fill: '#64748B' }}
+          tick={{ fontSize: 14, fill: 'var(--muted-foreground)' }}
         />
         <Tooltip content={<PriceTooltip />} />
         <Legend

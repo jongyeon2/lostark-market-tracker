@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom'
 
+import { ThemeToggle } from '@/components/layout/ThemeToggle'
 import { cn } from '@/lib/utils'
 
 /*
@@ -60,6 +61,8 @@ export function TopNav() {
               {item.label}
             </NavLink>
           ))}
+          {/* 테마 토글은 라우트가 아니므로 링크 목록 뒤, 살짝 띄워 붙인다. */}
+          <ThemeToggle />
         </nav>
       </div>
     </header>
