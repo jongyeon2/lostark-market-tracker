@@ -20,7 +20,7 @@
 export interface ClassEntry {
   /** API가 주는 한글 직업명 그대로. 검색 요청에 그대로 실려 나가는 값이다. */
   name: string
-  /** `/class-icons/{slug}.svg` 의 파일명. 매핑에 없는 신규 직업이면 null. */
+  /** 공식 CDN의 `{slug}.svg` 파일명(→ `classIconUrl`). 매핑에 없는 신규 직업이면 null. */
   iconSlug: string | null
 }
 
@@ -99,9 +99,25 @@ const OFFICIAL_GROUPS: readonly { label: string; classes: readonly ClassEntry[] 
   },
 ]
 
-/** 번들된 공식 SVG 경로. public/ 아래라 빌드 해시가 붙지 않고 이름이 그대로 URL이 된다. */
+/** 공식 CDN의 직업 아이콘 베이스. 아이템 아이콘(`iconUrl`)과 같은 호스트라 CSP에 이미 허용돼 있다. */
+const CLASS_ICON_BASE = 'https://cdn-lostark.game.onstove.com/2018/obt/assets/images/common/class'
+
+/*
+  🔑 번들 → 핫링크로 바꾼 이유(2026-07-20): 저장소를 public으로 열기 때문이다.
+
+  처음엔 SVG 30개를 public/class-icons/ 에 받아뒀다. 이 URL들은 API가 준 값이 아니라 사이트 내부
+  자산(경로에 `2018/obt`가 박혀 있다)이라 예고 없이 옮겨질 수 있고, 번들해두면 그 위험이 없기
+  때문이었다. 그 판단 자체는 지금도 맞다.
+
+  바뀐 건 전제다. 오픈 API 이용약관 「지식재산권」은 "콘텐츠를 다운로드하여 보관하거나 보관된
+  자료를 타인에게 제공하는 행위"를 위반으로 규정하고, 제재는 API 접근 권한 제한이다. private
+  저장소일 땐 '보관'이었지만 public은 '타인에게 제공'이 된다 — 그리고 키가 정지되면 사이트가
+  통째로 멈춘다. 링크가 깨지는 쪽이 훨씬 가벼운 사고라 트레이드오프가 뒤집혔다.
+
+  깨짐 대비는 `ClassIcon`의 onError 폴백이 받는다(아이콘 자리 24px를 유지해 레이아웃이 안 밀린다).
+*/
 export function classIconUrl(iconSlug: string): string {
-  return `/class-icons/${iconSlug}.svg`
+  return `${CLASS_ICON_BASE}/${iconSlug}.svg`
 }
 
 /**

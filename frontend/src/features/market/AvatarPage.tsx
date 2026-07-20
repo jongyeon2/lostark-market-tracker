@@ -238,7 +238,11 @@ function ClassIcon({ entry }: { entry: ClassEntry }) {
           src={classIconUrl(slug)}
           alt=""
           loading="lazy"
-          className="size-full object-contain dark:invert"
+          /* 원본 CDN 파일은 대부분 fill="#222222"인데 5개(디스트로이어·워로드·홀리나이트·차원술사·
+             가디언나이트)만 fill="white"라 라이트 모드에서 안 보인다. 예전엔 파일을 직접 고쳐서
+             맞췄지만 핫링크는 원본을 못 바꾼다 — 단색 아이콘이므로 brightness-0으로 30개를 전부
+             검정으로 눌러 통일하고, 다크에서 invert로 뒤집는다(원본 색과 무관하게 항상 맞는다). */
+          className="size-full object-contain brightness-0 dark:invert"
           onError={() => setFailed(true)}
         />
       ) : null}
