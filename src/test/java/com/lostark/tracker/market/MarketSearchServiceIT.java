@@ -144,4 +144,96 @@ class MarketSearchServiceIT extends PostgresRedisContainers {
                 .isInstanceOf(RateLimitedApiException.class);
         verify(client, never()).searchMarket(anyString(), any(), any(), anyInt(), anyString(), anyString());
     }
+
+    // --- 모험의 서 전량 (getAdventureAll) ---------------------------------------------------------
+    // The 대륙별 view needs a 대륙's items, which are scattered across every page, so this walks the
+    // whole category and caches it. That makes the paging loop's termination load-bearing: it spends
+    // one shared-bucket token PER PAGE, so a loop that fails to stop would drain the collector.
+
+    /** A page of {@code size} rows starting at {@code from}, in a category of {@code totalCount}. */
+    private static MarketSearchResponse page(int from, int size, int totalCount) {
+        List<MarketSearchItem> rows = java.util.stream.IntStream.range(from, from + size)
+                .mapToObj(i -> new MarketSearchItem((long) i, "수집품" + i, "일반", "https://cdn/x.png",
+                        100L + i, 101L + i, 1.0))
+                .toList();
+        return new MarketSearchResponse(1, 10, totalCount, rows);
+    }
+
+    /** Walks every page and concatenates — the whole category comes back, not just page 1. */
+    @Test
+    void adventureAllWalksEveryPageUntilTotalCountIsReached() {
+        when(client.searchMarket(anyString(), any(), any(), eq(1), anyString(), anyString()))
+                .thenReturn(page(0, 10, 25));
+        when(client.searchMarket(anyString(), any(), any(), eq(2), anyString(), anyString()))
+                .thenReturn(page(10, 10, 25));
+        when(client.searchMarket(anyString(), any(), any(), eq(3), anyString(), anyString()))
+                .thenReturn(page(20, 5, 25));
+
+        MarketSearchResponse all = service.getAdventureAll();
+
+        assertThat(all.items()).hasSize(25);
+        assertThat(all.totalCount()).isEqualTo(25);
+        verify(client, times(3)).searchMarket(anyString(), any(), any(), anyInt(), anyString(), anyString());
+    }
+
+    /**
+     * Core Value guard, and the whole point of the 10분 TTL: a miss costs ~14 calls, so the second
+     * request must cost ZERO. Browsing 대륙 must not scale API spend.
+     */
+    @Test
+    void adventureAllSecondCallIsFullyCached() {
+        when(client.searchMarket(anyString(), any(), any(), anyInt(), anyString(), anyString()))
+                .thenReturn(page(0, 3, 3));
+
+        service.getAdventureAll();
+        service.getAdventureAll();
+
+        verify(client, times(1)).searchMarket(anyString(), any(), any(), anyInt(), anyString(), anyString());
+    }
+
+    /**
+     * Termination guard. If the upstream reports a totalCount we can never reach (here: always 10 rows
+     * but claims 9999), the loop must stop at ADVENTURE_MAX_PAGES instead of spinning forever and
+     * draining the collector's token budget one call at a time.
+     */
+    @Test
+    void adventureAllStopsAtMaxPagesWhenTotalCountIsUnreachable() {
+        when(client.searchMarket(anyString(), any(), any(), anyInt(), anyString(), anyString()))
+                .thenReturn(page(0, 10, 9999));
+
+        MarketSearchResponse all = service.getAdventureAll();
+
+        assertThat(all.items()).hasSize(10 * MarketSearchService.ADVENTURE_MAX_PAGES);
+        verify(client, times(MarketSearchService.ADVENTURE_MAX_PAGES))
+                .searchMarket(anyString(), any(), any(), anyInt(), anyString(), anyString());
+    }
+
+    /** An empty page ends the walk too — otherwise a short category would burn all 50 page slots. */
+    @Test
+    void adventureAllStopsOnAnEmptyPage() {
+        when(client.searchMarket(anyString(), any(), any(), eq(1), anyString(), anyString()))
+                .thenReturn(page(0, 10, 9999));
+        when(client.searchMarket(anyString(), any(), any(), eq(2), anyString(), anyString()))
+                .thenReturn(new MarketSearchResponse(2, 10, 9999, List.of()));
+
+        MarketSearchResponse all = service.getAdventureAll();
+
+        assertThat(all.items()).hasSize(10);
+        verify(client, times(2)).searchMarket(anyString(), any(), any(), anyInt(), anyString(), anyString());
+    }
+
+    /**
+     * The bucket can run dry MID-walk (14 tokens is a lot to ask at once). We fail the request rather
+     * than keep spending — Core Value outranks an on-demand search — and nothing partial is cached.
+     */
+    @Test
+    void adventureAllYieldsWhenTheBucketRunsDryMidWalk() {
+        when(rateLimiter.tryAcquire()).thenReturn(true, true, false);
+        when(client.searchMarket(anyString(), any(), any(), anyInt(), anyString(), anyString()))
+                .thenReturn(page(0, 10, 9999));
+
+        assertThatThrownBy(() -> service.getAdventureAll())
+                .isInstanceOf(RateLimitedApiException.class);
+        verify(client, times(2)).searchMarket(anyString(), any(), any(), anyInt(), anyString(), anyString());
+    }
 }

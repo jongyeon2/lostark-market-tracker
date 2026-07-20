@@ -20,8 +20,6 @@ import java.util.Set;
 @RequestMapping("/api/market")
 public class MarketController {
 
-    /** 모험의 서 — a single leaf category, no class/part. */
-    private static final String ADVENTURE_CATEGORY = "100000";
     /** 아바타 상위 — a CharacterClass filter against this returns all parts for that class. */
     private static final String AVATAR_ROOT = "20000";
     /** The 10 avatar part categories (전체 제외). A {@code part} outside this set is a 400 — never forwarded. */
@@ -40,14 +38,18 @@ public class MarketController {
         return service.getClasses();
     }
 
-    /** 모험의 서 검색 — search + sort + page only (no class). */
+    /**
+     * 모험의 서 전량 (~140). No paging, no sort, no query params.
+     *
+     * <p>Was a paged passthrough until 2026-07-20. The 대륙별 분류 view needs one 대륙's 7 collectibles,
+     * which are scattered across all ~14 pages (the upstream category has no sub-categories and no
+     * continent filter — 실측), so a page-at-a-time contract cannot serve it. The client holds the
+     * 대륙 map and does 검색·정렬 locally over these rows; see {@link MarketSearchService#getAdventureAll()}
+     * for why that is also cheaper in API calls than the old contract.
+     */
     @GetMapping("/adventure")
-    public MarketSearchResponse adventure(
-            @RequestParam(required = false) String q,
-            @RequestParam(defaultValue = "min_price") String sort,
-            @RequestParam(defaultValue = "asc") String dir,
-            @RequestParam(defaultValue = "1") int page) {
-        return service.search(ADVENTURE_CATEGORY, null, q, page, sort, dir);
+    public MarketSearchResponse adventure() {
+        return service.getAdventureAll();
     }
 
     /**

@@ -56,14 +56,20 @@ class MarketControllerIT extends PostgresRedisContainers {
                         new MarketSearchItem(1L, "x", "영웅", "https://cdn/x.png", 100L, 101L, 1.0))));
     }
 
+    /**
+     * 모험의 서 is the whole category in one response now (no q/sort/dir/page) — the 대륙별 view needs
+     * rows that span every page, and the client filters/sorts them locally. See
+     * {@link com.lostark.tracker.market.MarketSearchService#getAdventureAll()}.
+     */
     @Test
-    void adventureSearchReturns200WithItems() {
+    void adventureReturns200WithEveryItem() {
         ResponseEntity<MarketSearchResponse> res = rest.getForEntity(
-                "/api/market/adventure?q=숨결&sort=min_price&dir=desc", MarketSearchResponse.class);
+                "/api/market/adventure", MarketSearchResponse.class);
 
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(res.getBody()).isNotNull();
         assertThat(res.getBody().items()).hasSize(1);
+        assertThat(res.getBody().totalCount()).isEqualTo(1);
     }
 
     @Test
@@ -100,10 +106,16 @@ class MarketControllerIT extends PostgresRedisContainers {
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
+    /**
+     * The sort whitelist now only has a surface on /avatar — 모험의 서 dropped its sort param when it
+     * became a whole-category response (the client sorts locally). The guarantee it protects is
+     * unchanged: the upstream API 200-IGNORES an unknown Sort, so an unvalidated value would silently
+     * not sort while the UI claimed it did.
+     */
     @Test
     void badSortIs400() {
         ResponseEntity<String> res = rest.getForEntity(
-                "/api/market/adventure?sort=GRADE", String.class);
+                "/api/market/avatar?class=바드&sort=GRADE", String.class);
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 

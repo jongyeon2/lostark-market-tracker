@@ -3,6 +3,7 @@ package com.lostark.tracker.market;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lostark.tracker.collect.LostarkApiClient;
 import com.lostark.tracker.collect.error.RateLimitedApiException;
+import com.lostark.tracker.market.dto.MarketSearchItem;
 import com.lostark.tracker.market.dto.MarketSearchResponse;
 import com.lostark.tracker.ratelimit.RedisTokenBucket;
 import com.lostark.tracker.web.error.InvalidRequestException;
@@ -12,6 +13,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -39,6 +41,22 @@ public class MarketSearchService {
     /** The class list changes only when 로스트아크 ships a new class — cache it long. */
     static final Duration CLASSES_TTL = Duration.ofHours(6);
     static final String CLASSES_CACHE_KEY = "market:classes";
+
+    /** 모험의 서 (a single leaf category, no class/part). */
+    static final String ADVENTURE_CATEGORY = "100000";
+    static final String ADVENTURE_CACHE_KEY = "market:adventure:all";
+    /**
+     * Longer than {@link #CACHE_TTL} because a miss costs ~14 calls, not one. This is the knob that caps
+     * 모험의 서 at 14 calls per 10 minutes no matter how much the page is used.
+     */
+    static final Duration ADVENTURE_TTL = Duration.ofMinutes(10);
+    /**
+     * Hard stop on the paging loop. 모험의 서 is ~140 items = 14 pages at the API's fixed PageSize 10;
+     * 50 leaves room for the category to grow while guaranteeing termination if the upstream ever
+     * returns a totalCount we can never reach (a non-decreasing page that always yields items would
+     * otherwise spin forever, burning the collector's token budget).
+     */
+    static final int ADVENTURE_MAX_PAGES = 50;
 
     /** Frontend sort key -> upstream Sort. A closed vocabulary; anything else is a 400 (see class doc). */
     private static final Map<String, String> SORT = Map.of(
@@ -98,7 +116,51 @@ public class MarketSearchService {
 
         MarketSearchResponse fresh = client.searchMarket(
                 categoryCode, characterClass, itemName, page, apiSort, apiDir);
-        writeCache(cacheKey, fresh);
+        writeCache(cacheKey, fresh, CACHE_TTL);
+        return fresh;
+    }
+
+    /**
+     * EVERY 모험의 서 item in one response (~140), for the 대륙별 분류 view.
+     *
+     * <p><b>Why the whole category instead of one page</b>: a 대륙's 7 collectibles are scattered across
+     * all ~14 pages — the upstream API has no continent filter and 카테고리 100000 has no sub-categories
+     * (실측), so no single paged request can produce "루테란 서부 7개". Searching by name 7 times would
+     * cost 7 calls AND drag in partial-name matches.
+     *
+     * <p>The trade is a ~14-call cache miss, spent from the SAME shared bucket as the collector (D-03).
+     * Mid-loop the bucket can run dry; we fail the request rather than steal the collector's budget —
+     * Core Value outranks an on-demand search (same rule as {@link #search}). The 10분 TTL is what makes
+     * this cheap in aggregate: it caps 모험의 서 at 14 calls per 10 minutes however heavily it is browsed,
+     * whereas the old per-page passthrough spent one call on every page turn.
+     *
+     * <p>Sorting/filtering is NOT done here. The caller (frontend) holds the 대륙 map and applies 검색·정렬
+     * over these 140 rows locally, so switching 대륙 costs zero calls.
+     */
+    public MarketSearchResponse getAdventureAll() {
+        MarketSearchResponse cached = readCache(ADVENTURE_CACHE_KEY);
+        if (cached != null) {
+            return cached;
+        }
+
+        List<MarketSearchItem> all = new ArrayList<>();
+        int totalCount = 0;
+        for (int page = 1; page <= ADVENTURE_MAX_PAGES; page++) {
+            if (!rateLimiter.tryAcquire()) {
+                throw new RateLimitedApiException("검색 요청이 많습니다. 잠시 후 다시 시도해 주세요.", null);
+            }
+            MarketSearchResponse chunk = client.searchMarket(
+                    ADVENTURE_CATEGORY, null, null, page, "CURRENT_MIN_PRICE", "ASC");
+            totalCount = chunk.totalCount();
+            all.addAll(chunk.items());
+            // An empty page also ends the loop: a totalCount we can never reach must not spin forever.
+            if (chunk.items().isEmpty() || all.size() >= totalCount) {
+                break;
+            }
+        }
+
+        MarketSearchResponse fresh = new MarketSearchResponse(1, all.size(), totalCount, all);
+        writeCache(ADVENTURE_CACHE_KEY, fresh, ADVENTURE_TTL);
         return fresh;
     }
 
@@ -138,9 +200,9 @@ public class MarketSearchService {
         }
     }
 
-    private void writeCache(String key, MarketSearchResponse value) {
+    private void writeCache(String key, MarketSearchResponse value, Duration ttl) {
         try {
-            redis.opsForValue().set(key, objectMapper.writeValueAsString(value), CACHE_TTL);
+            redis.opsForValue().set(key, objectMapper.writeValueAsString(value), ttl);
         } catch (Exception e) {
             // fail-open: serving without a cache beats failing the page (GemService precedent).
             log.debug("market cache write failed ({}) — serving uncached", e.getClass().getSimpleName());
