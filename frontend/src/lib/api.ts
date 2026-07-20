@@ -21,6 +21,7 @@ import {
   type LatestPrice,
   type Timeline,
   type EventImpact,
+  type EventType,
   type AdminEventRequest,
   type AdminItemRequest,
   type GameEventResponse,
@@ -78,9 +79,28 @@ export async function getTimeline(id: number, from: string, to: string): Promise
   return timelineSchema.parse(await request(`/api/items/${id}/prices?${qs}`))
 }
 
-export async function getEventImpact(id: number, window: number): Promise<EventImpact> {
-  const qs = new URLSearchParams({ window: String(window) }).toString()
-  return eventImpactSchema.parse(await request(`/api/items/${id}/event-impact?${qs}`))
+/** occurred_at 정렬 방향 — 백엔드 화이트리스트 vocabulary 그대로. 다른 값은 400이다. */
+export type EventImpactSort = 'occurred_desc' | 'occurred_asc'
+
+/*
+  이벤트 영향 조회. types/sort/limit은 **서버가** 적용한다(2026-07-20) — 이벤트가 만 건 쌓이면
+  응답이 3~4MB라, 다 받아놓고 클라이언트에서 거르면 문제의 절반만 해결된다.
+  types를 비우면 전체(서버 기본값)이므로 굳이 7종을 나열해 보내지 않는다.
+*/
+export async function getEventImpact(
+  id: number,
+  window: number,
+  params: { types?: readonly EventType[]; sort: EventImpactSort; limit: number },
+): Promise<EventImpact> {
+  const qs = new URLSearchParams({
+    window: String(window),
+    sort: params.sort,
+    limit: String(params.limit),
+  })
+  if (params.types && params.types.length > 0) {
+    qs.set('types', params.types.join(','))
+  }
+  return eventImpactSchema.parse(await request(`/api/items/${id}/event-impact?${qs.toString()}`))
 }
 
 // GET /api/news (17.2) — public read; the frontend never calls Lostark directly (D-06). Same zod

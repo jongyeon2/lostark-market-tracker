@@ -149,6 +149,9 @@ export type EventImpactItem = z.infer<typeof eventImpactItemSchema>
 export const eventImpactSchema = z.object({
   itemId: z.number(),
   window: z.number(),
+  // 타입 필터를 통과한 전체 건수 — events.length가 아니다(서버가 limit으로 잘라 보낸다).
+  // "전체 N건 중 M건"을 정직하게 쓰고 '더 보기'가 끝났는지 판단하는 근거.
+  totalCount: z.number(),
   iconUrl: z.string().nullable(),
   itemGroup: z.string().nullable(),
   roleGroup: roleGroupSchema.nullable(),

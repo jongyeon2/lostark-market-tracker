@@ -22,6 +22,7 @@ import {
   getAvatar,
   type MarketSort,
   type MarketDir,
+  type EventImpactSort,
   getAdminCoupons,
   createAdminCoupon,
   replaceAdminCoupon,
@@ -32,6 +33,7 @@ import type {
   AdminCouponRequest,
   AdminEventRequest,
   AdminItemRequest,
+  EventType,
   TrackedItem,
 } from '@/lib/schemas'
 
@@ -61,10 +63,22 @@ export function useTimeline(id: number, from: string, to: string) {
   })
 }
 
-export function useEventImpact(id: number, window: number) {
+/*
+  이벤트 영향. 필터·정렬·개수는 **서버가** 적용하므로 전부 쿼리 키에 들어간다(2026-07-20) —
+  키가 같으면 캐시가 응답하고, 바뀌면 새로 받는다.
+
+  placeholderData로 이전 결과를 유지한다: '더 보기'는 limit을 키워 다시 받는 방식이라 그때마다
+  목록이 비었다가 다시 그려지면 방금까지 읽던 위치를 잃는다. 필터를 바꿀 때도 같은 이유.
+*/
+export function useEventImpact(
+  id: number,
+  window: number,
+  params: { types: readonly EventType[]; sort: EventImpactSort; limit: number },
+) {
   return useQuery({
-    queryKey: ['event-impact', id, window],
-    queryFn: () => getEventImpact(id, window),
+    queryKey: ['event-impact', id, window, [...params.types].sort().join(','), params.sort, params.limit] as const,
+    queryFn: () => getEventImpact(id, window, params),
+    placeholderData: (prev) => prev,
   })
 }
 
