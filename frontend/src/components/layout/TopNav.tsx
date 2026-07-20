@@ -43,8 +43,15 @@ export function TopNav() {
           <span className="text-muted-foreground hidden text-xs sm:block">로스트아크 시세 트래커</span>
         </NavLink>
         {/* 좁은 화면(<sm)에선 링크가 줄바꿈돼 지저분해지므로 gap을 줄이고 줄바꿈을 막는다.
-            브랜드 부제도 <sm에선 숨겨 폭을 브랜드가 독점하지 않게 한다. */}
-        <nav className="flex shrink-0 items-center gap-4 sm:gap-6">
+            브랜드 부제도 <sm에선 숨겨 폭을 브랜드가 독점하지 않게 한다.
+
+            <sm gap이 4→2인 이유(2026-07-20): 다크모드에서 테마 토글이 들어오며 375px에서 헤더가
+            17px 넘쳐 **페이지 전체에 가로 스크롤**이 생겼다(실측 scrollWidth 377 > clientWidth 360;
+            토글을 숨기면 360으로 딱 맞았다). gap을 8px로 줄이면 375px에서 정확히 들어간다.
+            ⚠️ 320px는 이걸로도 안 된다 — 토글을 빼도 20px 넘친다(즉 토글 이전부터의 문제).
+            브랜드 + 링크 4개를 320px에 넣으려면 축소가 아니라 별도의 반응형 네비(오버플로 메뉴)가
+            필요하고, 그건 이 변경의 범위가 아니다. */}
+        <nav className="flex shrink-0 items-center gap-2 sm:gap-6">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
