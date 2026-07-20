@@ -7,6 +7,8 @@
 ![Redis](https://img.shields.io/badge/Redis-7-DC382D?logo=redis&logoColor=white)
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
 
+<sub>※ 스마일게이트와 무관한 **비공식 개인 프로젝트**입니다. 로스트아크 관련 명칭·이미지의 권리는 스마일게이트에 있으며, 게임 데이터는 공식 오픈 API로 조회합니다.</sub>
+
 > 로스트아크 거래소 시세를 10분마다 자동으로 모아 쌓고, 차트로 보여주는 웹 서비스입니다.<br>
 > 
 > 소재는 게임이지만 구조는 주식·코인 시세 수집 파이프라인과 같습니다.
