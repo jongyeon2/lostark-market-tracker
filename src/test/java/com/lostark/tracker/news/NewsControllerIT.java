@@ -16,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -45,9 +47,22 @@ class NewsControllerIT extends PostgresRedisContainers {
     @Autowired
     RedisConnectionFactory redisConnectionFactory;
 
+    /*
+      진행 기간은 실행 시각 기준으로 만든다 — 하드코딩하면 안 된다.
+
+      원래 "2026-07-01 ~ 2026-07-20"으로 박혀 있었고, 2026-07-20 06:00 KST를 지나는 순간 무관한 커밋의
+      빌드가 빨갛게 됐다. NewsService는 서빙할 때마다 isOngoingAt(nowKst)로 종료된 이벤트를 걸러내므로
+      (그게 이 기능의 사양이다) 고정 날짜는 반드시 만료된다. 날짜를 뒤로 미루는 건 폭탄의 타이머를
+      다시 감는 것일 뿐이라 상대 시각으로 바꾼다.
+
+      zone은 프로덕션 필터와 같은 KST여야 한다 — endDate가 KST 벽시계 문자열이기 때문(LostarkNewsClient).
+    */
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
     private static final NewsEvent EVENT =
-            new NewsEvent("이벤트A", "https://lostark.game.onstove.com/e", "2026-07-01T06:00:00",
-                    "2026-07-20T06:00:00", "https://cdn-lostark.game.onstove.com/t.jpg");
+            new NewsEvent("이벤트A", "https://lostark.game.onstove.com/e",
+                    LocalDateTime.now(KST).minusDays(1).toString(),
+                    LocalDateTime.now(KST).plusDays(1).toString(),
+                    "https://cdn-lostark.game.onstove.com/t.jpg");
     private static final NewsNotice NOTICE =
             new NewsNotice("공지A", "https://lostark.game.onstove.com/n", "2026-07-01T15:10:18.527", "공지");
 
