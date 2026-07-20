@@ -1,4 +1,4 @@
-# 🎮 로스트아크 거래소 시세 트래커 (Lostark Market Tracker)
+# 🎮 Loaket (로스트아크 아이템 시세 트래커)
 
 [![CI](https://github.com/jongyeon2/lostark-market-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/jongyeon2/lostark-market-tracker/actions/workflows/ci.yml)
 ![Java](https://img.shields.io/badge/Java-21-007396?logo=openjdk&logoColor=white)
@@ -10,7 +10,7 @@
 > 로스트아크 거래소 시세를 10분마다 자동으로 모아 쌓고, 차트로 보여주는 웹 서비스입니다.
 > 소재는 게임이지만 구조는 주식·코인 시세 수집 파이프라인과 같습니다.
 
-### 🔗 라이브 데모 → **[loaket.kr](https://loaket.kr)**
+### 🔗 **[loaket.kr](https://loaket.kr)**
 
 ![품목 타임라인 — 30일 시세 라인 차트(최저가·평균 거래가)와 이벤트 범례](frontend/docs/screenshots/item-timeline.png)
 
