@@ -219,6 +219,126 @@ class EventImpactIT extends PostgresRedisContainers {
                 "/api/items/{id}/event-impact?window={w}", String.class, itemId, window);
     }
 
+    // --- 필터 · 정렬 · limit (2026-07-20) -------------------------------------------------------
+    // 이 엔드포인트는 등록된 이벤트를 전부 계산해 전부 반환했다. 만 건이면 응답이 3~4MB가 되고
+    // 클라이언트가 그걸 다 그린다. 아래 테스트들이 고정하는 것은 "잘라 보내되 잘랐다고 말한다"이다.
+
+    @Test
+    void typesFilterSelectsOnlyThoseKinds() {
+        TrackedItem item = saveItem();
+        saveEvent(EventType.LOA_ON, "로아온", E);
+        saveEvent(EventType.NEW_RAID, "신규 레이드", E.plusHours(1));
+        saveEvent(EventType.BALANCE_PATCH, "밸패", E.plusHours(2));
+
+        ResponseEntity<EventImpactResponse> resp = rest.getForEntity(
+                "/api/items/{id}/event-impact?window=24&types=LOA_ON,BALANCE_PATCH",
+                EventImpactResponse.class, item.getId());
+
+        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getBody()).isNotNull();
+        assertThat(resp.getBody().events())
+                .extracting(i -> i.eventType())
+                .containsExactlyInAnyOrder(EventType.BALANCE_PATCH, EventType.LOA_ON);
+        // totalCount는 필터 적용 후 건수 — 전체 3건이 아니다.
+        assertThat(resp.getBody().totalCount()).isEqualTo(2);
+    }
+
+    @Test
+    void sortAscReturnsOldestFirst() {
+        TrackedItem item = saveItem();
+        saveEvent(EventType.LOA_ON, "older", E);
+        saveEvent(EventType.SEASON_END, "newer", E.plusHours(48));
+
+        ResponseEntity<EventImpactResponse> resp = rest.getForEntity(
+                "/api/items/{id}/event-impact?window=24&sort=occurred_asc",
+                EventImpactResponse.class, item.getId());
+
+        assertThat(resp.getBody()).isNotNull();
+        assertThat(resp.getBody().events())
+                .extracting(i -> i.occurredAt().toInstant())
+                .containsExactly(E.toInstant(), E.plusHours(48).toInstant());
+    }
+
+    /**
+     * The load-bearing one: {@code limit} cuts the list but {@code totalCount} still reports how many
+     * matched. Without that distinction a truncated screen is indistinguishable from a complete one,
+     * and the client cannot know whether 더 보기 has anything left.
+     */
+    @Test
+    void limitCutsTheListButTotalCountStillReportsEveryMatch() {
+        TrackedItem item = saveItem();
+        for (int i = 0; i < 5; i++) {
+            saveEvent(EventType.GENERAL_PATCH, "patch" + i, E.plusHours(i));
+        }
+
+        ResponseEntity<EventImpactResponse> resp = rest.getForEntity(
+                "/api/items/{id}/event-impact?window=24&limit=2",
+                EventImpactResponse.class, item.getId());
+
+        assertThat(resp.getBody()).isNotNull();
+        assertThat(resp.getBody().events()).hasSize(2);
+        assertThat(resp.getBody().totalCount()).isEqualTo(5);
+        // 최신순 기본값이므로 잘려 나온 2건은 가장 최근 2건이어야 한다.
+        assertThat(resp.getBody().events())
+                .extracting(i -> i.occurredAt().toInstant())
+                .containsExactly(E.plusHours(4).toInstant(), E.plusHours(3).toInstant());
+    }
+
+    /** 파라미터를 안 주면 전체 타입 · 최신순 · 기본 상한. 기존 호출자의 계약이 유지된다. */
+    @Test
+    void defaultsAreAllTypesNewestFirst() {
+        TrackedItem item = saveItem();
+        saveEvent(EventType.LOA_ON, "older", E);
+        saveEvent(EventType.NEW_CLASS, "newer", E.plusHours(10));
+
+        ResponseEntity<EventImpactResponse> resp = rest.getForEntity(
+                "/api/items/{id}/event-impact?window=24", EventImpactResponse.class, item.getId());
+
+        assertThat(resp.getBody()).isNotNull();
+        assertThat(resp.getBody().totalCount()).isEqualTo(2);
+        assertThat(resp.getBody().events())
+                .extracting(i -> i.occurredAt().toInstant())
+                .containsExactly(E.plusHours(10).toInstant(), E.toInstant());
+    }
+
+    /*
+      화이트리스트는 방어가 아니라 load-bearing이다. 모르는 sort를 기본값으로 흘려보내면 화면은
+      "오래된순"이라고 말하는데 목록은 최신순 그대로다 — MarketSearchService가 정렬 vocabulary에
+      세운 규율과 같다. 잘못된 타입도 조용히 버리면 "그 종류엔 데이터가 없다"로 읽힌다.
+    */
+    @Test
+    void unknownSortIs400() {
+        TrackedItem item = saveItem();
+        ResponseEntity<String> resp = rest.getForEntity(
+                "/api/items/{id}/event-impact?window=24&sort=title_desc", String.class, item.getId());
+        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    void unknownEventTypeIs400() {
+        TrackedItem item = saveItem();
+        ResponseEntity<String> resp = rest.getForEntity(
+                "/api/items/{id}/event-impact?window=24&types=LOA_ON,NOT_A_TYPE", String.class, item.getId());
+        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    void limitOutOfBoundsIs400() {
+        TrackedItem item = saveItem();
+        assertThat(rest.getForEntity("/api/items/{id}/event-impact?window=24&limit=0",
+                String.class, item.getId()).getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(rest.getForEntity("/api/items/{id}/event-impact?window=24&limit=201",
+                String.class, item.getId()).getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    /** 400은 404보다 먼저 (D-08/D-13) — 새 파라미터도 같은 자리에서 검증되는지 고정한다. */
+    @Test
+    void badParamOnMissingItemIs400Not404() {
+        ResponseEntity<String> resp = rest.getForEntity(
+                "/api/items/{id}/event-impact?window=24&sort=nope", String.class, 999999L);
+        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
     private TrackedItem saveItem() {
         return trackedItemRepository.save(new TrackedItem("1001", "itemA", "50010"));
     }

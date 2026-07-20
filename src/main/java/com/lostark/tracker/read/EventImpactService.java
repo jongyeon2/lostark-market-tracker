@@ -1,6 +1,7 @@
 package com.lostark.tracker.read;
 
 import com.lostark.tracker.domain.DailyStatSource;
+import com.lostark.tracker.domain.EventType;
 import com.lostark.tracker.domain.GameEvent;
 import com.lostark.tracker.domain.ItemDailyStat;
 import com.lostark.tracker.domain.PriceSnapshot;
@@ -10,6 +11,9 @@ import com.lostark.tracker.repository.PriceSnapshotRepository;
 import com.lostark.tracker.web.dto.AnchorSource;
 import com.lostark.tracker.web.dto.EventImpactItem;
 import com.lostark.tracker.web.dto.EventImpactResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -19,6 +23,7 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -33,10 +38,17 @@ import java.util.Map;
  * prices, NOT a window average (D-01).
  *
  * <p>The headline engineering property is N+1 avoidance (D-09 / design T7): events are fetched ONCE
- * ({@code findAllByOrderByOccurredAtDesc}) and the item's snapshots for the whole
+ * ({@code findByEventTypeIn}) and the item's snapshots for the whole
  * {@code [min(occurredAt) - Nh, max(occurredAt) + Nh]} span are fetched in a SINGLE range read; every
  * event's anchors are then derived in memory. The snapshot finder runs exactly once regardless of
  * event count — it is never called per event.
+ *
+ * <p><b>Filtered + paged (2026-07-20).</b> The event read now takes a type filter, a sort direction
+ * and a limit. Both properties above are preserved and in fact tightened: applying the filter and
+ * limit BEFORE the computation narrows {@code [min, max]}, so the single snapshot range read gets
+ * SMALLER, and the loop below runs over at most {@code limit} events instead of every event ever
+ * registered. The response reports {@code totalCount} (matches before the limit) so a truncated
+ * result is never mistaken for a complete one.
  *
  * <p>An event is {@code "ok"} (with {@code change_rate}) ONLY when both anchors are present AND both
  * are fresh — within the {@link #STALENESS_ALLOWANCE} of the event (IMPACT-02, D-02/D-03/D-04).
@@ -96,10 +108,24 @@ public class EventImpactService {
         this.itemDailyStatRepository = itemDailyStatRepository;
     }
 
-    public EventImpactResponse eventImpact(long itemId, int windowHours) {
-        List<GameEvent> events = gameEventRepository.findAllByOrderByOccurredAtDesc();
+    /**
+     * @param types     event kinds to include. Callers with no filter pass ALL values rather than
+     *                  null/empty, so this method has one path (see the repository finder's javadoc).
+     * @param direction {@code occurred_at} order — DESC (newest first) or ASC (oldest first).
+     * @param limit     max events to evaluate and return. Validated by the controller; the response's
+     *                  {@code totalCount} still reports how many matched the filter, so a caller can
+     *                  tell a cut-off list from a complete one.
+     */
+    public EventImpactResponse eventImpact(long itemId, int windowHours,
+                                           Collection<EventType> types,
+                                           Sort.Direction direction,
+                                           int limit) {
+        Page<GameEvent> page = gameEventRepository.findByEventTypeIn(
+                types, PageRequest.of(0, limit, Sort.by(direction, "occurredAt")));
+        List<GameEvent> events = page.getContent();
+        long totalCount = page.getTotalElements();
         if (events.isEmpty()) {
-            return new EventImpactResponse(itemId, windowHours, List.of());
+            return new EventImpactResponse(itemId, windowHours, totalCount, List.of());
         }
 
         Duration window = Duration.ofHours(windowHours);
@@ -119,7 +145,7 @@ public class EventImpactService {
         for (GameEvent event : events) {
             items.add(toImpactItem(event, window, snapshots, dailyAvg));
         }
-        return new EventImpactResponse(itemId, windowHours, items);
+        return new EventImpactResponse(itemId, windowHours, totalCount, items);
     }
 
     /**

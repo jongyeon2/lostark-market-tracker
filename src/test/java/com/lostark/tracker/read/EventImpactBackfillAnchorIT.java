@@ -16,11 +16,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.EnumSet;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -76,8 +78,16 @@ class EventImpactBackfillAnchorIT extends PostgresRedisContainers {
         itemDailyStatRepository.upsertDailyStat(itemId, day, new BigDecimal(avg), source.name());
     }
 
+    /*
+      이 IT는 백필 앵커 계산만 본다 — 필터/정렬/limit은 관심사가 아니므로 "전부 · 최신순 · 넉넉한 상한"
+      으로 고정한다(2026-07-20 시그니처 확장). 이 클래스는 이벤트를 하나만 심으므로 어떤 값을 줘도
+      같은 한 건이 나오고, 그래서 이 테스트가 검증하는 성질은 그대로다.
+    */
     private EventImpactItem only(int windowHours) {
-        return eventImpactService.eventImpact(itemId, windowHours).events().get(0);
+        return eventImpactService
+                .eventImpact(itemId, windowHours, EnumSet.allOf(EventType.class), Sort.Direction.DESC, 50)
+                .events()
+                .get(0);
     }
 
     @Test

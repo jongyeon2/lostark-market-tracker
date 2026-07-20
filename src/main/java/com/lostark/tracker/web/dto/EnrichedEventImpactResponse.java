@@ -15,6 +15,8 @@ import java.util.List;
 public record EnrichedEventImpactResponse(
         long itemId,
         int window,
+        /** Events matching the type filter BEFORE limit — see {@link EventImpactResponse#totalCount()}. */
+        long totalCount,
         String iconUrl,
         String itemGroup,
         String roleGroup,
