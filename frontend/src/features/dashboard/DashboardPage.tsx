@@ -7,7 +7,12 @@ import { sortByRole } from '@/features/_shared/roleGroup'
 import type { GemPrice } from '@/lib/schemas'
 
 import { CategoryNav } from './CategoryNav'
-import { deriveCategories, filterByCategory, firstCategoryId, GEM_CATEGORY_ID } from './categories'
+import {
+  deriveCategories,
+  filterByCategory,
+  firstCategoryId,
+  GEM_CATEGORY_ID,
+} from '@/features/_shared/categories'
 import { GemCard } from './GemCard'
 import { ItemCard } from './ItemCard'
 import { ItemImpactSection } from './ItemImpactSection'

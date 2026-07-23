@@ -1,12 +1,21 @@
 import type { TrackedItem } from '@/lib/schemas'
 
 /*
-  Single source of truth (mirrors _shared/roleGroup.ts) for the dashboard's category taxonomy
-  (Phase 23, UX-01). The left CategoryNav groups leaves under 각인서 / 재료; each leaf is a filter
-  predicate over the already-loaded item list. 각인서 leaves split by roleGroup (DEALER/SUPPORT);
-  재료 leaves split by the material itemGroup (재련재료/상급재련/재련보조/아크그리드젬). Items
-  with roleGroup=null or an unknown itemGroup match no leaf — the same silent exclusion the old
-  dashboard applied (curation has none). Pure functions only: no data fetching, no React.
+  Single source of truth (mirrors _shared/roleGroup.ts) for the app's category taxonomy
+  (Phase 23, UX-01). Leaves group under 각인서 / 재료; each leaf is a filter predicate over the
+  already-loaded item list. 각인서 leaves split by roleGroup (DEALER/SUPPORT); 재료 leaves split by
+  the material itemGroup (재련재료/상급재련/재련보조/아크그리드젬). Items with roleGroup=null or an
+  unknown itemGroup match no leaf — the same silent exclusion the old dashboard applied (curation
+  has none). Pure functions only: no data fetching, no React.
+
+  🔑 Lives in _shared because TWO screens now read it (quick-260723-jx1): the dashboard's
+  CategoryNav and the timeline's ItemPicker. It used to sit in features/dashboard/, and importing
+  it from features/timeline/ would have broken the layer rule this codebase already set for
+  ItemSelect (D-07: 'extracted to _shared so the layer dependency never flows impact→timeline').
+
+  ⚠️ 보석 leaf (GEM_CATEGORY_ID) is DASHBOARD-ONLY. Callers opt in by passing gemCount > 0; the
+  timeline passes 0 because gems are not TrackedItems and have no time series, so a 보석 tab there
+  would lead to a chart that cannot exist.
 */
 
 export type CategoryGroup = '각인서' | '재료'
