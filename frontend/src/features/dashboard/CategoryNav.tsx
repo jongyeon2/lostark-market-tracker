@@ -4,7 +4,12 @@ import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { TrackedItem } from '@/lib/schemas'
 
-import { groupIconUrl, GEM_CATEGORY_ID, type Category, type CategoryGroup } from './categories'
+import {
+  groupIconUrl,
+  GEM_CATEGORY_ID,
+  type Category,
+  type CategoryGroup,
+} from '@/features/_shared/categories'
 
 /*
   CategoryNav — the dashboard's category filter (Phase 23, UX-01/UX-02). Stateless: it renders the

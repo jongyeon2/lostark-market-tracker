@@ -4,7 +4,7 @@ import { PackageSearch, TriangleAlert } from 'lucide-react'
 import { useCollectionHealth, useItems, useTimeline } from '@/lib/queries'
 import { deriveCollectionEmptyKind } from '@/lib/collectionEmptyState'
 import { ApiError } from '@/lib/api'
-import { ItemSelect } from '@/features/_shared/ItemSelect'
+import { ItemPicker } from '@/features/_shared/ItemPicker'
 import { LatestPriceCard } from '@/features/_shared/LatestPriceCard'
 import { useTimelineParams } from '@/features/timeline/useTimelineParams'
 import { RangeControls } from '@/features/timeline/RangeControls'
@@ -134,9 +134,12 @@ function ChartArea({
 
 /*
   TimelinePage — composes the headline timeline screen (TIME-01/05) top-to-bottom per 09-UI-SPEC:
-  control bar [ItemSelect][7/30/90일][시작일/종료일] → LatestPriceCard → chart area (legend + chart +
+  control bar [ItemPicker] / [7/30/90일][시작일/종료일] → LatestPriceCard → chart area (legend + chart +
   downsample badge). URL searchParams are the single source of truth (useTimelineParams, D-04): the
   selector/range controls are dumb controlled components wired to setItem/setRange here.
+
+  품목 선택기는 quick-260723-jx1에서 드롭다운(ItemSelect)에서 2단 칩(ItemPicker)으로 교체됐다 —
+  49개를 스크롤로 찾게 하던 것과, 트리거가 품목명 대신 역할군만 보여주던 것을 함께 없앴다.
 
   D-06 default selection: ?item= wins when present; otherwise the FIRST item is auto-selected once
   items load, so the chart is never a blank '품목을 선택하세요' prompt on entry. With the D-03 last-30-days
@@ -160,10 +163,14 @@ export function TimelinePage() {
 
   return (
     <div className="space-y-6">
-      {/* Control bar: selector + presets + date inputs (wraps on narrow widths). */}
-      <div className="flex flex-wrap items-end gap-4">
-        <ItemSelect value={itemId} onChange={setItem} />
-        <RangeControls from={from} to={to} onRangeChange={setRange} />
+      {/* Control bar. 선택기가 드롭다운(한 줄)에서 2단 칩(세로로 자람)으로 바뀌면서 기간 컨트롤을
+          같은 줄에 두면 칩 그리드가 커질 때 날짜 입력이 아래로 밀려 정렬이 흐트러진다. 그래서
+          [품목 선택] / [기간] 두 블록을 세로로 쌓는다 — 고르는 순서(무엇을 → 언제)와도 일치한다. */}
+      <div className="space-y-4">
+        <ItemPicker value={itemId} onChange={setItem} />
+        <div className="flex flex-wrap items-end gap-4">
+          <RangeControls from={from} to={to} onRangeChange={setRange} />
+        </div>
       </div>
 
       {/* Latest-price card — rendered only once a selection is resolved (its own AsyncBoundary). */}
