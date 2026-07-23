@@ -23,7 +23,20 @@ import type { Coupon, NewsEvent } from '@/lib/schemas'
   calls only /api/news — never Lostark directly (D-06).
 */
 
+// 쿠폰·공지 전용 상한. 이벤트는 아래 COLLAPSED_EVENT_ROWS로 따로 접는다 — 셋이 한 상수를 공유하던
+// 동안에는 이벤트만 줄일 수가 없었다.
 const MAX_ROWS = 6
+
+/*
+  진행중 이벤트의 기본(접힘) 개수. 배너 카드가 약 194px/장이라 6장이면 우측 컬럼 혼자 1,163px를 써서
+  페이지 높이(1,520px)를 결정해 버린다 — 좌측(900px)·중앙(770px)이 끝난 뒤 약 650px가 배너만 남는
+  구간이 된다(실측 1440×900, 2026-07-23). 화면의 유일한 컬러 이미지 6장이 전부 여기라 시각 무게도
+  주변부에 쏠린다.
+
+  3장으로 접으면 약 930px가 되어 좌·중앙 끝과 맞아떨어진다. 더보기로 펼쳤을 때의 상한은 MAX_ROWS
+  그대로 — 즉 펼친 화면은 이 작업 이전과 정확히 같다. 접는 것이지 버리는 게 아니다.
+*/
+const COLLAPSED_EVENT_ROWS = 3
 
 export function NewsPanel() {
   const { status, data, refetch } = useNews()
@@ -118,8 +131,19 @@ function CouponSection() {
 /*
   진행중 이벤트 — loawa.com 스타일: 배너 썸네일 이미지 + 그 아래 작은 제목·기간(세로 카드 스택,
   좁은 사이드바에 맞춰 1열). 썸네일이 없으면 텍스트만. 카드 전체가 로아 공식 link 새 탭.
+
+  기본은 COLLAPSED_EVENT_ROWS장만 보이고 나머지는 더보기로 펼친다(사용자 결정 2026-07-23). 펼침
+  상태는 컴포넌트 로컬 useState — URL에도 서버에도 남기지 않는다(A4 YAGNI, 대시보드 카테고리 선택과
+  동일한 판단). 공식 이벤트 목록 페이지로 내보내는 안은 택하지 않았다: 각 카드가 이미 개별 공식
+  링크를 갖고 있어서, 목록을 더 보려다 사이트를 떠나게 만들 이유가 없다.
 */
 function EventSection({ events }: { events: NewsEvent[] }) {
+  const [expanded, setExpanded] = useState(false)
+  const visible = expanded ? events : events.slice(0, COLLAPSED_EVENT_ROWS)
+  // 접었을 때 가려지는 개수. 0 이하면 더보기 버튼 자체를 렌더하지 않는다 — 누를 게 없는 버튼은
+  // 있으나 마나가 아니라 거짓말이다(이벤트가 3개 이하인 시기에 실제로 그렇게 된다).
+  const hiddenCount = events.length - COLLAPSED_EVENT_ROWS
+
   return (
     <section className="space-y-2">
       <SectionHeading>진행중인 이벤트</SectionHeading>
@@ -127,7 +151,7 @@ function EventSection({ events }: { events: NewsEvent[] }) {
         <EmptyLine>진행중인 이벤트가 없어요</EmptyLine>
       ) : (
         <ul className="space-y-3">
-          {events.map((event) => (
+          {visible.map((event) => (
             <li key={event.link}>
               <a
                 href={event.link}
@@ -154,6 +178,19 @@ function EventSection({ events }: { events: NewsEvent[] }) {
             </li>
           ))}
         </ul>
+      )}
+      {/* 더보기/접기 — 가릴 게 있을 때만. variant="ghost"라 배너 아래에서 또 하나의 무거운 블록이
+          되지 않는다(이 작업의 목적 자체가 우측 시각 무게를 덜어내는 것이다). */}
+      {hiddenCount > 0 && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-muted-foreground w-full"
+          aria-expanded={expanded}
+          onClick={() => setExpanded((prev) => !prev)}
+        >
+          {expanded ? '접기' : `이벤트 ${hiddenCount}개 더보기`}
+        </Button>
       )}
     </section>
   )
