@@ -1,0 +1,107 @@
+# Dependabot — 의존성 취약점·버전 업데이트 상시 감시
+#
+# 계기: GHSA-qwww-vcr4-c8h2 (react-router RSC CSRF, High 7.1). 우리 앱은
+# 순수 클라이언트 SPA라 취약 코드 경로(unstable RSC APIs)가 없어 실제 영향은
+# 없었지만, "그때 마침 봤다"에 기대지 않고 공급망 표면 전체를 주간 스캔한다.
+# minor/patch는 묶고 major는 개별 PR로 받아, react-router v8 같은 브레이킹
+# 체인지는 따로 검토한다.
+#
+# 문서: https://docs.github.com/code-security/dependabot/dependabot-version-updates
+version: 2
+
+updates:
+  # ── 프론트엔드 (npm) ──────────────────────────────────────────────
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Seoul"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "frontend"
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      # minor·patch는 한 PR로 묶어 리뷰 부담을 줄인다. major는 그룹에서
+      # 제외되어 개별 PR로 오므로 브레이킹 체인지를 격리 검토할 수 있다.
+      npm-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # ── 백엔드 (Gradle) ───────────────────────────────────────────────
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Seoul"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "backend"
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      gradle-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # ── GitHub Actions (CI 공급망) ────────────────────────────────────
+  # ci.yml이 참조하는 액션 버전도 공급망 표면이다. 핀·취약점 대상.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Seoul"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "ci"
+    commit-message:
+      prefix: "chore(ci)"
+    groups:
+      actions-all:
+        patterns:
+          - "*"
+
+  # ── Docker 베이스 이미지 (backend Dockerfile) ─────────────────────
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Seoul"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "chore(docker)"
+
+  # ── Docker 베이스 이미지 (frontend Dockerfile) ────────────────────
+  - package-ecosystem: "docker"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Seoul"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "chore(docker)"
