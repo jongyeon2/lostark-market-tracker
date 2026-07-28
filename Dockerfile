@@ -3,14 +3,14 @@
 #  run   스테이지: JRE 21 런타임에서 비루트(appuser)로 실행.
 # 시크릿은 이미지 레이어에 굽지 않는다 — LOSTARK_API_KEY / ADMIN_API_SECRET / DB·Redis 비번은
 # 런타임 env(.env.prod → docker-compose)로만 주입한다(DEPLOY-04).
-FROM eclipse-temurin:21-jdk AS build
+FROM eclipse-temurin:25-jdk AS build
 WORKDIR /app
 COPY gradlew build.gradle settings.gradle ./
 COPY gradle ./gradle
 COPY src ./src
 RUN chmod +x gradlew && ./gradlew --no-daemon clean bootJar -x test
 
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:25-jre
 # 비루트 런타임 — 컨테이너 탈출 시 권한 최소화.
 RUN useradd -r -u 1001 appuser
 WORKDIR /app
