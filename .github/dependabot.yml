@@ -3,8 +3,17 @@
 # 계기: GHSA-qwww-vcr4-c8h2 (react-router RSC CSRF, High 7.1). 우리 앱은
 # 순수 클라이언트 SPA라 취약 코드 경로(unstable RSC APIs)가 없어 실제 영향은
 # 없었지만, "그때 마침 봤다"에 기대지 않고 공급망 표면 전체를 주간 스캔한다.
-# minor/patch는 묶고 major는 개별 PR로 받아, react-router v8 같은 브레이킹
-# 체인지는 따로 검토한다.
+#
+# 업데이트 정책:
+#   - minor/patch: 그룹으로 묶어 자동 PR (리뷰 부담↓).
+#   - major: ignore — 자동 PR을 만들지 않는다. 브레이킹 체인지(예: react-router
+#     v8, spring-boot 4)는 손으로 신중히 업그레이드한다. 특히 배포 파이프라인
+#     액션·도커 베이스 이미지는 PR CI(images/deploy job)가 skip돼 green이 검증을
+#     보장하지 않으므로 자동 병합이 위험하다.
+#   - 보안: major ignore는 "버전 업데이트"에만 적용되고 "보안 업데이트"에는
+#     적용되지 않는다(update-types 기준). 따라서 이번 GHSA처럼 수정이 major
+#     (react-router 8.3.0)에만 있어도 보안 PR은 계속 자동으로 온다.
+#     → docs: dependabot-options-reference #ignore
 #
 # 문서: https://docs.github.com/code-security/dependabot/dependabot-version-updates
 version: 2
@@ -25,14 +34,19 @@ updates:
     commit-message:
       prefix: "chore(deps)"
     groups:
-      # minor·patch는 한 PR로 묶어 리뷰 부담을 줄인다. major는 그룹에서
-      # 제외되어 개별 PR로 오므로 브레이킹 체인지를 격리 검토할 수 있다.
+      # minor·patch는 한 PR로 묶어 리뷰 부담을 줄인다. major는 아래 ignore로
+      # 자동 PR을 막는다(보안 수정 PR은 영향받지 않음).
       npm-minor-patch:
         patterns:
           - "*"
         update-types:
           - "minor"
           - "patch"
+    ignore:
+      # major 버전 업데이트는 자동 PR 제외(보안 업데이트는 무관하게 계속 온다).
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
 
   # ── 백엔드 (Gradle) ───────────────────────────────────────────────
   - package-ecosystem: "gradle"
@@ -55,6 +69,10 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
 
   # ── GitHub Actions (CI 공급망) ────────────────────────────────────
   # ci.yml이 참조하는 액션 버전도 공급망 표면이다. 핀·취약점 대상.
@@ -72,9 +90,18 @@ updates:
     commit-message:
       prefix: "chore(ci)"
     groups:
+      # minor/patch만 묶는다. checkout·build-push 등 액션 major는 배포 job에서만
+      # 실행돼 PR CI로 검증되지 않으므로 ignore로 자동 PR을 막고 직접 올린다.
       actions-all:
         patterns:
           - "*"
+        update-types:
+          - "minor"
+          - "patch"
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
 
   # ── Docker 베이스 이미지 (backend Dockerfile) ─────────────────────
   - package-ecosystem: "docker"
@@ -90,6 +117,12 @@ updates:
       - "docker"
     commit-message:
       prefix: "chore(docker)"
+    ignore:
+      # 베이스 이미지 major(예: temurin 21→25)는 images job이 PR에서 skip돼
+      # 검증 없이 초록이 되므로 자동 PR을 막고 직접 검증 후 올린다.
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
 
   # ── Docker 베이스 이미지 (frontend Dockerfile) ────────────────────
   - package-ecosystem: "docker"
@@ -105,3 +138,7 @@ updates:
       - "docker"
     commit-message:
       prefix: "chore(docker)"
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
