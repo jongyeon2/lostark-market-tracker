@@ -4,12 +4,11 @@ import { PackageSearch, TriangleAlert } from 'lucide-react'
 import { useCollectionHealth, useItems, useTimeline } from '@/lib/queries'
 import { deriveCollectionEmptyKind } from '@/lib/collectionEmptyState'
 import { ApiError } from '@/lib/api'
-import { CategoryNav } from '@/features/_shared/CategoryNav'
-import { ItemIcon } from '@/features/_shared/ItemIcon'
 import { sortByRole } from '@/features/_shared/roleGroup'
 import { deriveCategories, filterByCategory, type Category } from '@/features/_shared/categories'
 import { LatestPriceCard } from '@/features/_shared/LatestPriceCard'
 import { useTimelineParams } from '@/features/timeline/useTimelineParams'
+import { TimelineItemTree } from '@/features/timeline/TimelineItemTree'
 import { RangeControls } from '@/features/timeline/RangeControls'
 import { PriceTimelineChart } from '@/features/timeline/PriceTimelineChart'
 import { aggregateDailyAverage } from '@/features/timeline/dailyBuckets'
@@ -19,7 +18,6 @@ import { ErrorState } from '@/components/state/ErrorState'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { cn } from '@/lib/utils'
 import type { TrackedItem } from '@/lib/schemas'
 
 // last-30-days window as ISO instants — used by the 200-empty CTA to reset the range (D-03/D-09).
@@ -144,17 +142,15 @@ function ChartArea({
 }
 
 /*
-  TimelinePage — the headline timeline screen (TIME-01/05). quick-260811: 품목 선택기를 대시보드와 같은
-  좌측 세로 카테고리 레일로 바꿨다. 좌(lg) CategoryNav(_shared, 대시보드와 공유) — 카테고리 선택,
-  우 [선택 카테고리 품목 칩] + [기간] + [LatestPriceCard] + [차트]. 모바일은 1열 stack(CategoryNav가
-  가로 칩으로 자동 축약 → 품목 칩 → 차트).
+  TimelinePage — the headline timeline screen (TIME-01/05). quick-260811: 품목 선택기를 좌측 세로
+  아코디언 트리로 바꿨다(사용자 피드백). 좌(lg) TimelineItemTree — 그룹→리프 카테고리 토글→펼치면
+  품목 목록에서 직접 선택. 우 [기간] + [LatestPriceCard] + [차트](우측 품목 칩은 제거). 모바일은 1열 stack
+  (트리 → 차트). 대시보드 CategoryNav와 taxonomy(_shared/categories)만 공유하고 컴포넌트는 분리한다.
 
-  URL searchParams가 단일 출처(useTimelineParams, D-04). 🔑 로컬 카테고리 state가 없다 — 활성 카테고리는
-  "선택된 품목이 속한 카테고리"로 매 렌더 유도하고(대시보드 selectedId 유도·이전 ItemPicker와 같은 수법),
-  카테고리를 누르면 그 카테고리의 첫 품목을 즉시 setItem하므로 둘이 어긋난 상태가 존재할 수 없다.
-
-  D-06 default selection: ?item= wins when present; otherwise the FIRST item(역할군 정렬)이 자동 선택돼
-  진입 시 빈 '품목을 선택하세요'가 없다. 보석은 제외(gemCount=0) — 시계열이 없어 그릴 수 없는 차트로 간다.
+  URL searchParams가 단일 출처(useTimelineParams, D-04). D-06 default selection: ?item= wins when present;
+  otherwise the FIRST item(역할군 정렬)이 자동 선택돼 진입 시 빈 '품목을 선택하세요'가 없다. 트리의 펼침은
+  선택 품목의 카테고리를 자동으로 따르므로(TimelineItemTree 참조) 진입·자동선택 후에도 열려 있다. 보석은
+  제외(gemCount=0) — 시계열이 없어 그릴 수 없는 차트로 간다.
 */
 export function TimelinePage() {
   const { itemId, from, to, setItem, setRange } = useTimelineParams()
@@ -193,21 +189,9 @@ export function TimelinePage() {
   const selected = sorted.find((i) => i.id === itemId)
   const displayName = selected?.displayName ?? ''
 
-  // 활성 카테고리 = 선택된 품목이 속한 곳. 못 찾으면 첫 카테고리(진입 직후 itemId가 아직 null일 때).
-  const activeCategory =
-    categories.find((c) => itemsOf(c.id).some((i) => i.id === itemId)) ?? categories[0]
-  const visibleItems = activeCategory ? itemsOf(activeCategory.id) : []
-
-  // 카테고리를 누르면 그 카테고리의 첫 품목으로 즉시 이동한다(빈 화면 금지, D-06). 정확한 품목은 우측
-  // 칩에서 한 번 더 누르면 된다.
-  function pickCategory(categoryId: string) {
-    const first = itemsOf(categoryId)[0]
-    if (first) setItem(first.id)
-  }
-
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-[18rem_minmax(0,1fr)] lg:gap-12">
-      {/* 좌(lg)/상단(모바일) — 카테고리 레일. 대시보드와 동일한 sticky 흰 카드 + CategoryNav.
+      {/* 좌(lg)/상단(모바일) — 품목 아코디언 트리. 대시보드와 동일한 sticky 흰 카드.
           top-20(80px)=TopNav 72px+여백8, self-start라야 셀이 행 높이로 늘지 않아 sticky가 동작한다. */}
       <div className="lg:sticky lg:top-20 lg:self-start">
         <div className="lg:bg-card lg:rounded-xl lg:border lg:px-6 lg:py-6 lg:shadow-sm">
@@ -221,31 +205,18 @@ export function TimelinePage() {
           ) : status === 'error' || categories.length === 0 ? (
             <p className="text-muted-foreground text-sm">품목을 불러오지 못했어요</p>
           ) : (
-            <CategoryNav
+            <TimelineItemTree
               categories={categories}
-              items={sorted}
-              selectedId={activeCategory?.id ?? null}
-              onSelect={pickCategory}
+              itemsOf={itemsOf}
+              selectedItemId={itemId}
+              onSelectItem={setItem}
             />
           )}
         </div>
       </div>
 
-      {/* 우 — [선택 카테고리 품목 칩] + [기간] + [최신가] + [차트]. */}
+      {/* 우 — [기간] + [최신가] + [차트]. 품목 선택은 좌측 트리가 전담(우측 품목 칩 없음). */}
       <div className="flex min-w-0 flex-col gap-6">
-        {/* 품목 칩 — 선택된 카테고리의 품목들. 활성 칩에 선택 품목명이 항상 떠 있다. */}
-        {visibleItems.length > 0 && (
-          <div className="flex flex-wrap gap-2" role="group" aria-label="품목 선택">
-            {visibleItems.map((item) => (
-              <Chip key={item.id} active={item.id === itemId} onClick={() => setItem(item.id)}>
-                {/* aria-hidden — 바로 옆 이름이 이미 무엇인지 말한다(CategoryNav와 같은 규칙). */}
-                <ItemIcon iconUrl={item.iconUrl} roleGroup={item.roleGroup} size="sm" />
-                {item.displayName}
-              </Chip>
-            ))}
-          </div>
-        )}
-
         <div className="flex flex-wrap items-end gap-4">
           <RangeControls from={from} to={to} onRangeChange={setRange} />
         </div>
@@ -271,37 +242,5 @@ export function TimelinePage() {
         )}
       </div>
     </div>
-  )
-}
-
-/*
-  칩 하나(ItemPicker에서 계승). 대시보드 CategoryNav의 모바일 Chip과 같은 모양 — 두 화면이 같은 분류를
-  같은 생김새로 보여줘야 학습이 한 번으로 끝난다. 활성 상태는 색만으로 표시하지 않는다(D-01):
-  배경 + 굵기 + aria-current가 함께 간다.
-*/
-function Chip({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean
-  onClick: () => void
-  children: React.ReactNode
-}) {
-  return (
-    <button
-      type="button"
-      aria-current={active ? 'true' : undefined}
-      onClick={onClick}
-      className={cn(
-        'flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm whitespace-nowrap transition-colors',
-        'focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none',
-        active
-          ? 'bg-primary text-primary-foreground font-semibold'
-          : 'bg-muted text-foreground hover:bg-muted/70 font-medium',
-      )}
-    >
-      {children}
-    </button>
   )
 }

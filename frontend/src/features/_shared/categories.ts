@@ -8,9 +8,9 @@ import type { TrackedItem } from '@/lib/schemas'
   unknown itemGroup match no leaf — the same silent exclusion the old dashboard applied (curation
   has none). Pure functions only: no data fetching, no React.
 
-  🔑 Lives in _shared because TWO screens now read it (quick-260723-jx1, quick-260811): the shared
-  CategoryNav rail on both the dashboard and the timeline. It used to sit in features/dashboard/, and
-  importing it from features/timeline/ would have broken the layer rule this codebase already set for
+  🔑 Lives in _shared because TWO screens now read it (quick-260723-jx1, quick-260811): the dashboard's
+  CategoryNav and the timeline's category tree. It used to sit in features/dashboard/, and importing
+  it from features/timeline/ would have broken the layer rule this codebase already set for
   ItemSelect (D-07: 'extracted to _shared so the layer dependency never flows impact→timeline').
 
   ⚠️ 보석 leaf (GEM_CATEGORY_ID) is DASHBOARD-ONLY. Callers opt in by passing gemCount > 0; the

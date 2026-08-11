@@ -6,7 +6,7 @@ import { formatKst } from '@/lib/formatKst'
 import { sortByRole } from '@/features/_shared/roleGroup'
 import type { GemPrice } from '@/lib/schemas'
 
-import { CategoryNav } from '@/features/_shared/CategoryNav'
+import { CategoryNav } from './CategoryNav'
 import {
   deriveCategories,
   filterByCategory,
