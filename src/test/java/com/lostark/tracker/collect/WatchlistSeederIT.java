@@ -25,7 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Proves the {@link WatchlistSeeder} replaces the watchlist with the Phase 12 + 17.1 + 21 + quick-260714
- * spike-verified curation of 49 (SEED-01, v1.5 MKT-02) and that {@link SyntheticDemoData} populates synthetic
+ * spike-verified curation of 53 (SEED-01, v1.5 MKT-02 + quick-260811 전율) and that {@link SyntheticDemoData} populates synthetic
  * history for the resulting new items WITHOUT a key or network (SEED-02) — all on Testcontainers.
  *
  * <p>Runs under the {@code test} profile, where {@code WatchlistSeeder} is inactive
@@ -73,16 +73,16 @@ class WatchlistSeederIT extends PostgresRedisContainers {
     }
 
     @Test
-    void seedsCurationOf49WithRoleDistributionAndEnrichment() {
+    void seedsCurationOf53WithRoleDistributionAndEnrichment() {
         seeder.run(null);
 
         List<TrackedItem> items = trackedItemRepository.findByActiveTrue();
-        assertThat(items).hasSize(49);
+        assertThat(items).hasSize(53);
 
         Map<String, Long> byRole = items.stream()
                 .collect(Collectors.groupingBy(TrackedItem::getRoleGroup, Collectors.counting()));
-        // v1.5(MKT-02) + quick-260714: 장인의 야금술/재봉술 1~4단계 8종 추가 → MATERIAL 23→31. 각인서 불변.
-        assertThat(byRole).containsEntry("MATERIAL", 31L)
+        // v1.5(MKT-02) + quick-260714: 장인 책 8종 → MATERIAL 31. quick-260811: 전율 4종 → MATERIAL 35. 각인서 불변.
+        assertThat(byRole).containsEntry("MATERIAL", 35L)
                 .containsEntry("DEALER", 11L)
                 .containsEntry("SUPPORT", 7L);
 
@@ -99,7 +99,7 @@ class WatchlistSeederIT extends PostgresRedisContainers {
         assertThat(byGroup).doesNotContainKey("강화재료")
                 .containsEntry("재련재료", 11L)
                 .containsEntry("상급재련", 8L)
-                .containsEntry("재련보조", 6L)
+                .containsEntry("재련보조", 10L)
                 .containsEntry("아크그리드젬", 6L)
                 .containsEntry("각인서", 18L);
 
@@ -166,16 +166,25 @@ class WatchlistSeederIT extends PostgresRedisContainers {
         assertThat(breath.getItemGroup()).isEqualTo("재련보조");
         assertThat(breath.getRoleGroup()).isEqualTo("MATERIAL");
         assertThat(breath.getCategory()).isEqualTo("50020");
+
+        // Sample 전율 (quick-260811 신규): 벨가르딘 레이드 신규 재련보조. 아이콘은 업화와 공유 → 라벨 구분, category 50020.
+        TrackedItem awaken = byId.get("66112564");
+        assertThat(awaken).isNotNull();
+        assertThat(awaken.getDisplayName()).isEqualTo("재봉술 : 전율 [12-15]");
+        assertThat(awaken.getIconUrl()).isEqualTo(ICON_BASE + "use_12_219.png");
+        assertThat(awaken.getItemGroup()).isEqualTo("재련보조");
+        assertThat(awaken.getRoleGroup()).isEqualTo("MATERIAL");
+        assertThat(awaken.getCategory()).isEqualTo("50020");
     }
 
     @Test
     void seederIsIdempotentByExternalItemId() {
         seeder.run(null);
-        assertThat(trackedItemRepository.count()).isEqualTo(49);
+        assertThat(trackedItemRepository.count()).isEqualTo(53);
 
         // A second pass upserts by external_item_id — no duplicate inserts.
         seeder.run(null);
-        assertThat(trackedItemRepository.count()).isEqualTo(49);
+        assertThat(trackedItemRepository.count()).isEqualTo(53);
     }
 
     @Test

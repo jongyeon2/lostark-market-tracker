@@ -300,6 +300,31 @@ class MarketsApiSpikeTest extends PostgresRedisContainers {
         System.out.println("=== SPIKE 장인책 wrote " + out.toAbsolutePath());
     }
 
+    /**
+     * Quick task 260811: 신규 재련보조 '전율' 계열(벨가르딘 그림자 레이드, 2026-08-05 출시)을 거래소에서 실측.
+     * 업화와 같은 CategoryCode 50020, 이름검색 '전율'(부분일치)로 야금술/재봉술 × [12-15]/[16-19] 4종
+     * (66112561/62/64/65, Grade=고대)을 DESC+ASC 양방향으로 열거한다. '강화'도 함께 찍어 강화 업화 [19-20]
+     * (66112555/66112556 — 2026-07-14 이미 실측된 기존 미편입 변형)을 재확인한다. cp949 stdout 한글 손실을
+     * 피해 UTF-8 파일(build/spike-jeonyul.txt)로 기록 — 공개 메타데이터만(Id/Name/Grade/Icon), 가격·키 미출력
+     * (appendItemFields 재사용). captureRefineMasterBooks 선례.
+     */
+    @Test
+    void captureAwakenHoningTiers() throws java.io.IOException {
+        Assumptions.assumeTrue(apiKey != null && !apiKey.isBlank(),
+                "LOSTARK_API_KEY not set — skipping live quick-260811 전율 spike");
+        StringBuilder sb = new StringBuilder();
+        for (String name : java.util.List.of("전율", "강화")) {
+            for (String sort : java.util.List.of("DESC", "ASC")) {
+                ResponseEntity<String> r = client.searchMarketItems(50020, name, 1, sort);
+                System.out.println("=== SPIKE 전율 " + name + " " + sort + " p1 STATUS=" + r.getStatusCode());
+                appendItemFields(sb, name + "/" + sort, r.getBody());
+            }
+        }
+        java.nio.file.Path out = java.nio.file.Path.of("build", "spike-jeonyul.txt");
+        java.nio.file.Files.writeString(out, sb.toString(), java.nio.charset.StandardCharsets.UTF_8);
+        System.out.println("=== SPIKE 전율 wrote " + out.toAbsolutePath());
+    }
+
     /** Phase 21: 강화 재료 leaf CategoryCodes to probe for 스펙업 재련 재료. */
     private static final int[] HONING_CATEGORY_CANDIDATES = {50010, 50020, 51000};
 
