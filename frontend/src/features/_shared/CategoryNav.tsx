@@ -12,8 +12,9 @@ import {
 } from '@/features/_shared/categories'
 
 /*
-  CategoryNav — the dashboard's category filter (Phase 23, UX-01/UX-02). Stateless: it renders the
-  derived categories and reports selection via onSelect; DashboardPage owns the selected state. One
+  CategoryNav — the shared category rail (Phase 23, UX-01/UX-02; quick-260811 moved dashboard→_shared
+  so the timeline reuses it, the categories.ts precedent). Stateless: it renders the derived categories
+  and reports selection via onSelect; the caller (DashboardPage / TimelinePage) owns the selected state. One
   component, two responsive faces — a grouped vertical nav on lg+, a horizontal scrollable chip row
   below lg (same leaves, same order). Active state is never color-alone: it pairs the reserved
   primary accent with background + weight + aria-current so identity survives without color.
