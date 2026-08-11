@@ -23,11 +23,11 @@ import java.util.List;
  * <p>Beyond the collection identity, each entry carries the read-path enrichment locked by the
  * Phase 12 + 17.1 + 21 + quick-260714 API spikes (12-/17.1-/21-SPIKE-FINDINGS.md): {@code iconUrl}
  * (CDN base + measured filename), {@code itemGroup} (재련재료/상급재련/재련보조/아크그리드젬/각인서),
- * and {@code roleGroup} ({@code MATERIAL}/{@code DEALER}/{@code SUPPORT}). All 49 entries below carry
+ * and {@code roleGroup} ({@code MATERIAL}/{@code DEALER}/{@code SUPPORT}). All 53 entries below carry
  * a real, spike-verified {@code Id} and {@code Icon} — no placeholders. The 18 relic engraving recipes
  * share {@code use_9_25.png} (grade-single glyph, not per-engraving), so Phase 14 always labels them by
- * name (D-06); the 31 materials carry distinct icons except the 재련보조 업화 group (야금술/재봉술 [15-18]·
- * [19-20] share use_12_218/219 — labeled by name). NOTE(domain, quick-260714): item_group=상급재련은 상급 재련
+ * name (D-06); the 35 materials carry distinct icons except the 재련보조 업화·전율 groups (야금술/재봉술 업화
+ * [15-18]·[19-20]·전율 [12-15]·[16-19] share use_12_218/219 — labeled by name). NOTE(domain, quick-260714): item_group=상급재련은 상급 재련
  * 전용 재료(장인의 야금술/재봉술 1~4단계)만; 업화 계열은 일반 재련 성공률 보조, 숨결은 상급·일반 겸용이라 둘 다
  * item_group=재련보조로 분류한다.
  *
@@ -54,8 +54,8 @@ public class WatchlistSeeder implements ApplicationRunner {
                             String iconUrl, String itemGroup, String roleGroup) {
     }
 
-    // Spike-verified curation of 49 (12-/17.1-/21-/22b-/quick-260714-SPIKE-FINDINGS): 31 materials
-    // (재련재료 11 [융화 2 + 재련기본 9] + 상급재련 8 + 재련보조 6 + 아크그리드젬 6) + 11 dealer + 7 supporter
+    // Spike-verified curation of 53 (12-/17.1-/21-/22b-/quick-260714-/quick-260811-SPIKE-FINDINGS): 35 materials
+    // (재련재료 11 [융화 2 + 재련기본 9] + 상급재련 8 + 재련보조 10 + 아크그리드젬 6) + 11 dealer + 7 supporter
     // engravings. Current T4 meta — high-volatility, high-value 스펙업 picks across all 3 role groups —
     // judgment, not a dump.
     private static final List<SeedItem> WATCHLIST = List.of(
@@ -88,7 +88,7 @@ public class WatchlistSeeder implements ApplicationRunner {
             new SeedItem("66112714", "장인의 재봉술 : 2단계", "50020", ICON_BASE + "use_12_245.png", "상급재련", "MATERIAL"),
             new SeedItem("66112716", "장인의 재봉술 : 3단계", "50020", ICON_BASE + "use_13_222.png", "상급재련", "MATERIAL"),
             new SeedItem("66112718", "장인의 재봉술 : 4단계", "50020", ICON_BASE + "use_13_224.png", "상급재련", "MATERIAL"),
-            // 재련 보조 6 (category=50020, item_group=재련보조) — 재련에 넣는 보조 재료. 무기=야금술, 방어구=재봉술.
+            // 재련 보조 10 (category=50020, item_group=재련보조) — 재련에 넣는 보조 재료. 무기=야금술, 방어구=재봉술.
             //   숨결 2(용암/빙하)는 상급 재련·일반 강화 겸용이라 상급재련 전용 아님 → 재련보조로 분류(도메인 교정, quick-260714).
             //   업화 [15-18]·[19-20] 4는 일반 재련 성공률 보조 재료(아이콘은 레벨구간 공유 use_12_218/219 — 라벨로 구분).
             new SeedItem("66111131", "용암의 숨결", "50020", ICON_BASE + "use_12_171.png", "재련보조", "MATERIAL"),
@@ -97,6 +97,13 @@ public class WatchlistSeeder implements ApplicationRunner {
             new SeedItem("66112552", "재봉술 : 업화 [15-18]", "50020", ICON_BASE + "use_12_219.png", "재련보조", "MATERIAL"),
             new SeedItem("66112553", "야금술 : 업화 [19-20]", "50020", ICON_BASE + "use_12_218.png", "재련보조", "MATERIAL"),
             new SeedItem("66112554", "재봉술 : 업화 [19-20]", "50020", ICON_BASE + "use_12_219.png", "재련보조", "MATERIAL"),
+            // v1.6 신규 재련보조 '전율' 4종 (벨가르딘 그림자 레이드 2026-08-05 — quick-260811 스파이크 실측). 일반 재련
+            //   성공률 보조 재료(업화 계열과 동일 성격), 전부 Grade=고대. 아이콘은 업화와 공유(야금술 use_12_218 ·
+            //   재봉술 use_12_219) → 라벨로 구분(업화 선례). 강화 업화[19-20](66112555/66112556)는 기존 미편입이라 제외.
+            new SeedItem("66112561", "야금술 : 전율 [12-15]", "50020", ICON_BASE + "use_12_218.png", "재련보조", "MATERIAL"),
+            new SeedItem("66112562", "야금술 : 전율 [16-19]", "50020", ICON_BASE + "use_12_218.png", "재련보조", "MATERIAL"),
+            new SeedItem("66112564", "재봉술 : 전율 [12-15]", "50020", ICON_BASE + "use_12_219.png", "재련보조", "MATERIAL"),
+            new SeedItem("66112565", "재봉술 : 전율 [16-19]", "50020", ICON_BASE + "use_12_219.png", "재련보조", "MATERIAL"),
             // 아크그리드 젬 6 (category=230000, item_group=아크그리드젬, 영웅 등급) — 질서 3 + 혼돈 3. 거래소에서 거래(경매장 아님).
             new SeedItem("67400003", "질서의 젬 : 안정", "230000", ICON_BASE + "use_13_110.png", "아크그리드젬", "MATERIAL"),
             new SeedItem("67400103", "질서의 젬 : 견고", "230000", ICON_BASE + "use_13_111.png", "아크그리드젬", "MATERIAL"),
