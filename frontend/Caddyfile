@@ -23,9 +23,21 @@
 		reverse_proxy app:8080
 	}
 
-	# 정적 SPA + 클라이언트 라우팅 fallback(/timeline·/admin 새로고침 대응)
+	# 콘텐츠 해시가 붙은 정적 자산(Vite dist/assets/*-[hash].js|css). 전용 handle이라 SPA fallback을
+	# 타지 않는다 → 존재하지 않는 해시는 index.html이 아니라 404(HTML이 JS URL로 캐시되는 오염 차단).
+	# 파일명에 콘텐츠 해시가 있어 내용이 바뀌면 URL이 바뀌므로 1년 immutable 캐시가 안전하다.
+	handle /assets/* {
+		root * /srv
+		header Cache-Control "public, max-age=31536000, immutable"
+		file_server
+	}
+
+	# 그 외 전부(index.html + /timeline·/admin 등 SPA 라우팅 fallback)는 항상 재검증(no-cache).
+	# 배포 즉시 새 index.html이 새 번들 해시를 참조하게 만들어 브라우저 휴리스틱 캐시로 옛 셸이 뜨는
+	# 버그를 없앤다. 응답 헤더도 함께 캐시되므로 CSP 등 보안 헤더도 stale 없이 최신으로 전파된다.
 	handle {
 		root * /srv
+		header Cache-Control "no-cache"
 		try_files {path} /index.html
 		file_server
 	}
