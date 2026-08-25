@@ -26,3 +26,7 @@ out/
 
 # Local runtime
 docker-data/
+
+# 개인 학습 노트 — 파일 첫 줄이 "커밋하지 않는 개인 노트"라고 선언하고 있는데
+# untracked 상태로만 있어서 `git add .` 한 번이면 딸려 들어간다. 명시해서 막는다.
+STUDY.md
